@@ -1,0 +1,243 @@
+"use client";
+
+import { Loader2, SearchIcon, XIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "../ui/input-group";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "../ui/empty";
+import axios from "axios";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import SearchItem from "./SearchItem";
+import { useRouter } from "next/navigation";
+
+const DEBOUNCE_DELAY = 400;
+
+export default function FloatingSearch() {
+  const router = useRouter();
+  const [open, setOpen] = useState<boolean>(false);
+  const [query, setQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<Array<any>>([]);
+  const [isPending, startTransition] = useTransition();
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const latestQueryRef = useRef<string>("");
+
+  const normalizedQuery = query.trim();
+  const showSpinner = isPending && Boolean(normalizedQuery);
+
+  const from = 0;
+  const size = 20;
+  const web = true;
+
+  const handleSearch = useCallback(
+    (normalizedQuery: string) => {
+      if (!normalizedQuery) {
+        setSearchResults([]);
+        return;
+      }
+
+      startTransition(() => {
+        (async () => {
+          try {
+            const { data } = await axios.get("http://localhost:8080/search", {
+              params: { query: normalizedQuery, from, size, web },
+            });
+
+            if (latestQueryRef.current !== normalizedQuery) {
+              return;
+            }
+
+            const { success, instruments } = data;
+
+            if (success) {
+              setSearchResults(instruments || []);
+            } else {
+              toast.error("Search failed. Please try again.");
+            }
+          } catch (error) {
+            if (latestQueryRef.current === normalizedQuery) {
+              toast.error("Search failed. Please try again.");
+            }
+          }
+        })();
+      });
+    },
+    [from, size, web]
+  );
+
+  const handleClear = useCallback(() => {
+    setQuery("");
+    setSearchResults([]);
+    latestQueryRef.current = "";
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    latestQueryRef.current = normalizedQuery;
+
+    if (!normalizedQuery) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      handleSearch(normalizedQuery);
+    }, DEBOUNCE_DELAY);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [handleSearch, normalizedQuery, open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const focusTimer = window.setTimeout(() => {
+      inputRef.current?.focus();
+    }, 75);
+
+    return () => window.clearTimeout(focusTimer);
+  }, [open]);
+
+  const handleClick = (
+    trading_symbol: string,
+    item?: any,
+    entity_type?: string
+  ) => {
+    if (entity_type === "Stocks") {
+      router.push(`/stocks/${trading_symbol}`);
+      return;
+    }
+
+    router.push(`/instruments/${trading_symbol}`);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="secondary"
+          className="gap-2 rounded-full px-4 py-2 shadow-sm transition hover:shadow-md"
+        >
+          <SearchIcon className="size-4" />
+          Open Search
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent
+        showCloseButton={false}
+        className="flex w-full max-w-3xl max-h-[85vh] flex-col overflow-hidden rounded-2xl border bg-background/95 p-0 shadow-2xl backdrop-blur supports-backdrop-filter:bg-background/60"
+      >
+        <div className="sticky top-0 z-10 border-b bg-background/95 p-4 backdrop-blur supports-backdrop-filter:bg-background/60">
+          <div className="flex items-start justify-between gap-4 pb-4">
+            <DialogHeader className="gap-1 p-0 text-left">
+              <DialogTitle className="text-lg font-semibold">
+                Search instruments
+              </DialogTitle>
+              <DialogDescription>
+                Find stocks, indices, futures, options, and more.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" aria-label="Close search">
+                <XIcon className="size-4" />
+              </Button>
+            </DialogClose>
+          </div>
+          <InputGroup className="h-12 overflow-hidden rounded-xl border bg-background shadow-sm transition focus-within:border-primary/50 focus-within:shadow-md">
+            <InputGroupAddon className="pl-4 text-muted-foreground">
+              <SearchIcon className="size-4" />
+            </InputGroupAddon>
+            <InputGroupInput
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search stocks, indices, futures, and options..."
+              className="h-full text-base"
+            />
+            <InputGroupAddon align="inline-end" className="pr-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`text-muted-foreground transition hover:text-foreground ${
+                  query.length === 0 ? "pointer-events-none opacity-0" : ""
+                }`}
+                aria-label="Clear search"
+                disabled={query.length === 0}
+                onClick={handleClear}
+              >
+                <XIcon className="size-4" />
+              </Button>
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
+
+        <div className="flex-1 overflow-y-auto bg-muted/10 px-4 py-4">
+          {showSpinner ? (
+            <div className="flex h-full min-h-[200px] items-center justify-center text-muted-foreground">
+              <Loader2 className="size-6 animate-spin" />
+            </div>
+          ) : searchResults.length === 0 ? (
+            <Empty className="mx-auto w-full max-w-md rounded-xl border border-dashed bg-background/80 text-center">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <SearchIcon />
+                </EmptyMedia>
+                <EmptyTitle>
+                  {normalizedQuery ? "No results found" : "Ready to search"}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {normalizedQuery
+                    ? "Try adjusting your search to find what you're looking for."
+                    : "Start typing to discover instruments across markets."}
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <DialogClose asChild>
+                  <Button variant="outline" size="sm">
+                    Close
+                    <XIcon className="size-4" />
+                  </Button>
+                </DialogClose>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <div className="space-y-3">
+              {searchResults.map((item) => (
+                <SearchItem
+                  key={item.id}
+                  item={item}
+                  handleClick={handleClick}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,0 +1,7 @@
+# Ignore all Markdown files
+*.md
+
+# But do not ignore README.md
+!README.md
+
+copilot-logs
