@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FloatingSearch from "@/components/Search/FloatingSearch";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { DataProvider } from "@/providers/DataProvider";
+import SessionProvider from "@/providers/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,13 +29,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning lang="en" className="h-full overflow-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={cn(
+          "flex h-full w-full flex-col overflow-hidden",
+          `${geistSans.variable} ${geistMono.variable} antialiased`,
+        )}
       >
-        <FloatingSearch />
-        {children}
-        <Toaster richColors />
+        <SessionProvider>
+          <DataProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster richColors />
+            </ThemeProvider>
+          </DataProvider>
+        </SessionProvider>
       </body>
     </html>
   );

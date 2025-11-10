@@ -1,193 +1,75 @@
 import { Request, Response } from "express";
 
-type GrowwInterval = "1d" | "1w" | "1m" | "3m" | "6m" | "1y" | "2y" | "3y";
-
-const MARKET_TIME_ZONE = "Asia/Kolkata";
-
-const formatTimestampForGroww = (date: Date): string => {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: MARKET_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(date);
-
-  const part = (type: Intl.DateTimeFormatPart["type"]): string => {
-    return parts.find((segment) => segment.type === type)?.value ?? "00";
-  };
-
-  return `${part("year")}-${part("month")}-${part("day")} ${part(
-    "hour"
-  )}:${part("minute")}:${part("second")}`;
-};
-
-const deriveDateRange = (
-  interval: GrowwInterval
-): { start: Date; end: Date } => {
-  const end = new Date();
-  const start = new Date(end.getTime());
-
-  switch (interval) {
-    case "1d":
-      start.setDate(start.getDate() - 1);
-      break;
-    case "1w":
-      start.setDate(start.getDate() - 7);
-      break;
-    case "1m":
-      start.setMonth(start.getMonth() - 1);
-      break;
-    case "3m":
-      start.setMonth(start.getMonth() - 3);
-      break;
-    case "6m":
-      start.setMonth(start.getMonth() - 6);
-      break;
-    case "1y":
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case "2y":
-      start.setFullYear(start.getFullYear() - 2);
-      break;
-    case "3y":
-      start.setFullYear(start.getFullYear() - 3);
-      break;
-    default:
-      start.setMonth(start.getMonth() - 1);
-      break;
-  }
-
-  return { start, end };
-};
-
-const normalizeCustomTimestamp = (value: string): Date | null => {
-  if (!value || typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.includes("T") ? value : value.replace(" ", "T");
-  const parsed = new Date(normalized);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return null;
-  }
-
-  return parsed;
-};
-
 export const GetHistoricalData = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const {
-      exchange = "NSE",
-      tradingSymbol,
-      interval = "1d",
-      segment = "CASH",
-      startTime: startTimeQuery,
-      endTime: endTimeQuery,
-    } = req.query as {
-      exchange?: "NSE" | "BSE";
-      tradingSymbol?: string;
-      interval?: GrowwInterval;
-      segment?: "CASH" | "FNO";
-      startTime?: string;
-      endTime?: string;
+    const { script_code, exchange, segment, time_range } = req.query as {
+      script_code?: string;
+      exchange?: Exchange;
+      segment?: Segment;
+      time_range?: HistoricalDataTimeRange;
     };
 
-    if (!tradingSymbol) {
+    if (!script_code || !exchange || !segment || !time_range) {
       return res.status(400).json({
-        success: false,
-        message: "Trading Symbol is required.",
+        error: {
+          message:
+            "time_range, script_code, exchange, and segment are required.",
+        },
       });
     }
 
-    const access_token = process.env.GROWW_ACCESS_TOKEN;
+    let historicalUrl: string | null = null;
 
-    if (!access_token) {
-      return res.status(500).json({
-        success: false,
-        message: "Groww access token is not configured.",
-      });
-    }
-
-    if (
-      (startTimeQuery && !endTimeQuery) ||
-      (!startTimeQuery && endTimeQuery)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Both startTime and endTime are required when overriding the range.",
-      });
-    }
-
-    let startTime: string;
-    let endTime: string;
-
-    if (startTimeQuery && endTimeQuery) {
-      const parsedStart = normalizeCustomTimestamp(startTimeQuery);
-      const parsedEnd = normalizeCustomTimestamp(endTimeQuery);
-
-      if (!parsedStart || !parsedEnd) {
+    switch (time_range) {
+      case "1D":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/daily?intervalInMinutes=1`;
+        break;
+      case "1W":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/weekly?intervalInMinutes=5`;
+        break;
+      case "1M":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/monthly?intervalInMinutes=30`;
+        break;
+      case "3M":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/monthly/v2?months=3`;
+        break;
+      case "6M":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/monthly/v2?months=6`;
+        break;
+      case "1Y":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/1y?intervalInDays=1`;
+        break;
+      case "3Y":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/3y?intervalInDays=3`;
+        break;
+      case "5Y":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/5y?intervalInDays=5`;
+        break;
+      case "ALL":
+        historicalUrl = `https://groww.in/v1/api/charting_service/v2/chart/exchange/${exchange}/segment/${segment}/${script_code}/all?noOfCandles=300`;
+        break;
+      default:
         return res.status(400).json({
-          success: false,
-          message: "Unable to parse the provided startTime or endTime.",
+          error: {
+            message: `Invalid time_range. Supported values: 1D, 1W, 1M, 3M, 6M, 1Y, 3Y, 5Y, ALL`,
+          },
         });
-      }
-
-      if (parsedEnd <= parsedStart) {
-        return res.status(400).json({
-          success: false,
-          message: "endTime must be greater than startTime.",
-        });
-      }
-
-      startTime = formatTimestampForGroww(parsedStart);
-      endTime = formatTimestampForGroww(parsedEnd);
-    } else {
-      const { start, end } = deriveDateRange(interval ?? "1d");
-      startTime = formatTimestampForGroww(start);
-      endTime = formatTimestampForGroww(end);
     }
 
-    const historicalUrl = `https://api.groww.in/v1/historical/candle/range?exchange=${encodeURIComponent(
-      exchange
-    )}&segment=${encodeURIComponent(
-      segment
-    )}&trading_symbol=${encodeURIComponent(
-      tradingSymbol
-    )}&start_time=${encodeURIComponent(
-      startTime
-    )}&end_time=${encodeURIComponent(endTime)}`;
-
-    const historicalResponse = await fetch(historicalUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${access_token}`,
-        "X-API-VERSION": "1.0",
-      },
-    });
+    const historicalResponse = await fetch(historicalUrl);
 
     if (historicalResponse.ok) {
-      const historicalData = await historicalResponse.json();
+      const historicalData: any = await historicalResponse.json();
+
       return res.status(200).json({
-        tradingSymbol,
+        success: true,
+        script_code,
         exchange,
         segment,
-        interval,
-        startTime,
-        endTime,
-        success: true,
-        data: historicalData,
+        historicalData,
       });
     }
 
@@ -195,22 +77,21 @@ export const GetHistoricalData = async (
 
     return res.status(historicalResponse.status).json({
       success: false,
-      tradingSymbol,
+      script_code,
       exchange,
       segment,
-      interval,
-      startTime,
-      endTime,
-      error:
-        errorText?.trim().length > 0
-          ? errorText.trim()
-          : `Failed to fetch: ${historicalResponse.statusText}`,
+      error: {
+        message:
+          errorText?.trim().length > 0
+            ? errorText.trim()
+            : `Failed to fetch: ${historicalResponse.statusText}`,
+      },
     });
   } catch (error) {
-    console.error("Error fetching historical data:", error);
     return res.status(500).json({
-      success: false,
-      message: "Failed to retrieve historical data.",
+      error: {
+        message: "Failed to retrieve historical data.",
+      },
     });
   }
 };

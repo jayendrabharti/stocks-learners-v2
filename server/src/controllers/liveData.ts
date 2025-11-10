@@ -1,60 +1,73 @@
 import { Request, Response } from "express";
 
+type LiveDataQuery = {
+  script_code?: string;
+  exchange?: Exchange;
+  type?: InstrumentType;
+};
+
 export const GetLiveData = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const segment = (req.query.segment as "CASH" | "FNO") || "CASH";
-    const tradingSymbol = req.query.tradingSymbol as string | undefined;
-    const exchange = (req.query.exchange as "NSE" | "BSE") || "NSE";
-    const access_token = process.env.GROWW_ACCESS_TOKEN;
+    const { script_code, exchange, type } = req.query as LiveDataQuery;
 
-    if (!tradingSymbol) {
+    const segment: Segment = type === "EQ" || type === "IDX" ? "CASH" : "FNO";
+
+    if (!script_code || !exchange || !type) {
       return res.status(400).json({
-        success: false,
-        message: "Trading Symbol is required.",
+        error: {
+          message: "Script Code, Exchange and Instrument Type are required.",
+        },
       });
     }
 
-    const quoteUrl = `https://api.groww.in/v1/live-data/quote?exchange=${encodeURIComponent(
-      exchange
-    )}&segment=${encodeURIComponent(
-      segment
-    )}&trading_symbol=${encodeURIComponent(tradingSymbol)}`;
+    let liveDataUrl: string | null = null;
 
-    const quoteResponse = await fetch(quoteUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${access_token}`,
-        "X-API-VERSION": "1.0",
-      },
-    });
+    switch (type) {
+      case "EQ":
+        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
+        break;
+      case "IDX":
+        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
+        break;
+      case "FUT":
+      case "CE":
+      case "PE":
+        liveDataUrl = `https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
+        break;
+      default:
+        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
+        break;
+    }
 
-    if (quoteResponse.ok) {
-      const quoteData = await quoteResponse.json();
+    const liveDataResponse = await fetch(liveDataUrl);
+
+    if (liveDataResponse.ok) {
+      const liveData: any = await liveDataResponse.json();
+
       return res.status(200).json({
-        tradingSymbol,
+        script_code,
         exchange,
         segment,
-        success: true,
-        data: quoteData,
+        liveData,
       });
     } else {
       return res.status(500).json({
-        success: false,
-        tradingSymbol,
+        script_code,
         exchange,
         segment,
-        error: `Failed to fetch: ${quoteResponse.statusText}`,
+        error: {
+          message: `Failed to fetch: ${liveDataResponse.statusText}`,
+        },
       });
     }
   } catch (error) {
-    console.error("Error fetching instruments:", error);
     return res.status(500).json({
-      success: false,
-      message: "Failed to retrieve live data.",
+      error: {
+        message: "Failed to retrieve live data.",
+      },
     });
   }
 };

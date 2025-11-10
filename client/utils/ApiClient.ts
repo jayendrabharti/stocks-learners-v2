@@ -9,7 +9,9 @@ const authEndpoints = [
   "/auth/refresh",
   "/auth/logout",
   "/auth/google/url",
-  "/auth/user", // Session check endpoint - don't retry on 401
+  "/auth/user",
+  "/auth/email/login",
+  "/auth/email/verify",
 ];
 
 const ApiClient = axios.create({

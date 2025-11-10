@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../database/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// #########################
+// User Management
+// ##########################
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  phone       String?   @unique
+  name        String?
+  avatar      String?
+  dateOfBirth DateTime?
+  isAdmin     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Auth relations
+  refreshTokens RefreshToken[]
+  otp           otp?
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  token      String   @unique
+  expiresAt  DateTime
+  clientInfo Json?
+  isRevoked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, token])
+  @@map("refresh_tokens")
+}
+
+model otp {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  otp       String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  lockedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("otps")
+}
+
+// #########################
+// Groww Management
+// ##########################
+
+model GrowwAccessToken {
+  id        Int   @id @default(1)
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("growws_access_tokens")
+}

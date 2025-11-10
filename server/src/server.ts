@@ -3,8 +3,13 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import InstrumentRouter from "./routers/instruments.js";
-import { Search } from "./controllers/search.js";
+import { Search } from "@/controllers/search";
+import InstrumentRouter from "@/routers/instruments";
+import { clientBaseUrl } from "@/utils/auth";
+import AuthRouter from "@/routers/auth";
+import { GetMetadata } from "@/controllers/metadata";
+import { healthCheck } from "@/controllers/healthCheck";
+import ProfileRouter from "./routers/profile";
 
 dotenv.config();
 
@@ -22,8 +27,8 @@ app.use(
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV === "production" && process.env.CLIENT_BASE_URL
-        ? process.env.CLIENT_BASE_URL
+      process.env.NODE_ENV !== "development" && clientBaseUrl
+        ? clientBaseUrl
         : (origin, callback) => {
             // In development, allow any origin for flexibility
             // In production, only allow CLIENT_BASE_URL
@@ -42,17 +47,18 @@ app.get("/", (_req, res) => {
   res.send(`This is your Trading API`);
 });
 
-app.get("/health", (_req, res) => {
-  res
-    .status(200)
-    .json({ status: "healthy", timestamp: new Date().toISOString() });
-});
+app.get("/health", healthCheck);
+
+app.use("/auth", AuthRouter);
 
 app.get("/search", Search);
 
+app.get("/metadata", GetMetadata);
+
 app.use("/instruments", InstrumentRouter);
 
-// Graceful shutdown
+app.use("/profile", ProfileRouter);
+
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
   process.exit(0);

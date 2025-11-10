@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 
+# generated files
+generated
+
 # TypeScript cache
 *.tsbuildinfo
 
@@ -41,3 +44,41 @@ coverage/
 
 # Cache directory
 /src/cache
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/generated/prisma
+
+/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/src/generated/prisma

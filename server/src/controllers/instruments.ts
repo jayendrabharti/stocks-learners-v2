@@ -151,6 +151,42 @@ const readRowsMatchingSymbol = async (
   });
 };
 
+const readRowsMatchingIsin = async (isin: string): Promise<InstrumentRow[]> => {
+  await ensureCacheAvailable();
+
+  const normalizedIsin = isin.trim().toUpperCase();
+
+  return new Promise<InstrumentRow[]>((resolve, reject) => {
+    const matches: InstrumentRow[] = [];
+
+    const sourceStream = createReadStream(CACHE_FILE_PATH);
+    const parser = parse({
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    parser.on("readable", () => {
+      let record: InstrumentRow | null;
+      while ((record = parser.read()) !== null) {
+        if (
+          typeof record.isin === "string" &&
+          record.isin.trim().toUpperCase() === normalizedIsin
+        ) {
+          matches.push(record);
+        }
+      }
+    });
+
+    parser.on("error", (error: Error) => reject(error));
+    sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
+
+    parser.on("end", () => resolve(matches));
+
+    sourceStream.pipe(parser);
+  });
+};
+
 export const Instruments = async (
   req: Request,
   res: Response
@@ -161,10 +197,20 @@ export const Instruments = async (
       (req.query.tradingSymbol as string | undefined) ??
       (req.query.trading_symbol as string | undefined);
 
-    if (!tradingSymbolInput || typeof tradingSymbolInput !== "string") {
+    const isinInput =
+      (req.params.isin as string | undefined) ??
+      (req.query.isin as string | undefined);
+
+    // At least one of tradingSymbol or isin must be provided
+    if (
+      (!tradingSymbolInput && !isinInput) ||
+      (tradingSymbolInput && typeof tradingSymbolInput !== "string") ||
+      (isinInput && typeof isinInput !== "string")
+    ) {
       return res.status(400).json({
-        success: false,
-        message: "tradingSymbol is required.",
+        error: {
+          message: "Either tradingSymbol or isin is required.",
+        },
       });
     }
 
@@ -176,19 +222,35 @@ export const Instruments = async (
       await ensureCacheAvailable();
     }
 
-    const rows = await readRowsMatchingSymbol(tradingSymbolInput);
+    let rows: InstrumentRow[] = [];
+
+    // If both are provided, search by trading symbol first, then filter by ISIN
+    if (tradingSymbolInput && isinInput) {
+      const symbolRows = await readRowsMatchingSymbol(tradingSymbolInput);
+      const normalizedIsin = isinInput.trim().toUpperCase();
+      rows = symbolRows.filter(
+        (row) =>
+          typeof row.isin === "string" &&
+          row.isin.trim().toUpperCase() === normalizedIsin
+      );
+    } else if (tradingSymbolInput) {
+      rows = await readRowsMatchingSymbol(tradingSymbolInput);
+    } else if (isinInput) {
+      rows = await readRowsMatchingIsin(isinInput);
+    }
 
     if (rows.length === 0) {
       return res.status(404).json({
-        success: false,
-        message: "No instruments found for the provided trading symbol.",
+        error: {
+          message: "No instruments found for the provided criteria.",
+        },
       });
     }
 
     return res.status(200).json({
-      success: true,
-      tradingSymbol: tradingSymbolInput.trim().toUpperCase(),
       instruments: rows,
+      trading_sysmbol: tradingSymbolInput,
+      isin: isinInput,
     });
   } catch (error) {
     console.error("Error fetching instruments:", error);

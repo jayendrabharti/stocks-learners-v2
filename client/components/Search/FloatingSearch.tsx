@@ -82,7 +82,7 @@ export default function FloatingSearch() {
         })();
       });
     },
-    [from, size, web]
+    [from, size, web],
   );
 
   const handleClear = useCallback(() => {
@@ -123,17 +123,15 @@ export default function FloatingSearch() {
     return () => window.clearTimeout(focusTimer);
   }, [open]);
 
-  const handleClick = (
-    trading_symbol: string,
-    item?: any,
-    entity_type?: string
-  ) => {
-    if (entity_type === "Stocks") {
-      router.push(`/stocks/${trading_symbol}`);
+  const handleClick = (item: any) => {
+    if (item.entity_type === "Stocks") {
+      router.push(`/stocks/${item.search_id}`);
+      handleClear();
+      setOpen(false);
       return;
     }
 
-    router.push(`/instruments/${trading_symbol}`);
+    toast.error("Navigation for this instrument type is not implemented yet.");
   };
 
   return (
@@ -150,9 +148,9 @@ export default function FloatingSearch() {
 
       <DialogContent
         showCloseButton={false}
-        className="flex w-full max-w-3xl max-h-[85vh] flex-col overflow-hidden rounded-2xl border bg-background/95 p-0 shadow-2xl backdrop-blur supports-backdrop-filter:bg-background/60"
+        className="bg-background/95 supports-backdrop-filter:bg-background/60 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border p-0 shadow-2xl backdrop-blur"
       >
-        <div className="sticky top-0 z-10 border-b bg-background/95 p-4 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-10 border-b p-4 backdrop-blur">
           <div className="flex items-start justify-between gap-4 pb-4">
             <DialogHeader className="gap-1 p-0 text-left">
               <DialogTitle className="text-lg font-semibold">
@@ -168,8 +166,8 @@ export default function FloatingSearch() {
               </Button>
             </DialogClose>
           </div>
-          <InputGroup className="h-12 overflow-hidden rounded-xl border bg-background shadow-sm transition focus-within:border-primary/50 focus-within:shadow-md">
-            <InputGroupAddon className="pl-4 text-muted-foreground">
+          <InputGroup className="bg-background focus-within:border-primary/50 h-12 overflow-hidden rounded-xl border shadow-sm transition focus-within:shadow-md">
+            <InputGroupAddon className="text-muted-foreground pl-4">
               <SearchIcon className="size-4" />
             </InputGroupAddon>
             <InputGroupInput
@@ -183,7 +181,7 @@ export default function FloatingSearch() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`text-muted-foreground transition hover:text-foreground ${
+                className={`text-muted-foreground hover:text-foreground transition ${
                   query.length === 0 ? "pointer-events-none opacity-0" : ""
                 }`}
                 aria-label="Clear search"
@@ -196,13 +194,13 @@ export default function FloatingSearch() {
           </InputGroup>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-muted/10 px-4 py-4">
+        <div className="bg-muted/10 flex-1 overflow-y-auto px-4 py-4">
           {showSpinner ? (
-            <div className="flex h-full min-h-[200px] items-center justify-center text-muted-foreground">
+            <div className="text-muted-foreground flex h-full min-h-[200px] items-center justify-center">
               <Loader2 className="size-6 animate-spin" />
             </div>
           ) : searchResults.length === 0 ? (
-            <Empty className="mx-auto w-full max-w-md rounded-xl border border-dashed bg-background/80 text-center">
+            <Empty className="bg-background/80 mx-auto w-full max-w-md rounded-xl border border-dashed text-center">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <SearchIcon />

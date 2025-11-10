@@ -5,10 +5,9 @@ export default async function getUser(): Promise<User | null> {
   try {
     const response = await ApiClient.get("/auth/user");
 
-    const success: boolean = response.data.success;
-    const user: User | undefined = response.data.data.user;
+    const user: User | undefined = response.data.user;
 
-    if (!success || !user) {
+    if (!user) {
       console.error("Failed to fetch user.");
       return null;
     }

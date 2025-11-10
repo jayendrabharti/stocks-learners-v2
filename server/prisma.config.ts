@@ -1,10 +1,13 @@
-import path from "path";
-import type { PrismaConfig } from "prisma";
 import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
 
-export default {
-  schema: path.join("src", "prisma", "schema.prisma"),
+export default defineConfig({
+  schema: "src/database/schema.prisma",
   migrations: {
-    path: path.join("src", "prisma", "migrations"),
+    path: "src/database/migrations",
   },
-} satisfies PrismaConfig;
+  engine: "classic",
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
