@@ -21,8 +21,8 @@ export const NavBarLinks: {
   icon: React.ElementType;
 }[] = [
   { name: "Home", href: "/", icon: FaHome },
-  { name: "Stocks", href: "/stocks/explore", icon: AiOutlineStock },
-  { name: "F&O", href: "/fno/explore", icon: TbChartCandle },
+  { name: "Stocks", href: "/stocks", icon: AiOutlineStock },
+  { name: "F&O", href: "/fno", icon: TbChartCandle },
   { name: "Portfolio", href: "/portfolio", icon: MdAccountBalanceWallet },
 ];
 

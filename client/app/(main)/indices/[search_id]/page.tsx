@@ -7,13 +7,13 @@ import {
 } from "@/components/trading";
 import { useParams } from "next/navigation";
 
-export default function StockPage() {
+export default function IndexPage() {
   const { search_id } = useParams();
 
   return (
     <InstrumentProvider
       config={{
-        variant: "stock",
+        variant: "index",
         searchId: search_id as string,
       }}
     >
