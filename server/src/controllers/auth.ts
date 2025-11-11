@@ -297,7 +297,8 @@ export const emailVerify = async (req: Request, res: Response) => {
   }
 };
 
-export const googleAuthUrl = (_req: Request, res: Response) => {
+export const googleAuthUrl = (req: Request, res: Response) => {
+  const type = req.query.type ?? ("get" as "get" | "redirect");
   try {
     const authorizeUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
@@ -308,6 +309,9 @@ export const googleAuthUrl = (_req: Request, res: Response) => {
       prompt: "consent",
     });
 
+    if (type === "redirect") {
+      return res.redirect(authorizeUrl);
+    }
     return res.status(200).json({ url: authorizeUrl });
   } catch (error) {
     return res.status(500).json({
@@ -320,7 +324,7 @@ export const googleAuthUrl = (_req: Request, res: Response) => {
 
 export const googleAuthCallback = async (req: Request, res: Response) => {
   try {
-    const code = req.query.code;
+    const code = req.query.code || req.body.code;
     if (!code || typeof code !== "string") {
       return res.status(400).json({
         error: {
@@ -363,7 +367,7 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
 
     await generateTokens(req, res, user);
 
-    return res.redirect(clientBaseUrl);
+    return res.redirect(`${clientBaseUrl}/auth/callback`);
   } catch (error) {
     console.error("Google Auth Callback Error:", error);
     return res.redirect(
