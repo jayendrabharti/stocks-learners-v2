@@ -38,13 +38,11 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfileForm({
-  user,
   className = "",
 }: {
-  user: User;
   className?: string;
 }) {
-  const { refreshSession } = useSession();
+  const { user, refreshSession } = useSession();
   const [saving, startSaving] = useTransition();
 
   const form = useForm<ProfileFormData>({
@@ -68,96 +66,100 @@ export default function ProfileForm({
       }
     });
   }
+  if (user)
+    return (
+      <div
+        className={cn(
+          "w-full space-y-6",
+          "bg-card border-border rounded-2xl border p-5 shadow-md",
+          className,
+        )}
+      >
+        <ProfileImage user={user} />
 
-  return (
-    <div
-      className={cn(
-        "space-y-6 w-full",
-        "bg-card border-border border rounded-2xl p-5 shadow-md",
-        className
-      )}
-    >
-      <ProfileImage user={user} />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <span className="border-border bg-card m-2 block w-full rounded-md border p-2 text-center text-lg font-bold shadow-md">
+              {user.email}
+            </span>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <span className="w-full text-center border border-border p-2 m-2 bg-card rounded-md text-lg font-bold block shadow-md">
-            {user.email}
-          </span>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your full name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your full name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your phone number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your phone number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date of Birth</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        captionLayout="dropdown"
+                        onSelect={field.onChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date of Birth</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      captionLayout="dropdown"
-                      onSelect={field.onChange}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type="submit" className="w-full">
-            {saving ? <LoaderCircle className="animate-spin" /> : <SaveIcon />}
-            {saving ? "Saving..." : "Save Profile"}
-          </Button>
-        </form>
-      </Form>
-    </div>
-  );
+            <Button type="submit" className="w-full">
+              {saving ? (
+                <LoaderCircle className="animate-spin" />
+              ) : (
+                <SaveIcon />
+              )}
+              {saving ? "Saving..." : "Save Profile"}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    );
 }

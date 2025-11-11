@@ -15,12 +15,13 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/providers/SessionProvider";
 import Countdown, { CountdownRendererFn } from "react-countdown";
 
 export default function LoginPage() {
   const router = useRouter();
+  const redirect = useSearchParams().get("redirect");
   const { refreshSession } = useSession();
   const [email, setEmail] = useState<string>("");
   const [otp, setOtp] = useState<string>("");
@@ -67,7 +68,7 @@ export default function LoginPage() {
         });
 
         toast.success("OTP verified successfully");
-        router.push("/");
+        router.push(redirect || "/");
         refreshSession();
       } catch (error) {
         toast.error("Error verifying OTP");
@@ -93,6 +94,7 @@ export default function LoginPage() {
     setOtpExpiresAt(null);
     toast.error("OTP has expired", { description: "Try logging in again" });
   };
+
   return (
     <Card>
       <CardContent className="flex w-sm max-w-full flex-col items-center gap-4">

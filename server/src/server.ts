@@ -10,6 +10,7 @@ import AuthRouter from "@/routers/auth";
 import { GetMetadata } from "@/controllers/metadata";
 import { healthCheck } from "@/controllers/healthCheck";
 import ProfileRouter from "./routers/profile";
+import MarketRouter from "./routers/market";
 
 dotenv.config();
 
@@ -58,6 +59,8 @@ app.get("/metadata", GetMetadata);
 app.use("/instruments", InstrumentRouter);
 
 app.use("/profile", ProfileRouter);
+
+app.use("/market", MarketRouter);
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");

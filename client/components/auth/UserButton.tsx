@@ -9,19 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import SignOutButton from "./SignOutButton";
-import {
-  Loader2Icon,
-  LockIcon,
-  LogInIcon,
-  UserRoundCogIcon,
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+import { Loader2Icon, LockIcon, UserRoundCogIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/providers/SessionProvider";
 import { motion, AnimatePresence } from "motion/react";
+import LoginButton from "./LoginButton";
 
 export default function UserButton({
   className = "",
@@ -34,26 +27,10 @@ export default function UserButton({
 }) {
   const { user, status } = useSession();
 
-  const formatIndianCurrency = (value: number, currency: string = "INR") => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   if (status == "loading")
     return <Loader2Icon className={cn("animate-spin", className)} />;
 
-  if (status == "unauthenticated")
-    return (
-      <Link href="/login">
-        <Button variant="outline" className="rounded-full">
-          Log In <LogInIcon />
-        </Button>
-      </Link>
-    );
+  if (status == "unauthenticated") return <LoginButton />;
 
   const initials = user?.name
     ? user.name.slice(0, 2).toUpperCase()
