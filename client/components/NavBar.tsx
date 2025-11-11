@@ -14,6 +14,7 @@ import { AiOutlineStock } from "react-icons/ai";
 import { TbChartCandle } from "react-icons/tb";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import UserButton from "@/components/auth/UserButton";
+import Search from "./search";
 
 export const NavBarLinks: {
   name: string;
@@ -105,6 +106,8 @@ export default function NavBar() {
         </div>
 
         <ThemeSwitch className="ml-auto md:ml-0" />
+
+        <Search />
 
         <UserButton />
 

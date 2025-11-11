@@ -1,3 +1,8 @@
 export default function StocksPage() {
-  return <div>Stocks Page</div>;
+  return (
+    <div>
+      <h1>Stocks Page</h1>
+      <p>Welcome to the Stocks page!</p>
+    </div>
+  );
 }

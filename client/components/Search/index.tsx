@@ -24,15 +24,22 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "../ui/empty";
-import axios from "axios";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import SearchItem from "./SearchItem";
 import { useRouter } from "next/navigation";
+import ApiClient from "@/utils/ApiClient";
+import { Kbd, KbdGroup } from "../ui/kbd";
+import SearchItem from "./SearchItem";
 
 const DEBOUNCE_DELAY = 400;
 
-export default function FloatingSearch() {
+export default function Search({
+  children,
+  className = "",
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
@@ -59,7 +66,7 @@ export default function FloatingSearch() {
       startTransition(() => {
         (async () => {
           try {
-            const { data } = await axios.get("http://localhost:8080/search", {
+            const { data } = await ApiClient.get("/search", {
               params: { query: normalizedQuery, from, size, web },
             });
 
@@ -92,6 +99,11 @@ export default function FloatingSearch() {
     inputRef.current?.focus();
   }, []);
 
+  const handleClose = (item: any) => {
+    setOpen(false);
+    setQuery("");
+  };
+
   useEffect(() => {
     if (!open) {
       return;
@@ -123,27 +135,20 @@ export default function FloatingSearch() {
     return () => window.clearTimeout(focusTimer);
   }, [open]);
 
-  const handleClick = (item: any) => {
-    if (item.entity_type === "Stocks") {
-      router.push(`/stocks/${item.search_id}`);
-      handleClear();
-      setOpen(false);
-      return;
-    }
-
-    toast.error("Navigation for this instrument type is not implemented yet.");
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="secondary"
-          className="gap-2 rounded-full px-4 py-2 shadow-sm transition hover:shadow-md"
-        >
-          <SearchIcon className="size-4" />
-          Open Search
-        </Button>
+        {children ?? (
+          <Button variant={"outline"} className={`${className} group`}>
+            <SearchIcon className="size-4" />
+            <span>Search</span>
+            <KbdGroup>
+              <Kbd>Ctrl</Kbd>
+              <span>+</span>
+              <Kbd>K</Kbd>
+            </KbdGroup>
+          </Button>
+        )}
       </DialogTrigger>
 
       <DialogContent
@@ -226,11 +231,7 @@ export default function FloatingSearch() {
           ) : (
             <div className="space-y-3">
               {searchResults.map((item) => (
-                <SearchItem
-                  key={item.id}
-                  item={item}
-                  handleClick={handleClick}
-                />
+                <SearchItem key={item.id} item={item} onClick={handleClose} />
               ))}
             </div>
           )}
