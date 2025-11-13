@@ -9,8 +9,11 @@ import { clientBaseUrl } from "@/utils/auth";
 import AuthRouter from "@/routers/auth";
 import { GetMetadata } from "@/controllers/metadata";
 import { healthCheck } from "@/controllers/healthCheck";
-import ProfileRouter from "./routers/profile";
-import MarketRouter from "./routers/market";
+import ProfileRouter from "@/routers/profile";
+import MarketRouter from "@/routers/market";
+import AdminRouter from "@/routers/admin";
+import ContactRouter from "@/routers/contact";
+import WatchlistRouter from "./routers/watchlist";
 
 dotenv.config();
 
@@ -49,18 +52,15 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/health", healthCheck);
-
 app.use("/auth", AuthRouter);
-
 app.get("/search", Search);
-
 app.get("/metadata", GetMetadata);
-
 app.use("/instruments", InstrumentRouter);
-
 app.use("/profile", ProfileRouter);
-
 app.use("/market", MarketRouter);
+app.use("/admin", AdminRouter);
+app.use("/contact", ContactRouter);
+app.use("/watchlist", WatchlistRouter);
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");

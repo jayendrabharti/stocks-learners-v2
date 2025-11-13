@@ -6,10 +6,14 @@ import { LoaderCircleIcon } from "lucide-react";
 
 export default function AuthGuard({
   children,
-  fallback = <Unauthenticated />,
+  fallback = Unauthenticated,
+  title,
+  description,
 }: {
   children: React.ReactNode;
-  fallback?: React.ReactNode;
+  fallback?: React.ComponentType<{ title?: string; description?: string }>;
+  title?: string;
+  description?: string;
 }) {
   const { user, status }: SessionContextType = useSession();
 
@@ -23,7 +27,8 @@ export default function AuthGuard({
   }
 
   if (!user || status !== "authenticated") {
-    return <>{fallback}</>;
+    const Fallback = fallback;
+    return <Fallback title={title} description={description} />;
   }
 
   return <>{children}</>;

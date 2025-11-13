@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { DataProvider } from "@/providers/DataProvider";
 import SessionProvider from "@/providers/SessionProvider";
+import { WatchlistProvider } from "@/providers/WatchlistProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,12 +37,14 @@ export default function RootLayout({
         )}
       >
         <SessionProvider>
-          <DataProvider>
-            <ThemeProvider>
-              {children}
-              <Toaster richColors />
-            </ThemeProvider>
-          </DataProvider>
+          <WatchlistProvider>
+            <DataProvider>
+              <ThemeProvider>
+                {children}
+                <Toaster richColors />
+              </ThemeProvider>
+            </DataProvider>
+          </WatchlistProvider>
         </SessionProvider>
       </body>
     </html>

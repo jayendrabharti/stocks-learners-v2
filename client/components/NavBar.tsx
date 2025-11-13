@@ -15,13 +15,14 @@ import { TbChartCandle } from "react-icons/tb";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import UserButton from "@/components/auth/UserButton";
 import Search from "./search";
+import { Separator } from "./ui/separator";
 
 export const NavBarLinks: {
   name: string;
   href: string;
   icon: React.ElementType;
 }[] = [
-  { name: "Home", href: "/", icon: FaHome },
+  // { name: "Home", href: "/", icon: FaHome },
   { name: "Stocks", href: "/stocks", icon: AiOutlineStock },
   { name: "F&O", href: "/fno", icon: TbChartCandle },
   { name: "Portfolio", href: "/portfolio", icon: MdAccountBalanceWallet },
@@ -54,20 +55,23 @@ export default function NavBar() {
         className={cn(
           "flex flex-row items-center justify-between",
           "mx-auto px-5 md:px-10",
-          "w-full space-x-3",
+          "w-full",
         )}
       >
-        <Logo />
+        <div className="flex shrink-0 items-center gap-3">
+          <Logo />
+          <Separator orientation={"vertical"} className="hidden md:block" />
+        </div>
 
         <div
           className={cn(
             `flex flex-col md:flex-row`,
             `items-start md:items-center`,
-            `justify-center`,
+            `justify-start`,
             `gap-3 md:gap-1.5`,
-            `top-full left-0 w-full`,
+            `top-full left-0 w-full md:w-auto`,
             "px-5 py-4 md:p-0",
-            "absolute md:static",
+            "absolute md:static md:mx-4 md:flex-1",
             "transition-all duration-200",
             "shadow-md md:shadow-none",
             expanded
@@ -105,11 +109,11 @@ export default function NavBar() {
           })}
         </div>
 
-        <ThemeSwitch className="ml-auto md:ml-0" />
-
-        <Search />
-
-        <UserButton />
+        <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
+          <ThemeSwitch />
+          <Search />
+          <UserButton />
+        </div>
 
         <Button
           variant={"ghost"}

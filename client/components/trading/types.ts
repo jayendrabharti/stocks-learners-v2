@@ -40,7 +40,7 @@ export interface InstrumentContextValue {
 
   // Watchlist
   watchlist: boolean;
-  toggleWatchlist: () => void;
+  toggleWatchlist: () => Promise<void>;
 
   // Utils
   formatTimeStamp: (timestamp: number, format?: "date" | "datetime") => string;

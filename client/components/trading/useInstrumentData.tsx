@@ -3,13 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import ApiClient from "@/utils/ApiClient";
 import type { InstrumentPageConfig, InstrumentSegment } from "./types";
+import { useWatchlist } from "@/providers/WatchlistProvider";
+import { useSession } from "@/providers/SessionProvider";
+import { toast } from "sonner";
 
 export function useInstrumentData(config: InstrumentPageConfig) {
   const { variant, searchId, tradingSymbol } = config;
 
+  const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
+    useWatchlist();
+  const { isAuthenticated } = useSession();
+
   const [metadata, setMetadata] = useState<any>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
-  const [watchlist, setWatchlist] = useState<boolean>(false);
   const [instruments, setInstruments] = useState<Instrument[] | null>(null);
   const [exchange, setExchange] = useState<Exchange>("NSE");
   const [liveData, setLiveData] = useState<any | null>(null);
@@ -94,6 +100,28 @@ export function useInstrumentData(config: InstrumentPageConfig) {
     if (type === "IDX") return liveData.value ?? 0;
     return liveData.ltp ?? 0;
   }, [liveData, type]);
+
+  const watchlistItem = useMemo(() => {
+    if (!watchlistItems || !isAuthenticated) return;
+
+    if (segment === "CASH") {
+      return watchlistItems.find(
+        (item) =>
+          item.instrumentType === type &&
+          item.searchId === searchId &&
+          !item.tradingSymbol,
+      );
+    } else {
+      return watchlistItems.find(
+        (item) =>
+          item.instrumentType === type &&
+          item.searchId === searchId &&
+          item.tradingSymbol === tradingSymbol,
+      );
+    }
+  }, [watchlistItems, segment, type, searchId, tradingSymbol]);
+
+  const watchlist = !!watchlistItem;
 
   // Fetch metadata
   useEffect(() => {
@@ -219,8 +247,20 @@ export function useInstrumentData(config: InstrumentPageConfig) {
     }
   }, [metadata, variant, tradingSymbol]);
 
-  const toggleWatchlist = () => {
-    setWatchlist(!watchlist);
+  const toggleWatchlist = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to manage your watchlist");
+      return;
+    }
+
+    watchlist
+      ? await removeWatchlistItem(watchlistItem.id)
+      : await addWatchlistItem({
+          instrumentType: type,
+          searchId: searchId,
+          tradingSymbol:
+            segment === "FNO" ? (tradingSymbol as string) : undefined,
+        });
   };
 
   const formatTimeStamp = (

@@ -9,8 +9,12 @@ import ApiClient from "@/utils/ApiClient";
 
 export default function GoogleButton({
   className = "",
+  type = "redirect",
+  showText = true,
 }: {
   className?: string;
+  type?: "redirect" | "refresh";
+  showText?: boolean;
 }) {
   const redirect = useSearchParams().get("redirect");
   const router = useRouter();
@@ -23,7 +27,9 @@ export default function GoogleButton({
       if (event.data === "logged-in-successfully") {
         toast.success("Logged in with Google successfully!");
         await refreshSession();
-        router.push(redirect || "/stocks");
+        if (type === "redirect") {
+          router.push(redirect || "/stocks");
+        }
       } else if (event.data === "logged-in-failed") {
         toast.error("Google Login failed. Please try again.");
       }
@@ -38,7 +44,9 @@ export default function GoogleButton({
       if (event.data === "logged-in-successfully") {
         toast.success("Logged in with Google successfully!");
         await refreshSession();
-        router.push(redirect || "/stocks");
+        if (type === "redirect") {
+          router.push(redirect || "/stocks");
+        }
       }
     };
 
@@ -65,7 +73,7 @@ export default function GoogleButton({
       onClick={handleGoogleLogin}
     >
       <FcGoogle />
-      Continue with Google
+      {showText && "Continue with Google"}
     </Button>
   );
 }

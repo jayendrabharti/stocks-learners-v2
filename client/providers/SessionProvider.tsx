@@ -18,6 +18,7 @@ import { toast } from "sonner";
 export interface SessionContextType {
   user: User | null;
   status: "loading" | "authenticated" | "unauthenticated";
+  isAuthenticated: boolean;
   error: string | null;
   refreshSession: () => Promise<void>;
   setUser: Dispatch<SetStateAction<User | null>>;
@@ -27,6 +28,7 @@ export interface SessionContextType {
 const SessionContext = createContext<SessionContextType>({
   user: null,
   status: "loading",
+  isAuthenticated: false,
   error: null,
   refreshSession: async () => {},
   setUser: () => {},
@@ -109,6 +111,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
   const contextValue: SessionContextType = {
     user,
     status,
+    isAuthenticated: status === "authenticated" && user !== null,
     error,
     refreshSession: fetchSession,
     setUser: updateUser,

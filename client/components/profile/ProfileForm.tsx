@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/utils/utils";
+import { getErrorMessage } from "@/utils";
 import ProfileImage from "./ProfileImage";
 import { useSession } from "@/providers/SessionProvider";
 import ApiClient from "@/utils/ApiClient";

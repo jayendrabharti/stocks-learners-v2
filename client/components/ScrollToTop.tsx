@@ -45,7 +45,7 @@ export default function ScrollToTop({ mainRef }: ScrollToTopProps) {
         if (isVisible) scrollToTop();
       }}
       className={cn(
-        `fixed right-6 bottom-6 z-1000000 cursor-pointer rounded-full bg-zinc-600 p-2 text-white shadow-lg transition-all duration-200`,
+        `bg-primary fixed right-6 bottom-6 z-1000000 cursor-pointer rounded-full p-2 text-white shadow-lg transition-all duration-200`,
         isVisible ? "opacity-100" : "opacity-0",
       )}
     >

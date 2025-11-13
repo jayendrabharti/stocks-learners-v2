@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { getErrorMessage } from "@/utils";
 import { accessSecret } from "@/utils/auth";
+import { User } from "@prisma/client";
 
 declare global {
   namespace Express {
     interface Request {
-      userId?: any;
+      user?: User;
     }
   }
 }
@@ -23,16 +24,13 @@ export default async function validToken(
       throw "Unauthorized request";
     }
 
-    const { id: userId } = jwt.verify(
-      accessToken,
-      accessSecret
-    ) as AccessTokenPayload;
+    const user = jwt.verify(accessToken, accessSecret) as AccessTokenPayload;
 
-    if (!userId) {
+    if (!user.id) {
       throw "Invalid Access Token";
     }
 
-    req.userId = userId;
+    req.user = user;
 
     return next();
   } catch (err) {

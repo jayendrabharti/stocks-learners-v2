@@ -5,10 +5,18 @@ import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckIcon, Link2Icon, PlusIcon, SaveIcon } from "lucide-react";
+import {
+  CheckIcon,
+  Link2Icon,
+  Loader2Icon,
+  PlusIcon,
+  SaveIcon,
+} from "lucide-react";
 import { MdError } from "react-icons/md";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useInstrument } from "./InstrumentProvider";
+import { useTransition } from "react";
+import { sleep } from "@/utils";
 
 const timeRangeName: Record<HistoricalDataTimeRange, string> = {
   "1D": "Today",
@@ -22,7 +30,7 @@ const timeRangeName: Record<HistoricalDataTimeRange, string> = {
   ALL: "All Time",
 };
 
-const instrumentTypeName: Record<InstrumentType, string> = {
+export const instrumentTypeName: Record<InstrumentType, string> = {
   EQ: "Stock",
   IDX: "Index",
   CE: "Call Option",
@@ -55,6 +63,8 @@ export function InstrumentDataSection() {
     availableTimeRanges,
     type,
   } = useInstrument();
+
+  const [togglingWatchlist, startTogglingWatchlist] = useTransition();
 
   return (
     <div className="w-full max-w-full px-4">
@@ -115,13 +125,23 @@ export function InstrumentDataSection() {
         <div className="flex flex-col flex-wrap items-end gap-2">
           <Button
             variant={watchlist ? "default" : "outline"}
-            onClick={toggleWatchlist}
+            onClick={() => {
+              startTogglingWatchlist(async () => {
+                await toggleWatchlist();
+              });
+            }}
             size={"sm"}
-            disabled={!metadata}
+            disabled={!metadata || togglingWatchlist}
           >
             <SaveIcon />
             Watchlist
-            {watchlist ? <CheckIcon /> : <PlusIcon />}
+            {togglingWatchlist ? (
+              <Loader2Icon className="animate-spin" />
+            ) : watchlist ? (
+              <CheckIcon />
+            ) : (
+              <PlusIcon />
+            )}
           </Button>
           <Button size={"sm"} variant={"link"} disabled={!metadata}>
             <Link2Icon />

@@ -12,6 +12,7 @@ import {
 } from "@/services/marketApi";
 import { AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import RevealHero from "@/components/animations/RevealHero";
 
 export default function StocksPage() {
   const [mostBought, setMostBought] = useState<MostBoughtStock[]>([]);
@@ -58,8 +59,10 @@ export default function StocksPage() {
   }, [activeTab]);
 
   return (
-    <div className="w-full space-y-12 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Error State */}
+    <section className="mx-auto flex w-full flex-col p-4">
+      <RevealHero className="mx-auto text-3xl font-extrabold">
+        Stocks
+      </RevealHero>
       {error && (
         <div className="border-destructive/50 bg-destructive/5 flex items-center gap-3 rounded-lg border p-4">
           <AlertCircle className="text-destructive h-5 w-5" />
@@ -196,6 +199,6 @@ export default function StocksPage() {
           </div>
         )}
       </section>
-    </div>
+    </section>
   );
 }

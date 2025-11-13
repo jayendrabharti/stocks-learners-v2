@@ -27,6 +27,11 @@ model User {
   refreshTokens RefreshToken[]
   otp           otp?
 
+  //watchlist
+  watchlistItems WatchlistItem[]
+  //contact forms
+  contactForms   ContactForm[]
+
   @@map("users")
 }
 
@@ -59,16 +64,56 @@ model otp {
   @@map("otps")
 }
 
-// #########################
-// Groww Management
-// ##########################
+//##########################
+// Watchlist Management
+//##########################
 
-model GrowwAccessToken {
-  id        Int   @id @default(1)
-  token     String
-  expiresAt DateTime
+model WatchlistItem {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  instrumentType InstrumentType
+  searchId       String
+  tradingSymbol  String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@map("watchlists")
+}
+
+enum InstrumentType {
+  EQ
+  IDX
+  FUT
+  CE
+  PE
+}
+
+//##########################
+// Watchlist Management
+//##########################
+
+model ContactForm {
+  id        String   @id @default(cuid())
+  email     String
+  name      String
+  mobile    String
+  message   String 
+  user  User?    @relation(fields: [email], references: [email])
+  status    ContactFormStatus @default(PENDING)
+  adminNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("growws_access_tokens")
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_forms")
+}
+
+
+enum ContactFormStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }

@@ -31,21 +31,27 @@ export const generateTokens = async (
   if (clientRefreshToken) {
     jwt.verify(clientRefreshToken, refreshSecret);
 
-    await prisma.refreshToken.update({
-      where: {
-        token: clientRefreshToken,
-      },
-      data: {
-        isRevoked: true,
-      },
-    });
+    if (
+      await prisma.refreshToken.findUnique({
+        where: {
+          token: clientRefreshToken,
+        },
+      })
+    ) {
+      await prisma.refreshToken.update({
+        where: {
+          token: clientRefreshToken,
+        },
+        data: {
+          isRevoked: true,
+        },
+      });
+    }
   }
 
-  const accessToken = jwt.sign(
-    { id: user.id, email: user.email } as AccessTokenPayload,
-    accessSecret,
-    { expiresIn: accessTokenExpiry as StringValue }
-  );
+  const accessToken = jwt.sign(user as AccessTokenPayload, accessSecret, {
+    expiresIn: accessTokenExpiry as StringValue,
+  });
 
   const refreshToken = jwt.sign(
     { id: user.id, createdAt: new Date() } as RefreshTokenPayload,
@@ -81,8 +87,15 @@ export const generateTokens = async (
 
 export const getUser = async (req: Request, res: Response) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        error: {
+          message: "Unauthorized request",
+        },
+      });
+    }
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
+      where: { id: req.user.id },
     });
     return res.status(200).json({ user });
   } catch (error) {
@@ -96,11 +109,17 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    if (!req.user?.id) {
+      return res.status(401).json({
+        error: {
+          message: "Unauthorized request",
+        },
+      });
+    }
     const updatedData = req.body;
 
     const user = await prisma.user.update({
-      where: { id: userId },
+      where: { id: req.user.id },
       data: updatedData,
     });
 

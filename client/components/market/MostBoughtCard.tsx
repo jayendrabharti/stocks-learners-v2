@@ -3,8 +3,9 @@
 import { formatCurrency } from "@/services/marketApi";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Bookmark } from "lucide-react";
+import { useWatchlist } from "@/providers/WatchlistProvider";
 
 interface MostBoughtCardProps {
   searchId: string;
@@ -28,13 +29,39 @@ export function MostBoughtCard({
   className,
 }: MostBoughtCardProps) {
   const isPositive = dayChangePerc >= 0;
-  const [isWatchlisted, setIsWatchlisted] = useState(false);
 
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
+  const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
+    useWatchlist();
+
+  // Check if this stock is in the watchlist
+  const watchlistItem = useMemo(() => {
+    return watchlistItems?.find(
+      (item) => item.searchId === searchId && item.instrumentType === "EQ",
+    );
+  }, [watchlistItems, searchId]);
+
+  const isWatchlisted = !!watchlistItem;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleWatchlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWatchlisted(!isWatchlisted);
-    // TODO: Add watchlist logic here
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      if (isWatchlisted && watchlistItem) {
+        await removeWatchlistItem(watchlistItem.id);
+      } else {
+        await addWatchlistItem({
+          instrumentType: "EQ",
+          searchId,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,11 +89,13 @@ export function MostBoughtCard({
           </div>
           <button
             onClick={handleWatchlistToggle}
+            disabled={isLoading}
             className={cn(
-              "transition-colors",
+              "transition-all",
               isWatchlisted
                 ? "text-primary fill-primary"
                 : "text-muted-foreground hover:text-foreground",
+              isLoading && "cursor-not-allowed opacity-50",
             )}
           >
             <Bookmark

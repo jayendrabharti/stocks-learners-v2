@@ -1,7 +1,7 @@
 "use server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
-import { getErrorMessage } from "./utils";
+import { getErrorMessage } from ".";
 import { s3 } from "./S3helper";
 
 type UploadProps = {
@@ -32,7 +32,7 @@ export const uploadFile = async ({ file, folder }: UploadProps) => {
         Key: key,
         Body: body,
         ContentType: file.type,
-      })
+      }),
     );
     const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
 

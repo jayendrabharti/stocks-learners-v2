@@ -135,11 +135,26 @@ export default function Search({
     return () => window.clearTimeout(focusTimer);
   }, [open]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children ?? (
-          <Button variant={"outline"} className={`${className} group`}>
+          <Button
+            variant={"outline"}
+            className={`${className} group rounded-full`}
+          >
             <SearchIcon className="size-4" />
             <span>Search</span>
             <KbdGroup>

@@ -4,7 +4,8 @@ import { formatCurrency, calculateChangePercent } from "@/services/marketApi";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useWatchlist } from "@/providers/WatchlistProvider";
 
 interface StockCardProps {
   companyName: string;
@@ -32,13 +33,39 @@ export function StockCard({
   const changePercent = calculateChangePercent(ltp, close);
   const changeValue = ltp - close;
   const isPositive = changeValue >= 0;
-  const [isWatchlisted, setIsWatchlisted] = useState(false);
 
-  const handleWatchlistToggle = (e: React.MouseEvent) => {
+  const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
+    useWatchlist();
+
+  // Check if this stock is in the watchlist
+  const watchlistItem = useMemo(() => {
+    return watchlistItems?.find(
+      (item) => item.searchId === searchId && item.instrumentType === "EQ",
+    );
+  }, [watchlistItems, searchId]);
+
+  const isWatchlisted = !!watchlistItem;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleWatchlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWatchlisted(!isWatchlisted);
-    // TODO: Add watchlist logic here
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      if (isWatchlisted && watchlistItem) {
+        await removeWatchlistItem(watchlistItem.id);
+      } else {
+        await addWatchlistItem({
+          instrumentType: "EQ",
+          searchId,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,11 +99,13 @@ export function StockCard({
         </div>
         <button
           onClick={handleWatchlistToggle}
+          disabled={isLoading}
           className={cn(
-            "transition-colors",
+            "transition-all",
             isWatchlisted
               ? "text-primary fill-primary"
               : "text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100",
+            isLoading && "cursor-not-allowed opacity-50",
           )}
         >
           <Bookmark

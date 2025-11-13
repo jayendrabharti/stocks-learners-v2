@@ -1,6 +1,6 @@
 export const getErrorMessage = (
   error: unknown,
-  defaultMessage: string = "Something went wrong"
+  defaultMessage: string = "Something went wrong",
 ) => {
   console.error(error);
   let errorMessage = defaultMessage;
@@ -12,7 +12,7 @@ export const getErrorMessage = (
 
 export const formatTimestamp = (
   timestamp: string | number | Date,
-  format = 1
+  format = 1,
 ) => {
   if (!timestamp) return null;
 
@@ -41,3 +41,7 @@ export async function convertBlobUrlToFile(blobUrl: string) {
   });
   return file;
 }
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
