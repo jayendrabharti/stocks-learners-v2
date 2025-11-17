@@ -1,7 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import {
+  ActivityIcon,
+  ArrowDownUpIcon,
+  ChevronDownIcon,
+  EyeIcon,
+  LayoutDashboardIcon,
+  Menu,
+  TrendingUpIcon,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeSwitch from "@/components/ThemeSwitch";
@@ -16,16 +25,53 @@ import { MdAccountBalanceWallet } from "react-icons/md";
 import UserButton from "@/components/auth/UserButton";
 import Search from "./search";
 import { Separator } from "./ui/separator";
+import { ButtonGroup, ButtonGroupSeparator } from "./ui/button-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { MarketStatus } from "@/components/market";
 
-export const NavBarLinks: {
+type NavBarLinkType = {
   name: string;
   href: string;
   icon: React.ElementType;
-}[] = [
+  children?: NavBarLinkType[];
+};
+
+export const NavBarLinks: NavBarLinkType[] = [
   // { name: "Home", href: "/", icon: FaHome },
   { name: "Stocks", href: "/stocks", icon: AiOutlineStock },
   { name: "F&O", href: "/fno", icon: TbChartCandle },
-  { name: "Portfolio", href: "/portfolio", icon: MdAccountBalanceWallet },
+  { name: "Watchlist", href: "/watchlist", icon: EyeIcon },
+  {
+    name: "Portfolio",
+    href: "/portfolio",
+    icon: MdAccountBalanceWallet,
+    children: [
+      {
+        name: "Dashboard",
+        href: "/portfolio",
+        icon: LayoutDashboardIcon,
+      },
+      {
+        name: "Holdings",
+        href: "/portfolio/holdings",
+        icon: TrendingUpIcon,
+      },
+      {
+        name: "Transactions",
+        href: "/portfolio/transactions",
+        icon: ArrowDownUpIcon,
+      },
+      {
+        name: "Activity",
+        href: "/portfolio/activity",
+        icon: ActivityIcon,
+      },
+    ],
+  },
 ];
 
 export default function NavBar() {
@@ -83,6 +129,63 @@ export default function NavBar() {
         >
           {NavBarLinks.map((link, index) => {
             const active = isActive(link.href);
+            const Icon = link.icon;
+            if (link.children) {
+              return (
+                <ButtonGroup className="w-full md:w-max" key={index}>
+                  <Link
+                    href={link.href}
+                    prefetch={true}
+                    scroll={true}
+                    onClick={() => setExpanded(false)}
+                  >
+                    <Button
+                      className={cn(
+                        "flex-1 justify-start rounded-l-full border-r-0 md:w-max",
+                      )}
+                      variant={active ? "default" : "outline"}
+                    >
+                      <Icon />
+                      {link.name}
+                    </Button>
+                  </Link>
+                  <ButtonGroupSeparator />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        className="rounded-full"
+                        variant={active ? "default" : "outline"}
+                        size={"icon"}
+                      >
+                        <ChevronDownIcon />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="flex w-max flex-col gap-2 rounded-3xl p-3">
+                      {link.children.map((item) => {
+                        const isActive = pathname === item.href;
+                        const Icon = item.icon;
+
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setExpanded(false)}
+                          >
+                            <Button
+                              className="w-full justify-start rounded-2xl"
+                              variant={isActive ? "default" : "outline"}
+                            >
+                              <Icon />
+                              {item.name}
+                            </Button>
+                          </Link>
+                        );
+                      })}
+                    </PopoverContent>
+                  </Popover>
+                </ButtonGroup>
+              );
+            }
 
             return (
               <Link
@@ -91,25 +194,24 @@ export default function NavBar() {
                 href={link.href}
                 scroll={true}
                 onClick={() => setExpanded(false)}
-                className={cn(
-                  "flex flex-row items-center",
-                  "rounded-full px-5 py-2 font-bold md:px-2.5 md:py-1",
-                  active && "bg-primary text-background",
-                  !active &&
-                    "hover:bg-secondary text-muted-foreground hover:text-primary",
-                  "ring-muted-foreground active:ring-4",
-                  "transition-all duration-300",
-                  "w-full md:w-max",
-                )}
+                className={"flex w-full md:w-max"}
               >
-                <link.icon className="mr-1.5 size-4" />
-                {link.name}
+                <Button
+                  className={cn("w-full justify-start rounded-full md:w-max")}
+                  variant={active ? "default" : "outline"}
+                >
+                  <Icon />
+                  {link.name}
+                </Button>
               </Link>
             );
           })}
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 md:ml-0">
+          <div className="hidden min-[480px]:block">
+            <MarketStatus />
+          </div>
           <ThemeSwitch />
           <Search />
           <UserButton />
@@ -122,7 +224,7 @@ export default function NavBar() {
             setExpanded((prev) => !prev);
             e.stopPropagation();
           }}
-          className={cn("relative flex md:hidden")}
+          className={cn("relative ml-2 flex md:hidden")}
         >
           <X
             className={cn(

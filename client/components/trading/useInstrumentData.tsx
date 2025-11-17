@@ -6,9 +6,12 @@ import type { InstrumentPageConfig, InstrumentSegment } from "./types";
 import { useWatchlist } from "@/providers/WatchlistProvider";
 import { useSession } from "@/providers/SessionProvider";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 export function useInstrumentData(config: InstrumentPageConfig) {
   const { variant, searchId, tradingSymbol } = config;
+  const searchParams = useSearchParams();
+  const exchangeParam = searchParams.get("exchange");
 
   const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
     useWatchlist();
@@ -17,7 +20,9 @@ export function useInstrumentData(config: InstrumentPageConfig) {
   const [metadata, setMetadata] = useState<any>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [instruments, setInstruments] = useState<Instrument[] | null>(null);
-  const [exchange, setExchange] = useState<Exchange>("NSE");
+  const [exchange, setExchange] = useState<Exchange>(
+    (exchangeParam as Exchange) || "NSE",
+  );
   const [liveData, setLiveData] = useState<any | null>(null);
   const [liveDataError, setLiveDataError] = useState<string | null>(null);
   const [historicalData, setHistoricalData] = useState<any | null>(null);
@@ -142,13 +147,25 @@ export function useInstrumentData(config: InstrumentPageConfig) {
     if (variant === "option" || variant === "future") {
       if (!tradingSymbol) return;
 
-      ApiClient.get(`/instruments?trading_symbol=${tradingSymbol}`)
+      const params = new URLSearchParams({
+        trading_symbol: tradingSymbol,
+        search_id: searchId,
+      });
+
+      ApiClient.get(`/instruments?${params.toString()}`)
         .then((response) => {
           const fetchedInstruments = response.data.instruments;
           setInstruments(fetchedInstruments);
 
-          // If only one instrument exists, set it as the exchange
-          if (fetchedInstruments.length === 1) {
+          // Set exchange from URL param if valid, otherwise use first instrument
+          if (
+            exchangeParam &&
+            fetchedInstruments.some(
+              (i: Instrument) => i.exchange === exchangeParam,
+            )
+          ) {
+            setExchange(exchangeParam as Exchange);
+          } else if (fetchedInstruments.length === 1) {
             setExchange(fetchedInstruments[0].exchange);
           }
         })
@@ -157,19 +174,31 @@ export function useInstrumentData(config: InstrumentPageConfig) {
       // stock or index
       if (!metadata.isin) return;
 
-      ApiClient.get(`/instruments?isin=${metadata.isin}`)
+      const params = new URLSearchParams({
+        isin: metadata.isin,
+        search_id: searchId,
+      });
+
+      ApiClient.get(`/instruments?${params.toString()}`)
         .then((response) => {
           const fetchedInstruments = response.data.instruments;
           setInstruments(fetchedInstruments);
 
-          // If only one instrument exists, set it as the exchange
-          if (fetchedInstruments.length === 1) {
+          // Set exchange from URL param if valid, otherwise use first instrument
+          if (
+            exchangeParam &&
+            fetchedInstruments.some(
+              (i: Instrument) => i.exchange === exchangeParam,
+            )
+          ) {
+            setExchange(exchangeParam as Exchange);
+          } else if (fetchedInstruments.length === 1) {
             setExchange(fetchedInstruments[0].exchange);
           }
         })
         .catch(() => {});
     }
-  }, [metadata, variant, tradingSymbol]);
+  }, [metadata, variant, tradingSymbol, searchId]);
 
   // Fetch live data
   useEffect(() => {

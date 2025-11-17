@@ -14,6 +14,14 @@ import MarketRouter from "@/routers/market";
 import AdminRouter from "@/routers/admin";
 import ContactRouter from "@/routers/contact";
 import WatchlistRouter from "./routers/watchlist";
+import TradingRouter from "./routers/trading";
+import AccountRouter from "./routers/account";
+import PortfolioRouter from "./routers/portfolio";
+import { scheduleDailyInstrumentSync } from "@/utils/instruments";
+import {
+  initializeAutoSquareOffJobs,
+  stopAutoSquareOffJobs,
+} from "@/jobs/autoSquareOffJob";
 
 dotenv.config();
 
@@ -61,17 +69,30 @@ app.use("/market", MarketRouter);
 app.use("/admin", AdminRouter);
 app.use("/contact", ContactRouter);
 app.use("/watchlist", WatchlistRouter);
+app.use("/trading", TradingRouter);
+app.use("/account", AccountRouter);
+app.use("/portfolio", PortfolioRouter);
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
+  stopAutoSquareOffJobs();
   process.exit(0);
 });
 
 process.on("SIGINT", () => {
   console.log("SIGINT signal received: closing HTTP server");
+  stopAutoSquareOffJobs();
   process.exit(0);
 });
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Trading Server is running on port ${PORT}`);
+
+  // Initialize daily instrument sync scheduler
+  scheduleDailyInstrumentSync();
+  console.log("📅 Instrument sync scheduler initialized");
+
+  // Initialize auto square-off jobs
+  initializeAutoSquareOffJobs();
+  console.log("⏰ Auto square-off scheduler initialized");
 });

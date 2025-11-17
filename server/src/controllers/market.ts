@@ -1,63 +1,17 @@
 import { Request, Response } from "express";
-
-// Types for API responses
-interface Stock {
-  isin: string;
-  gsin?: string;
-  companyName: string;
-  companyShortName: string;
-  searchId: string;
-  ltp: number;
-  logoUrl: string;
-  nseScriptCode: string;
-  bseScriptCode: string;
-  type: string;
-  marketCap?: number;
-  volumeWeekAvg?: number;
-  close: number;
-  yearHigh: number;
-  yearLow: number;
-  volume?: number;
-  tag?: string;
-  tagColor?: string;
-}
-
-interface MostBoughtStock {
-  company: {
-    isin: string;
-    growwContractId: string;
-    companyName: string;
-    searchId: string;
-    nseScriptCode: string;
-    companyShortName: string;
-    bseScriptCode: string;
-    imageUrl: string;
-  };
-  stats: {
-    type: string;
-    high: number;
-    low: number;
-    close: number;
-    ltp: number;
-    dayChange: number;
-    dayChangePerc: number;
-    lowPriceRange: number;
-    highPriceRange: number;
-  };
-}
-
-interface TopMoversResponse {
-  data: {
-    title: string;
-    stocks: Stock[];
-  };
-}
-
-interface MostBoughtResponse {
-  exploreCompanies: {
-    POPULAR_STOCKS_MOST_BOUGHT: MostBoughtStock[];
-  };
-}
+import {
+  fetchMostBoughtStocks,
+  fetchTopMovers,
+  MoverType,
+  fetchMarketTiming,
+  getMarketStatus,
+  fetchFnOTopUnderlyings,
+  fetchFnOMarketTrends,
+  fetchFnOTopContracts,
+  fetchIndices,
+  fetchMajorIndices,
+  fetchIndexDetails,
+} from "@/services";
 
 /**
  * Get most bought stocks on Groww
@@ -66,33 +20,11 @@ export const getMostBought = async (req: Request, res: Response) => {
   try {
     const size = parseInt(req.query.size as string) || 10;
 
-    const response = await fetch(
-      `https://groww.in/v1/api/stocks_data/v2/explore/list/top?discoveryFilterTypes=POPULAR_STOCKS_MOST_BOUGHT&page=0&size=${size}`,
-      {
-        headers: {
-          Accept: "application/json, text/plain, */*",
-          "Accept-Language": "en-US,en;q=0.9",
-          "Accept-Encoding": "gzip, deflate, br",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-          DNT: "1",
-          Pragma: "no-cache",
-          "Sec-Fetch-Dest": "empty",
-          "Sec-Fetch-Mode": "cors",
-          "Sec-Fetch-Site": "same-origin",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-          Referer: "https://groww.in/stocks",
-          Origin: "https://groww.in",
-        },
-      }
-    );
-
-    const data = (await response.json()) as MostBoughtResponse;
+    const data = await fetchMostBoughtStocks({ size });
 
     res.json({
       success: true,
-      data: data.exploreCompanies.POPULAR_STOCKS_MOST_BOUGHT,
+      data,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -112,66 +44,264 @@ export const getTopMovers = async (req: Request, res: Response) => {
     const type = (req.query.type as string) || "gainers";
     const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-    let moverType: string;
-    let indice = "GIDXNIFTY100";
-
-    switch (type.toLowerCase()) {
-      case "gainers":
-        moverType = "TOP_GAINERS";
-        break;
-      case "losers":
-        moverType = "TOP_LOSERS";
-        break;
-      case "volume":
-        moverType = "VOLUME_SHOCKERS";
-        indice = ""; // Volume shockers don't need an indice
-        break;
-      default:
-        res.status(400).json({
-          success: false,
-          error: "Invalid type. Use 'gainers', 'losers', or 'volume'",
-          timestamp: new Date().toISOString(),
-        });
-        return;
-    }
-
-    const url =
-      type.toLowerCase() === "volume"
-        ? `https://groww.in/bff/web/stocks/web-pages/top_movers?moverType=${moverType}&pageSize=${pageSize}`
-        : `https://groww.in/bff/web/stocks/web-pages/top_movers?indice=${indice}&moverType=${moverType}&pageSize=${pageSize}`;
-
-    // Add browser-like headers to get complete data
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        DNT: "1",
-        Pragma: "no-cache",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        Referer: "https://groww.in/stocks",
-        Origin: "https://groww.in",
-      },
+    const data = await fetchTopMovers({
+      type: type as MoverType,
+      pageSize,
     });
-
-    const data = (await response.json()) as TopMoversResponse;
 
     res.json({
       success: true,
-      data: data.data.stocks,
+      data,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Error fetching top movers:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to fetch market data",
+      error:
+        error instanceof Error ? error.message : "Failed to fetch market data",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get market timing information
+ */
+export const getMarketTiming = async (_req: Request, res: Response) => {
+  try {
+    const data = await fetchMarketTiming();
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching market timing:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch market timing",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get current market status (open/closed)
+ */
+export const getStatus = async (_req: Request, res: Response) => {
+  try {
+    const data = await getMarketStatus();
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching market status:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch market status",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get top traded F&O underlyings
+ */
+export const getFnOTopUnderlyings = async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 6;
+    const data = await fetchFnOTopUnderlyings(limit);
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching F&O underlyings:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch F&O underlyings",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get F&O market trends for a specific instrument
+ */
+export const getFnOMarketTrends = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { instrument } = req.params;
+    if (!instrument) {
+      res.status(400).json({
+        success: false,
+        error: "Instrument parameter is required",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+    const { exchange, interval, limit, marketTrendFactor, type } = req.query;
+
+    const options: {
+      exchange?: string;
+      interval?: string;
+      limit?: number;
+      marketTrendFactor?: string;
+      type?: string;
+    } = {};
+    if (exchange) options.exchange = exchange as string;
+    if (interval) options.interval = interval as string;
+    if (limit) options.limit = parseInt(limit as string);
+    if (marketTrendFactor)
+      options.marketTrendFactor = marketTrendFactor as string;
+    if (type) options.type = type as string;
+
+    const data = await fetchFnOMarketTrends(instrument, options);
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching F&O market trends:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch F&O market trends",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get top traded F&O contracts
+ */
+export const getFnOTopContracts = async (req: Request, res: Response) => {
+  try {
+    const { exchange, instruments, limit } = req.query;
+
+    const options: {
+      exchange?: string;
+      instruments?: string;
+      limit?: number;
+    } = {};
+    if (exchange) options.exchange = exchange as string;
+    if (instruments) options.instruments = instruments as string;
+    if (limit) options.limit = parseInt(limit as string);
+
+    const data = await fetchFnOTopContracts(options);
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching F&O contracts:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch F&O contracts",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get indices by search term
+ */
+export const getIndices = async (req: Request, res: Response) => {
+  try {
+    const searchTerm = (req.query.q as string) || "";
+    const page = parseInt(req.query.page as string) || 1;
+    const size = parseInt(req.query.size as string) || 10;
+
+    const data = await fetchIndices(searchTerm, page, size);
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching indices:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch indices",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get major indices (predefined list)
+ */
+export const getMajorIndices = async (_req: Request, res: Response) => {
+  try {
+    const data = await fetchMajorIndices();
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching major indices:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch major indices",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get specific index details
+ */
+export const getIndexDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { searchId } = req.params;
+    if (!searchId) {
+      res.status(400).json({
+        success: false,
+        error: "Search ID parameter is required",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    const data = await fetchIndexDetails(searchId);
+
+    if (!data) {
+      res.status(404).json({
+        success: false,
+        error: "Index not found",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching index details:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch index details",
       timestamp: new Date().toISOString(),
     });
   }

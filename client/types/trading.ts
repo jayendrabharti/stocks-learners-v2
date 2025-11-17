@@ -19,6 +19,7 @@ type Instrument = {
   is_reserved: boolean;
   buy_allowed: boolean;
   sell_allowed: boolean;
+  search_id: string | null;
 };
 
 type Exchange = "NSE" | "BSE";

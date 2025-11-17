@@ -1,189 +1,47 @@
 import { Request, Response } from "express";
-import axios from "axios";
-import path from "path";
+import prisma from "@/database/client";
 import {
-  promises as fs,
-  constants as fsConstants,
-  createWriteStream,
-  createReadStream,
-} from "fs";
-import { pipeline } from "stream/promises";
-import { parse } from "csv-parse";
+  fetchInstrumentsBySymbol as fetchFromCSV,
+  fetchInstrumentsByIsin as fetchIsinFromCSV,
+} from "@/services";
+import type {
+  Exchange,
+  Segment,
+  InstrumentType,
+} from "@/database/generated/enums";
 
-interface InstrumentRow {
-  exchange: string;
-  exchange_token: string;
-  trading_symbol: string;
-  groww_symbol?: string;
-  name?: string;
-  instrument_type?: string;
-  segment?: string;
-  series?: string;
-  isin?: string;
-  underlying_symbol?: string;
-  underlying_exchange_token?: string;
-  expiry_date?: string;
-  strike_price?: string;
-  lot_size?: string;
-  tick_size?: string;
-  freeze_quantity?: string;
-  is_reserved?: string;
-  buy_allowed?: string;
-  sell_allowed?: string;
-  [additionalColumn: string]: string | undefined;
-}
+/**
+ * Convert CSV row to database format and insert
+ */
+const insertInstrumentFromCSV = async (csvRow: any) => {
+  const expiry = csvRow.expiry_date ? new Date(csvRow.expiry_date) : null;
+  const strike = csvRow.strike_price ? parseFloat(csvRow.strike_price) : null;
+  const leverage = csvRow.segment === "FNO" ? 5 : 1;
 
-const INSTRUMENT_CSV_URL =
-  process.env.INSTRUMENT_CSV_URL ??
-  "https://growwapi-assets.groww.in/instruments/instrument.csv";
-
-const CACHE_DIRECTORY = path.resolve(
-  process.cwd(),
-  process.env.INSTRUMENT_CACHE_DIR ?? "cache"
-);
-
-const CACHE_FILE_NAME = process.env.INSTRUMENT_CACHE_FILE ?? "instrument.csv";
-
-const CACHE_FILE_PATH = path.join(CACHE_DIRECTORY, CACHE_FILE_NAME);
-
-let cacheWarmPromise: Promise<void> | null = null;
-
-// Reuse a shared promise so multiple requests don't trigger parallel downloads.
-const ensureCacheAvailable = async (forceRefresh = false): Promise<void> => {
-  if (cacheWarmPromise) {
-    return cacheWarmPromise;
-  }
-
-  cacheWarmPromise = (async () => {
-    if (!forceRefresh) {
-      const cacheExists = await doesCacheExist();
-      if (cacheExists) {
-        return;
-      }
-    }
-
-    await downloadAndPersistCsv();
-  })()
-    .catch((error) => {
-      // Clear the promise so future callers can retry after a failure.
-      cacheWarmPromise = null;
-      throw error;
-    })
-    .finally(() => {
-      cacheWarmPromise = null;
-    });
-
-  return cacheWarmPromise;
-};
-
-const doesCacheExist = async (): Promise<boolean> => {
-  try {
-    await fs.access(CACHE_FILE_PATH, fsConstants.F_OK);
-    return true;
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as NodeJS.ErrnoException).code === "ENOENT"
-    ) {
-      return false;
-    }
-    throw error;
-  }
-};
-
-const downloadAndPersistCsv = async (): Promise<void> => {
-  await fs.mkdir(CACHE_DIRECTORY, { recursive: true });
-
-  const response = await axios.get(INSTRUMENT_CSV_URL, {
-    responseType: "stream",
-  });
-
-  const temporaryPath = `${CACHE_FILE_PATH}.tmp`;
-  const writer = createWriteStream(temporaryPath);
-
-  try {
-    await pipeline(response.data, writer);
-    await fs.rm(CACHE_FILE_PATH, { force: true });
-    await fs.rename(temporaryPath, CACHE_FILE_PATH);
-  } catch (error) {
-    await fs.rm(temporaryPath, { force: true });
-    throw error;
-  }
-};
-
-const readRowsMatchingSymbol = async (
-  tradingSymbol: string
-): Promise<InstrumentRow[]> => {
-  await ensureCacheAvailable();
-
-  const normalizedSymbol = tradingSymbol.trim().toUpperCase();
-
-  return new Promise<InstrumentRow[]>((resolve, reject) => {
-    const matches: InstrumentRow[] = [];
-
-    const sourceStream = createReadStream(CACHE_FILE_PATH);
-    const parser = parse({
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-    });
-
-    parser.on("readable", () => {
-      let record: InstrumentRow | null;
-      while ((record = parser.read()) !== null) {
-        if (
-          typeof record.trading_symbol === "string" &&
-          record.trading_symbol.trim().toUpperCase() === normalizedSymbol
-        ) {
-          matches.push(record);
-        }
-      }
-    });
-
-    parser.on("error", (error: Error) => reject(error));
-    sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
-
-    parser.on("end", () => resolve(matches));
-
-    sourceStream.pipe(parser);
-  });
-};
-
-const readRowsMatchingIsin = async (isin: string): Promise<InstrumentRow[]> => {
-  await ensureCacheAvailable();
-
-  const normalizedIsin = isin.trim().toUpperCase();
-
-  return new Promise<InstrumentRow[]>((resolve, reject) => {
-    const matches: InstrumentRow[] = [];
-
-    const sourceStream = createReadStream(CACHE_FILE_PATH);
-    const parser = parse({
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-    });
-
-    parser.on("readable", () => {
-      let record: InstrumentRow | null;
-      while ((record = parser.read()) !== null) {
-        if (
-          typeof record.isin === "string" &&
-          record.isin.trim().toUpperCase() === normalizedIsin
-        ) {
-          matches.push(record);
-        }
-      }
-    });
-
-    parser.on("error", (error: Error) => reject(error));
-    sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
-
-    parser.on("end", () => resolve(matches));
-
-    sourceStream.pipe(parser);
+  return await prisma.instrument.create({
+    data: {
+      exchange: csvRow.exchange.toUpperCase() as Exchange,
+      segment: csvRow.segment.toUpperCase() as Segment,
+      series: csvRow.series || null,
+      tradingSymbol: csvRow.trading_symbol,
+      exchangeToken: csvRow.exchange_token,
+      growwSymbol: csvRow.groww_symbol || null,
+      name: csvRow.name || null,
+      isin: csvRow.isin || null,
+      type: csvRow.instrument_type.toUpperCase() as InstrumentType,
+      expiry,
+      strike,
+      underlyingSymbol: csvRow.underlying_symbol || null,
+      underlyingExchangeToken: csvRow.underlying_exchange_token || null,
+      lotSize: parseInt(csvRow.lot_size) || 1,
+      tickSize: parseFloat(csvRow.tick_size) || 0.05,
+      freezeQty: parseInt(csvRow.freeze_quantity) || 0,
+      buyAllowed: csvRow.buy_allowed === "1" || csvRow.buy_allowed === "true",
+      sellAllowed:
+        csvRow.sell_allowed === "1" || csvRow.sell_allowed === "true",
+      isReserved: csvRow.is_reserved === "1" || csvRow.is_reserved === "true",
+      leverage,
+    },
   });
 };
 
@@ -201,6 +59,8 @@ export const Instruments = async (
       (req.params.isin as string | undefined) ??
       (req.query.isin as string | undefined);
 
+    const searchIdInput = req.query.search_id as string | undefined;
+
     // At least one of tradingSymbol or isin must be provided
     if (
       (!tradingSymbolInput && !isinInput) ||
@@ -214,32 +74,81 @@ export const Instruments = async (
       });
     }
 
-    const shouldRefreshCache = req.query.refresh === "true";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (shouldRefreshCache) {
-      await ensureCacheAvailable(true);
-    } else {
-      await ensureCacheAvailable();
-    }
+    let instruments: any[] = [];
+    let source = "database";
 
-    let rows: InstrumentRow[] = [];
-
-    // If both are provided, search by trading symbol first, then filter by ISIN
+    // Search database first
     if (tradingSymbolInput && isinInput) {
-      const symbolRows = await readRowsMatchingSymbol(tradingSymbolInput);
-      const normalizedIsin = isinInput.trim().toUpperCase();
-      rows = symbolRows.filter(
-        (row) =>
-          typeof row.isin === "string" &&
-          row.isin.trim().toUpperCase() === normalizedIsin
-      );
+      instruments = await prisma.instrument.findMany({
+        where: {
+          tradingSymbol: tradingSymbolInput.toUpperCase(),
+          isin: isinInput.toUpperCase(),
+          OR: [{ expiry: null }, { expiry: { gte: today } }],
+        },
+      });
     } else if (tradingSymbolInput) {
-      rows = await readRowsMatchingSymbol(tradingSymbolInput);
+      instruments = await prisma.instrument.findMany({
+        where: {
+          tradingSymbol: tradingSymbolInput.toUpperCase(),
+          OR: [{ expiry: null }, { expiry: { gte: today } }],
+        },
+      });
     } else if (isinInput) {
-      rows = await readRowsMatchingIsin(isinInput);
+      instruments = await prisma.instrument.findMany({
+        where: {
+          isin: isinInput.toUpperCase(),
+          OR: [{ expiry: null }, { expiry: { gte: today } }],
+        },
+      });
     }
 
-    if (rows.length === 0) {
+    // If not found in database, try CSV and auto-insert
+    if (instruments.length === 0) {
+      console.log(`🔍 Instrument not in DB, checking CSV...`);
+      source = "csv-auto-inserted";
+
+      try {
+        let csvRows: any[] = [];
+
+        if (tradingSymbolInput) {
+          csvRows = await fetchFromCSV(tradingSymbolInput);
+        } else if (isinInput) {
+          csvRows = await fetchIsinFromCSV(isinInput);
+        }
+
+        // Filter non-expired and insert
+        for (const csvRow of csvRows) {
+          const rowExpiry = csvRow.expiry_date
+            ? new Date(csvRow.expiry_date)
+            : null;
+
+          // Skip expired instruments
+          if (rowExpiry && rowExpiry < today) {
+            continue;
+          }
+
+          // Check if already exists (race condition handling)
+          const existing = await prisma.instrument.findUnique({
+            where: { exchangeToken: csvRow.exchange_token },
+          });
+
+          if (!existing) {
+            const inserted = await insertInstrumentFromCSV(csvRow);
+            instruments.push(inserted);
+            console.log(`✅ Auto-inserted: ${csvRow.trading_symbol}`);
+          } else {
+            instruments.push(existing);
+          }
+        }
+      } catch (csvError) {
+        console.error("CSV fetch error:", csvError);
+      }
+    }
+
+    if (instruments.length === 0) {
       return res.status(404).json({
         error: {
           message: "No instruments found for the provided criteria.",
@@ -247,10 +156,58 @@ export const Instruments = async (
       });
     }
 
+    // Update searchId for instruments that don't have it yet
+    if (searchIdInput) {
+      for (const instrument of instruments) {
+        if (!instrument.searchId) {
+          try {
+            await prisma.instrument.update({
+              where: { id: instrument.id },
+              data: { searchId: searchIdInput },
+            });
+            instrument.searchId = searchIdInput; // Update in-memory for response
+            console.log(
+              `✅ Updated searchId for ${instrument.tradingSymbol} to ${searchIdInput}`
+            );
+          } catch (error) {
+            console.error(
+              `Failed to update searchId for instrument ${instrument.id}:`,
+              error
+            );
+          }
+        }
+      }
+    }
+
+    // Transform to match frontend expected format
+    const transformedInstruments = instruments.map((inst) => ({
+      exchange: inst.exchange,
+      exchange_token: inst.exchangeToken,
+      trading_symbol: inst.tradingSymbol,
+      groww_symbol: inst.growwSymbol,
+      name: inst.name,
+      instrument_type: inst.type,
+      segment: inst.segment,
+      series: inst.series,
+      isin: inst.isin,
+      search_id: inst.searchId,
+      underlying_symbol: inst.underlyingSymbol,
+      underlying_exchange_token: inst.underlyingExchangeToken,
+      expiry_date: inst.expiry ? inst.expiry.toISOString() : null,
+      strike_price: inst.strike?.toString(),
+      lot_size: inst.lotSize.toString(),
+      tick_size: inst.tickSize.toString(),
+      freeze_quantity: inst.freezeQty.toString(),
+      is_reserved: inst.isReserved ? "1" : "0",
+      buy_allowed: inst.buyAllowed ? "1" : "0",
+      sell_allowed: inst.sellAllowed ? "1" : "0",
+    }));
+
     return res.status(200).json({
-      instruments: rows,
+      instruments: transformedInstruments,
       trading_sysmbol: tradingSymbolInput,
       isin: isinInput,
+      source,
     });
   } catch (error) {
     console.error("Error fetching instruments:", error);

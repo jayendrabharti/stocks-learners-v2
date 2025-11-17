@@ -1,3 +1,7 @@
+// -------------------------------------
+// GENERATOR & DATASOURCE
+// -------------------------------------
+
 generator client {
   provider = "prisma-client"
   output   = "../database/generated"
@@ -8,9 +12,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// #########################
-// User Management
-// ##########################
+// -------------------------------------
+// USER MANAGEMENT
+// -------------------------------------
 
 model User {
   id          String    @id @default(cuid())
@@ -23,14 +27,13 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  // Auth relations
-  refreshTokens RefreshToken[]
-  otp           otp?
-
-  //watchlist
+  refreshTokens  RefreshToken[]
+  otp            otp?
   watchlistItems WatchlistItem[]
-  //contact forms
   contactForms   ContactForm[]
+  account        Account?
+  transactions   Transaction[]
+  positions      Position[]
 
   @@map("users")
 }
@@ -38,7 +41,7 @@ model User {
 model RefreshToken {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token      String   @unique
   expiresAt  DateTime
   clientInfo Json?
@@ -53,7 +56,7 @@ model RefreshToken {
 model otp {
   id        String    @id @default(cuid())
   userId    String    @unique
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   otp       String
   attempts  Int       @default(0)
   expiresAt DateTime
@@ -64,14 +67,30 @@ model otp {
   @@map("otps")
 }
 
-//##########################
-// Watchlist Management
-//##########################
+// -------------------------------------
+// ACCOUNT
+// -------------------------------------
+
+model Account {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  cash       Float @default(0)
+  usedMargin Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -------------------------------------
+// WATCHLIST
+// -------------------------------------
 
 model WatchlistItem {
   id             String         @id @default(cuid())
   userId         String
-  user           User           @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   instrumentType InstrumentType
   searchId       String
   tradingSymbol  String?
@@ -79,6 +98,179 @@ model WatchlistItem {
   updatedAt      DateTime       @updatedAt
 
   @@map("watchlists")
+}
+
+// -------------------------------------
+// CONTACT FORM
+// -------------------------------------
+
+model ContactForm {
+  id         String            @id @default(cuid())
+  email      String
+  name       String
+  mobile     String
+  message    String
+  user       User?             @relation(fields: [email], references: [email])
+  status     ContactFormStatus @default(PENDING)
+  adminNotes String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_forms")
+}
+
+// -------------------------------------
+// INSTRUMENT
+// -------------------------------------
+
+model Instrument {
+  id String @id @default(cuid())
+
+  exchange Exchange
+  segment  Segment
+  series   String? // EQ / BE / BL
+
+  tradingSymbol String
+  exchangeToken String  @unique
+  growwSymbol   String?
+
+  name String?
+  isin String?
+
+  type InstrumentType
+
+  // F&O specifics
+  expiry                  DateTime?
+  strike                  Float?
+  underlyingSymbol        String?
+  underlyingExchangeToken String?
+  searchId                String?
+
+  // Trading rules & metadata
+  lotSize     Int     @default(1)
+  tickSize    Float   @default(0.05)
+  freezeQty   Int     @default(0)
+  buyAllowed  Boolean @default(true)
+  sellAllowed Boolean @default(true)
+  isReserved  Boolean @default(false)
+
+  // MIS / Leverage
+  leverage Float @default(1)
+
+  transactions Transaction[]
+  positions    Position[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tradingSymbol])
+}
+
+// -------------------------------------
+// TRANSACTION (BUY/SELL EXECUTIONS)
+// -------------------------------------
+
+model Transaction {
+  id String @id @default(cuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  instrument   Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  instrumentId String
+
+  side    TradeSide
+  product TradeType
+
+  qty        Int
+  price      Float
+  limitPrice Float?
+
+  realizedPnl Float?
+
+  positionId String?
+  position   Position? @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  // BUY transaction creates lots
+  buyLots PositionLot[] @relation("BuyTransaction")
+
+  fees      Float    @default(0)
+  createdAt DateTime @default(now())
+}
+
+// -------------------------------------
+// POSITION (PARENT POSITION)
+// -------------------------------------
+
+model Position {
+  id String @id @default(cuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  instrument   Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  instrumentId String
+
+  qty         Int       @default(0)
+  avgPrice    Float     @default(0)
+  realizedPnl Float     @default(0)
+  product     TradeType
+
+  isOpen Boolean @default(true)
+
+  // MIS Auto Square-off
+  autoSquareOffAt     DateTime?
+  autoSquareOffStatus AutoSquareOffStatus @default(PENDING)
+  squareOffAttempts   Int                 @default(0)
+  lastSquareOffError  String?
+
+  transactions Transaction[]
+  lots         PositionLot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, instrumentId, product])
+  @@index([userId, product])
+  @@index([userId, isOpen])
+  @@index([autoSquareOffAt, autoSquareOffStatus])
+}
+
+// -------------------------------------
+// POSITION LOTS (FIFO BATCHES)
+// -------------------------------------
+
+model PositionLot {
+  id String @id @default(cuid())
+
+  position   Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  positionId String
+
+  buyTransaction   Transaction @relation("BuyTransaction", fields: [buyTransactionId], references: [id], onDelete: Cascade)
+  buyTransactionId String
+
+  totalQty     Int
+  remainingQty Int   @default(0)
+  buyPrice     Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -------------------------------------
+// ENUMS
+// -------------------------------------
+
+enum Exchange {
+  NSE
+  BSE
+}
+
+enum Segment {
+  CASH
+  FNO
 }
 
 enum InstrumentType {
@@ -89,31 +281,26 @@ enum InstrumentType {
   PE
 }
 
-//##########################
-// Watchlist Management
-//##########################
-
-model ContactForm {
-  id        String   @id @default(cuid())
-  email     String
-  name      String
-  mobile    String
-  message   String 
-  user  User?    @relation(fields: [email], references: [email])
-  status    ContactFormStatus @default(PENDING)
-  adminNotes String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([status])
-  @@index([createdAt])
-  @@map("contact_forms")
+enum TradeSide {
+  BUY
+  SELL
 }
 
+enum TradeType {
+  CNC
+  MIS
+}
 
 enum ContactFormStatus {
   PENDING
   IN_PROGRESS
   RESOLVED
   CLOSED
+}
+
+enum AutoSquareOffStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
 }

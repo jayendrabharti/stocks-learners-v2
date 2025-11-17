@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { fetchLiveData } from "@/services";
 
 type LiveDataQuery = {
   script_code?: string;
@@ -13,8 +14,6 @@ export const GetLiveData = async (
   try {
     const { script_code, exchange, type } = req.query as LiveDataQuery;
 
-    const segment: Segment = type === "EQ" || type === "IDX" ? "CASH" : "FNO";
-
     if (!script_code || !exchange || !type) {
       return res.status(400).json({
         error: {
@@ -23,50 +22,20 @@ export const GetLiveData = async (
       });
     }
 
-    let liveDataUrl: string | null = null;
+    const result = await fetchLiveData({
+      scriptCode: script_code,
+      exchange,
+      type,
+    });
 
-    switch (type) {
-      case "EQ":
-        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
-        break;
-      case "IDX":
-        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_indices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
-        break;
-      case "FUT":
-      case "CE":
-      case "PE":
-        liveDataUrl = `https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
-        break;
-      default:
-        liveDataUrl = `https://groww.in/v1/api/stocks_data/v1/tr_live_prices/exchange/${exchange}/segment/${segment}/${script_code}/latest`;
-        break;
-    }
-
-    const liveDataResponse = await fetch(liveDataUrl);
-
-    if (liveDataResponse.ok) {
-      const liveData: any = await liveDataResponse.json();
-
-      return res.status(200).json({
-        script_code,
-        exchange,
-        segment,
-        liveData,
-      });
-    } else {
-      return res.status(500).json({
-        script_code,
-        exchange,
-        segment,
-        error: {
-          message: `Failed to fetch: ${liveDataResponse.statusText}`,
-        },
-      });
-    }
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({
       error: {
-        message: "Failed to retrieve live data.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve live data.",
       },
     });
   }

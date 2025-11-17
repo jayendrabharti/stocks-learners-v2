@@ -1,38 +1,38 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { BuySellSection, HoldingsSection } from "@/components/portfolio";
 import { useInstrument } from "./InstrumentProvider";
 
 export function InstrumentBuySellSection() {
-  const { metadata, currentPrice, title } = useInstrument();
+  const { currentInstrument, currentPrice, title } = useInstrument();
+
+  // Wait for instrument data to load
+  if (!currentInstrument) {
+    return null;
+  }
 
   return (
-    <div className="w-full max-w-full px-4 py-6">
-      <Card className="p-6">
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">Buy/Sell {title || "..."}</h2>
-          <div className="text-muted-foreground text-sm">
-            Buy/Sell section placeholder - UI and functionality coming soon
-          </div>
-          <div className="border-muted mt-4 rounded-lg border p-4">
-            <p className="text-muted-foreground text-sm">
-              Current Price: ₹{currentPrice || "..."}
-            </p>
-            <p className="text-muted-foreground mt-2 text-sm">
-              • Order placement interface
-            </p>
-            <p className="text-muted-foreground text-sm">
-              • Quantity and price controls
-            </p>
-            <p className="text-muted-foreground text-sm">
-              • Market/Limit order options
-            </p>
-            <p className="text-muted-foreground text-sm">
-              • Portfolio integration
-            </p>
-          </div>
+    <div className="w-full px-4 py-6">
+      {/* Desktop: Side by side, Mobile: Stacked */}
+      <div className="flex flex-row gap-6 lg:flex-col">
+        {/* Buy/Sell Section */}
+        <div className="flex-1">
+          <BuySellSection
+            exchangeToken={currentInstrument.exchange_token}
+            tradingSymbol={currentInstrument.trading_symbol}
+            instrumentName={currentInstrument.name || title || ""}
+            currentPrice={currentPrice}
+            lotSize={currentInstrument.lot_size}
+            exchange={currentInstrument.exchange}
+            segment={currentInstrument.segment}
+          />
         </div>
-      </Card>
+
+        {/* Holdings Section */}
+        <div className="flex-1">
+          <HoldingsSection />
+        </div>
+      </div>
     </div>
   );
 }

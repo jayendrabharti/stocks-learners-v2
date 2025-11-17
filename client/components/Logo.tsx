@@ -1,10 +1,10 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { appName } from "@/utils/data";
-import { anurati } from "@/utils/fonts";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { anurati } from "@/utils/fonts";
 
 export default function Logo() {
   const [mounted, setMounted] = useState(false);
@@ -45,7 +45,10 @@ export default function Logo() {
   }
 
   return (
-    <Link href={"/"} className="flex w-max flex-row items-center gap-2">
+    <Link
+      href={"/"}
+      className="flex w-max flex-row items-center justify-center gap-2"
+    >
       <Image
         src={logoSrc}
         alt={`${appName} Logo`}
@@ -58,9 +61,10 @@ export default function Logo() {
       <span
         className={cn(
           "text-foreground hidden text-xl font-bold sm:block md:hidden lg:block",
+          anurati.className,
         )}
       >
-        Stocks&nbsp;Learners
+        STOCKS&nbsp;LEARNERS
       </span>
     </Link>
   );
