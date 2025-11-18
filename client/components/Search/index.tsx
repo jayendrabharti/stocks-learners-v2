@@ -156,8 +156,8 @@ export default function Search({
             className={`${className} group rounded-full`}
           >
             <SearchIcon className="size-4" />
-            <span className="hidden md:visible">Search</span>
-            <KbdGroup className="hidden md:visible">
+            <span>Search</span>
+            <KbdGroup>
               <Kbd>Ctrl</Kbd>
               <span>+</span>
               <Kbd>K</Kbd>

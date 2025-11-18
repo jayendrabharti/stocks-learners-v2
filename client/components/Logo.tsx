@@ -60,7 +60,7 @@ export default function Logo() {
       />
       <span
         className={cn(
-          "text-foreground hidden text-xl font-bold sm:block md:hidden lg:block",
+          "text-foreground hidden text-xl font-bold xl:block",
           anurati.className,
         )}
       >

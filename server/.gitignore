@@ -11,6 +11,8 @@ generated
 # TypeScript cache
 *.tsbuildinfo
 
+cache/
+
 # Environment files
 .env*
 !.env.example

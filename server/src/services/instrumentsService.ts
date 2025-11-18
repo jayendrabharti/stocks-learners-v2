@@ -5,12 +5,7 @@
 
 import axios from "axios";
 import path from "path";
-import {
-  promises as fs,
-  constants as fsConstants,
-  createWriteStream,
-  createReadStream,
-} from "fs";
+import { promises as fs, createWriteStream, createReadStream } from "fs";
 import { pipeline } from "stream/promises";
 import { parse } from "csv-parse";
 
@@ -46,192 +41,168 @@ const CACHE_DIRECTORY = path.resolve(
   process.env.INSTRUMENT_CACHE_DIR ?? "cache"
 );
 
-const CACHE_FILE_NAME = process.env.INSTRUMENT_CACHE_FILE ?? "instrument.csv";
-
-const CACHE_FILE_PATH = path.join(CACHE_DIRECTORY, CACHE_FILE_NAME);
-
-let cacheWarmPromise: Promise<void> | null = null;
-
 /**
- * Ensures the instrument CSV cache is available
- * @param forceRefresh - Force download even if cache exists
+ * Downloads fresh instrument CSV and returns the file path
+ * File should be deleted after use
  */
-const ensureCacheAvailable = async (forceRefresh = false): Promise<void> => {
-  if (cacheWarmPromise) {
-    return cacheWarmPromise;
-  }
-
-  cacheWarmPromise = (async () => {
-    if (!forceRefresh) {
-      const cacheExists = await doesCacheExist();
-      if (cacheExists) {
-        return;
-      }
-    }
-
-    await downloadAndPersistCsv();
-  })()
-    .catch((error) => {
-      // Clear the promise so future callers can retry after a failure.
-      cacheWarmPromise = null;
-      throw error;
-    })
-    .finally(() => {
-      cacheWarmPromise = null;
-    });
-
-  return cacheWarmPromise;
-};
-
-/**
- * Checks if the cache file exists
- */
-const doesCacheExist = async (): Promise<boolean> => {
-  try {
-    await fs.access(CACHE_FILE_PATH, fsConstants.F_OK);
-    return true;
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as NodeJS.ErrnoException).code === "ENOENT"
-    ) {
-      return false;
-    }
-    throw error;
-  }
-};
-
-/**
- * Downloads and persists the instrument CSV from external source
- */
-const downloadAndPersistCsv = async (): Promise<void> => {
+const downloadFreshCsv = async (): Promise<string> => {
   await fs.mkdir(CACHE_DIRECTORY, { recursive: true });
+
+  // Create unique temporary file path with timestamp
+  const timestamp = Date.now();
+  const tempFilePath = path.join(
+    CACHE_DIRECTORY,
+    `instrument-${timestamp}.csv`
+  );
+  const tempDownloadPath = `${tempFilePath}.tmp`;
 
   const response = await axios.get(INSTRUMENT_CSV_URL, {
     responseType: "stream",
   });
 
-  const temporaryPath = `${CACHE_FILE_PATH}.tmp`;
-  const writer = createWriteStream(temporaryPath);
+  const writer = createWriteStream(tempDownloadPath);
 
   try {
     await pipeline(response.data, writer);
-    await fs.rm(CACHE_FILE_PATH, { force: true });
-    await fs.rename(temporaryPath, CACHE_FILE_PATH);
+    await fs.rename(tempDownloadPath, tempFilePath);
+    console.log(`[InstrumentsService] Fresh CSV downloaded: ${tempFilePath}`);
+    return tempFilePath;
   } catch (error) {
-    await fs.rm(temporaryPath, { force: true });
+    await fs.rm(tempDownloadPath, { force: true });
     throw error;
   }
 };
 
 /**
+ * Cleanup downloaded CSV file
+ */
+const cleanupCsvFile = async (filePath: string): Promise<void> => {
+  try {
+    await fs.rm(filePath, { force: true });
+    console.log(`[InstrumentsService] Cleaned up CSV: ${filePath}`);
+  } catch (error) {
+    console.error(`[InstrumentsService] Failed to cleanup CSV:`, error);
+  }
+};
+
+/**
  * Fetches instruments matching a trading symbol
+ * Always downloads fresh CSV and cleans up after use
  * @param tradingSymbol - The trading symbol to search for
- * @param shouldRefresh - Whether to refresh the cache before searching
  * @returns Promise with array of matching instrument rows
  */
 export const fetchInstrumentsBySymbol = async (
-  tradingSymbol: string,
-  shouldRefresh = false
+  tradingSymbol: string
 ): Promise<InstrumentRow[]> => {
-  await ensureCacheAvailable(shouldRefresh);
+  let csvFilePath: string | null = null;
 
-  const normalizedSymbol = tradingSymbol.trim().toUpperCase();
+  try {
+    // Download fresh CSV
+    csvFilePath = await downloadFreshCsv();
+    const normalizedSymbol = tradingSymbol.trim().toUpperCase();
 
-  return new Promise<InstrumentRow[]>((resolve, reject) => {
-    const matches: InstrumentRow[] = [];
+    return await new Promise<InstrumentRow[]>((resolve, reject) => {
+      const matches: InstrumentRow[] = [];
 
-    const sourceStream = createReadStream(CACHE_FILE_PATH);
-    const parser = parse({
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-    });
+      const sourceStream = createReadStream(csvFilePath!);
+      const parser = parse({
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
 
-    parser.on("readable", () => {
-      let record: InstrumentRow | null;
-      while ((record = parser.read()) !== null) {
-        if (
-          typeof record.trading_symbol === "string" &&
-          record.trading_symbol.trim().toUpperCase() === normalizedSymbol
-        ) {
-          matches.push(record);
+      parser.on("readable", () => {
+        let record: InstrumentRow | null;
+        while ((record = parser.read()) !== null) {
+          if (
+            typeof record.trading_symbol === "string" &&
+            record.trading_symbol.trim().toUpperCase() === normalizedSymbol
+          ) {
+            matches.push(record);
+          }
         }
-      }
+      });
+
+      parser.on("error", (error: Error) => reject(error));
+      sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
+
+      parser.on("end", () => resolve(matches));
+
+      sourceStream.pipe(parser);
     });
-
-    parser.on("error", (error: Error) => reject(error));
-    sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
-
-    parser.on("end", () => resolve(matches));
-
-    sourceStream.pipe(parser);
-  });
+  } finally {
+    // Always cleanup the downloaded file
+    if (csvFilePath) {
+      await cleanupCsvFile(csvFilePath);
+    }
+  }
 };
 
 /**
  * Fetches instruments matching an ISIN
+ * Always downloads fresh CSV and cleans up after use
  * @param isin - The ISIN to search for
- * @param shouldRefresh - Whether to refresh the cache before searching
  * @returns Promise with array of matching instrument rows
  */
 export const fetchInstrumentsByIsin = async (
-  isin: string,
-  shouldRefresh = false
+  isin: string
 ): Promise<InstrumentRow[]> => {
-  await ensureCacheAvailable(shouldRefresh);
+  let csvFilePath: string | null = null;
 
-  const normalizedIsin = isin.trim().toUpperCase();
+  try {
+    // Download fresh CSV
+    csvFilePath = await downloadFreshCsv();
+    const normalizedIsin = isin.trim().toUpperCase();
 
-  return new Promise<InstrumentRow[]>((resolve, reject) => {
-    const matches: InstrumentRow[] = [];
+    return await new Promise<InstrumentRow[]>((resolve, reject) => {
+      const matches: InstrumentRow[] = [];
 
-    const sourceStream = createReadStream(CACHE_FILE_PATH);
-    const parser = parse({
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-    });
+      const sourceStream = createReadStream(csvFilePath!);
+      const parser = parse({
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
 
-    parser.on("readable", () => {
-      let record: InstrumentRow | null;
-      while ((record = parser.read()) !== null) {
-        if (
-          typeof record.isin === "string" &&
-          record.isin.trim().toUpperCase() === normalizedIsin
-        ) {
-          matches.push(record);
+      parser.on("readable", () => {
+        let record: InstrumentRow | null;
+        while ((record = parser.read()) !== null) {
+          if (
+            typeof record.isin === "string" &&
+            record.isin.trim().toUpperCase() === normalizedIsin
+          ) {
+            matches.push(record);
+          }
         }
-      }
+      });
+
+      parser.on("error", (error: Error) => reject(error));
+      sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
+
+      parser.on("end", () => resolve(matches));
+
+      sourceStream.pipe(parser);
     });
-
-    parser.on("error", (error: Error) => reject(error));
-    sourceStream.on("error", (error: NodeJS.ErrnoException) => reject(error));
-
-    parser.on("end", () => resolve(matches));
-
-    sourceStream.pipe(parser);
-  });
+  } finally {
+    // Always cleanup the downloaded file
+    if (csvFilePath) {
+      await cleanupCsvFile(csvFilePath);
+    }
+  }
 };
 
 /**
  * Fetches instruments matching both trading symbol and ISIN
+ * Always downloads fresh CSV and cleans up after use
  * @param tradingSymbol - The trading symbol to search for
  * @param isin - The ISIN to match
- * @param shouldRefresh - Whether to refresh the cache before searching
  * @returns Promise with array of matching instrument rows
  */
 export const fetchInstrumentsBySymbolAndIsin = async (
   tradingSymbol: string,
-  isin: string,
-  shouldRefresh = false
+  isin: string
 ): Promise<InstrumentRow[]> => {
-  const symbolRows = await fetchInstrumentsBySymbol(
-    tradingSymbol,
-    shouldRefresh
-  );
+  const symbolRows = await fetchInstrumentsBySymbol(tradingSymbol);
   const normalizedIsin = isin.trim().toUpperCase();
 
   return symbolRows.filter(

@@ -138,10 +138,11 @@ export default function NavBar() {
                     prefetch={true}
                     scroll={true}
                     onClick={() => setExpanded(false)}
+                    className="flex-1"
                   >
                     <Button
                       className={cn(
-                        "flex-1 justify-start rounded-l-full border-r-0 md:w-max",
+                        "w-full justify-start rounded-l-full border-r-0 md:w-max",
                       )}
                       variant={active ? "default" : "outline"}
                     >
@@ -209,7 +210,7 @@ export default function NavBar() {
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 md:ml-0">
-          <div className="hidden min-[480px]:block">
+          <div className="hidden lg:block">
             <MarketStatus />
           </div>
           <ThemeSwitch />

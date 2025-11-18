@@ -78,8 +78,8 @@ export async function seedInstruments(): Promise<{
   try {
     console.log("\n=== Instrument Seeding Started ===\n");
 
-    // Step 1: Get instruments from CSV
-    const csvInstruments = getNonExpiredInstrumentsFromCSV();
+    // Step 1: Get instruments from CSV (now async)
+    const csvInstruments = await getNonExpiredInstrumentsFromCSV();
     console.log(
       `[Seeder] CSV contains ${csvInstruments.length} non-expired instruments`
     );
@@ -156,7 +156,7 @@ export async function seedInstruments(): Promise<{
  * Quick sync - only insert missing instruments without detailed logging
  */
 export async function quickSyncInstruments(): Promise<number> {
-  const csvInstruments = getNonExpiredInstrumentsFromCSV();
+  const csvInstruments = await getNonExpiredInstrumentsFromCSV();
   const missing = await findMissingInstruments(prisma, csvInstruments);
 
   if (missing.length === 0) {

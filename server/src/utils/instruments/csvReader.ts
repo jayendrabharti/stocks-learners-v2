@@ -6,6 +6,9 @@
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
+import axios from "axios";
+import { pipeline } from "stream/promises";
+import { createWriteStream } from "fs";
 import type {
   Exchange,
   Segment,
@@ -59,14 +62,63 @@ export interface ParsedInstrument {
   leverage: number;
 }
 
-const CSV_PATH = path.join(process.cwd(), "cache", "instrument.csv");
+const INSTRUMENT_CSV_URL =
+  process.env.INSTRUMENT_CSV_URL ??
+  "https://growwapi-assets.groww.in/instruments/instrument.csv";
+
+const CACHE_DIRECTORY = path.resolve(
+  process.cwd(),
+  process.env.INSTRUMENT_CACHE_DIR ?? "cache"
+);
 
 /**
- * Read and parse CSV file
+ * Downloads fresh instrument CSV and returns the file path
  */
-export function readInstrumentCSV(): CSVInstrumentRow[] {
+async function downloadFreshCsv(): Promise<string> {
+  await fs.promises.mkdir(CACHE_DIRECTORY, { recursive: true });
+
+  const timestamp = Date.now();
+  const tempFilePath = path.join(
+    CACHE_DIRECTORY,
+    `instrument-${timestamp}.csv`
+  );
+  const tempDownloadPath = `${tempFilePath}.tmp`;
+
+  const response = await axios.get(INSTRUMENT_CSV_URL, {
+    responseType: "stream",
+  });
+
+  const writer = createWriteStream(tempDownloadPath);
+
   try {
-    const fileContent = fs.readFileSync(CSV_PATH, "utf-8");
+    await pipeline(response.data, writer);
+    await fs.promises.rename(tempDownloadPath, tempFilePath);
+    console.log(`[CSV Reader] Fresh CSV downloaded: ${tempFilePath}`);
+    return tempFilePath;
+  } catch (error) {
+    await fs.promises.rm(tempDownloadPath, { force: true });
+    throw error;
+  }
+}
+
+/**
+ * Cleanup downloaded CSV file
+ */
+async function cleanupCsvFile(filePath: string): Promise<void> {
+  try {
+    await fs.promises.rm(filePath, { force: true });
+    console.log(`[CSV Reader] Cleaned up CSV: ${filePath}`);
+  } catch (error) {
+    console.error(`[CSV Reader] Failed to cleanup CSV:`, error);
+  }
+}
+
+/**
+ * Read and parse CSV file from given path
+ */
+function readInstrumentCSVFromPath(csvPath: string): CSVInstrumentRow[] {
+  try {
+    const fileContent = fs.readFileSync(csvPath, "utf-8");
 
     const records = parse(fileContent, {
       columns: true,
@@ -167,80 +219,114 @@ export function filterNonExpired(
 
 /**
  * Get all non-expired instruments from CSV
+ * Downloads fresh CSV and cleans up after use
  */
-export function getNonExpiredInstrumentsFromCSV(): ParsedInstrument[] {
-  console.log("[CSV Reader] Reading instrument CSV...");
-  const rows = readInstrumentCSV();
-  console.log(`[CSV Reader] Found ${rows.length} total rows in CSV`);
+export async function getNonExpiredInstrumentsFromCSV(): Promise<
+  ParsedInstrument[]
+> {
+  let csvFilePath: string | null = null;
 
-  console.log("[CSV Reader] Parsing instruments...");
-  const parsed = rows.map(parseInstrumentRow);
+  try {
+    console.log("[CSV Reader] Downloading fresh instrument CSV...");
+    csvFilePath = await downloadFreshCsv();
 
-  console.log("[CSV Reader] Filtering non-expired instruments...");
-  const nonExpired = filterNonExpired(parsed);
-  console.log(
-    `[CSV Reader] ${nonExpired.length} non-expired instruments found`
-  );
+    console.log("[CSV Reader] Reading instrument CSV...");
+    const rows = readInstrumentCSVFromPath(csvFilePath);
+    console.log(`[CSV Reader] Found ${rows.length} total rows in CSV`);
 
-  return nonExpired;
+    console.log("[CSV Reader] Parsing instruments...");
+    const parsed = rows.map(parseInstrumentRow);
+
+    console.log("[CSV Reader] Filtering non-expired instruments...");
+    const nonExpired = filterNonExpired(parsed);
+    console.log(
+      `[CSV Reader] ${nonExpired.length} non-expired instruments found`
+    );
+
+    return nonExpired;
+  } finally {
+    if (csvFilePath) {
+      await cleanupCsvFile(csvFilePath);
+    }
+  }
 }
 
 /**
  * Get specific instrument by trading symbol from CSV
+ * Downloads fresh CSV and cleans up after use
  */
-export function getInstrumentBySymbol(
+export async function getInstrumentBySymbol(
   tradingSymbol: string
-): ParsedInstrument | null {
-  const rows = readInstrumentCSV();
-  const row = rows.find((r) => r.trading_symbol === tradingSymbol);
+): Promise<ParsedInstrument | null> {
+  let csvFilePath: string | null = null;
 
-  if (!row) {
-    return null;
-  }
+  try {
+    csvFilePath = await downloadFreshCsv();
+    const rows = readInstrumentCSVFromPath(csvFilePath);
+    const row = rows.find((r) => r.trading_symbol === tradingSymbol);
 
-  const parsed = parseInstrumentRow(row);
+    if (!row) {
+      return null;
+    }
 
-  // Check if expired
-  if (parsed.expiry) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiryDate = new Date(parsed.expiry);
-    expiryDate.setHours(0, 0, 0, 0);
+    const parsed = parseInstrumentRow(row);
 
-    if (expiryDate < today) {
-      return null; // Expired
+    // Check if expired
+    if (parsed.expiry) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expiryDate = new Date(parsed.expiry);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate < today) {
+        return null; // Expired
+      }
+    }
+
+    return parsed;
+  } finally {
+    if (csvFilePath) {
+      await cleanupCsvFile(csvFilePath);
     }
   }
-
-  return parsed;
 }
 
 /**
  * Get specific instrument by exchange token from CSV
+ * Downloads fresh CSV and cleans up after use
  */
-export function getInstrumentByToken(
+export async function getInstrumentByToken(
   exchangeToken: string
-): ParsedInstrument | null {
-  const rows = readInstrumentCSV();
-  const row = rows.find((r) => r.exchange_token === exchangeToken);
+): Promise<ParsedInstrument | null> {
+  let csvFilePath: string | null = null;
 
-  if (!row) {
-    return null;
-  }
+  try {
+    csvFilePath = await downloadFreshCsv();
+    const rows = readInstrumentCSVFromPath(csvFilePath);
+    const row = rows.find((r) => r.exchange_token === exchangeToken);
 
-  const parsed = parseInstrumentRow(row);
+    if (!row) {
+      return null;
+    }
 
-  // Check if expired
-  if (parsed.expiry) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiryDate = new Date(parsed.expiry);
-    expiryDate.setHours(0, 0, 0, 0);
+    const parsed = parseInstrumentRow(row);
 
-    if (expiryDate < today) {
-      return null; // Expired
+    // Check if expired
+    if (parsed.expiry) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expiryDate = new Date(parsed.expiry);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate < today) {
+        return null; // Expired
+      }
+    }
+
+    return parsed;
+  } finally {
+    if (csvFilePath) {
+      await cleanupCsvFile(csvFilePath);
     }
   }
-
-  return parsed;
 }

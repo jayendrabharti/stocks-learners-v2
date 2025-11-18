@@ -101,9 +101,13 @@ export default function WatchlistItemCard({
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-col gap-0.5">
-            <span className="truncate text-lg font-semibold">
+            <Link
+              className="truncate text-lg font-semibold"
+              href={href || "/stocks"}
+              target="_blank"
+            >
               {title || watchlistItem.tradingSymbol || watchlistItem.searchId}
-            </span>
+            </Link>
             <span className="text-muted-foreground truncate text-sm font-medium">
               {watchlistItem.tradingSymbol}
             </span>
@@ -119,28 +123,19 @@ export default function WatchlistItemCard({
           </div>
         </div>
       </div>
-      <div className="ml-auto flex flex-row gap-2">
-        {href && (
-          <Link href={href} target="_blank">
-            <Button variant={"outline"} size={"icon"}>
-              <ExternalLink />
-            </Button>
-          </Link>
-        )}
-        <Button
-          variant={"destructive"}
-          size="icon"
-          className="shrink-0 transition-all group-hover:scale-105"
-          onClick={() =>
-            startDeleting(async () => {
-              await removeWatchlistItem(watchlistItem.id);
-            })
-          }
-          disabled={deleting}
-        >
-          <Trash2Icon className="h-4 w-4" />
-        </Button>
-      </div>
+      <Button
+        variant={"destructive"}
+        size="icon"
+        className="ml-auto shrink-0 transition-all group-hover:scale-105"
+        onClick={() =>
+          startDeleting(async () => {
+            await removeWatchlistItem(watchlistItem.id);
+          })
+        }
+        disabled={deleting}
+      >
+        <Trash2Icon className="h-4 w-4" />
+      </Button>
     </motion.div>
   );
 }
