@@ -23,7 +23,6 @@ import { AiOutlineStock } from "react-icons/ai";
 import { TbChartCandle } from "react-icons/tb";
 import { MdAccountBalanceWallet } from "react-icons/md";
 import UserButton from "@/components/auth/UserButton";
-import Search from "./search";
 import { Separator } from "./ui/separator";
 import { ButtonGroup, ButtonGroupSeparator } from "./ui/button-group";
 import {
@@ -32,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MarketStatus } from "@/components/market";
+import Search from "./search/search";
 
 type NavBarLinkType = {
   name: string;
