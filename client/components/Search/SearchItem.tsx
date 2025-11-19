@@ -1,4 +1,3 @@
-import { on } from "events";
 import { PiIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
