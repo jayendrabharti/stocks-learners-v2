@@ -29,7 +29,6 @@ const app = express();
 
 const PORT = Number(process.env.PORT) || 8080;
 
-// Security headers
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
