@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { getErrorMessage } from "@/utils";
 import { accessSecret } from "@/utils/auth";
-import type { UserModel } from "@/database/generated/models/User";
+import { User } from "@/database/generated/client";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: UserModel;
+      user?: User;
     }
   }
 }

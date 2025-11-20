@@ -3,10 +3,8 @@
  * Handles First-In-First-Out lot consumption during SELL operations
  */
 
-import type { PositionLotModel } from "@/database/generated/models/PositionLot";
+import { PositionLot } from "@/database/generated/client";
 import { calculateRealizedPnL } from "./calculatePnL";
-
-export type PositionLot = PositionLotModel;
 
 export interface LotConsumption {
   lot: PositionLot;

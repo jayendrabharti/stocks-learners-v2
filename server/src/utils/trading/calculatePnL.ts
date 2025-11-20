@@ -3,9 +3,7 @@
  * Handles realized and unrealized profit/loss calculations
  */
 
-import type { PositionLotModel } from "@/database/generated/models/PositionLot";
-
-export type PositionLot = PositionLotModel;
+import { PositionLot } from "@/database/generated/client";
 
 /**
  * Calculates realized PnL for a lot consumption

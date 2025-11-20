@@ -1,6 +1,9 @@
 import prisma from "@/database/client";
+import {
+  UserOrderByWithRelationInput,
+  UserWhereInput,
+} from "@/database/generated/models";
 import { Request, Response } from "express";
-import { Prisma } from "@/database/generated/client";
 
 export const getDashboardData = async (_req: Request, res: Response) => {
   try {
@@ -42,7 +45,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     } = req.query;
 
     // Build where clause for filtering
-    const where: Prisma.UserWhereInput = {};
+    const where: UserWhereInput = {};
 
     // Search filter - searches in email, name, and phone
     if (search && typeof search === "string") {
@@ -59,7 +62,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 
     // Build order by clause for sorting
-    const orderBy: Prisma.UserOrderByWithRelationInput = {};
+    const orderBy: UserOrderByWithRelationInput = {};
     const validSortFields = [
       "email",
       "name",
@@ -69,7 +72,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     ];
 
     if (validSortFields.includes(sortBy as string)) {
-      orderBy[sortBy as keyof Prisma.UserOrderByWithRelationInput] =
+      orderBy[sortBy as keyof UserOrderByWithRelationInput] =
         sortOrder === "asc" ? "asc" : "desc";
     } else {
       orderBy.createdAt = "desc";
