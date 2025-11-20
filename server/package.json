@@ -8,8 +8,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "prebuild": "npx prisma generate",
+    "prebuild": "npm run clean && npx prisma generate",
+    "build": "tsc && tsc-alias",
     "start": "node build/server.js",
     "lint": "tsc --noEmit",
     "clean": "rm -rf build",
@@ -54,6 +54,7 @@
     "@types/uuid": "^11.0.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.19.0",
+    "tsc-alias": "^1.8.10",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

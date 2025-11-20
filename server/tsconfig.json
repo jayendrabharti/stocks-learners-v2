@@ -3,7 +3,7 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "types": ["node"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -25,9 +25,9 @@
     "sourceMap": true,
     "outDir": "./build",
     "rootDir": "./src",
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./*"]
     }
   },
   "include": ["src/**/*"],

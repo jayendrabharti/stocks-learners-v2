@@ -13,10 +13,10 @@ import ProfileRouter from "@/routers/profile";
 import MarketRouter from "@/routers/market";
 import AdminRouter from "@/routers/admin";
 import ContactRouter from "@/routers/contact";
-import WatchlistRouter from "./routers/watchlist";
-import TradingRouter from "./routers/trading";
-import AccountRouter from "./routers/account";
-import PortfolioRouter from "./routers/portfolio";
+import WatchlistRouter from "@/routers/watchlist";
+import TradingRouter from "@/routers/trading";
+import AccountRouter from "@/routers/account";
+import PortfolioRouter from "@/routers/portfolio";
 import { scheduleDailyInstrumentSync } from "@/utils/instruments";
 import {
   initializeAutoSquareOffJobs,
@@ -27,7 +27,7 @@ dotenv.config();
 
 const app = express();
 
-const PORT = Number(process.env.PORT) || 8080;
+const PORT = process.env.PORT || 8080;
 
 app.use(
   helmet({
@@ -84,7 +84,7 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT as number, "0.0.0.0", () => {
   console.log(`🚀 Trading Server is running on port ${PORT}`);
 
   // Initialize daily instrument sync scheduler
