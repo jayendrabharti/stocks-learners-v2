@@ -326,7 +326,11 @@ export const getMarketStatus = async (): Promise<{
     // Determine today's date in IST
     const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
     const istNow = new Date(now.getTime() + istOffset);
-    const today: string = istNow.toISOString().split("T")[0];
+    const today = istNow.toISOString().split("T")[0];
+
+    if (!today) {
+      return { isOpen: false };
+    }
 
     const todayTiming = timingData.dateMarketTimeMap[today];
 
@@ -338,14 +342,16 @@ export const getMarketStatus = async (): Promise<{
 
       if (nextDate) {
         const nextTiming = timingData.dateMarketTimeMap[nextDate];
-        const [hours, minutes] = nextTiming.marketOpenTime.split(":");
-        const nextOpenIST = new Date(
-          `${nextDate}T${hours}:${minutes}:00+05:30`
-        );
-        return {
-          isOpen: false,
-          nextOpenTime: nextOpenIST.toISOString(),
-        };
+        if (nextTiming) {
+          const [hours, minutes] = nextTiming.marketOpenTime.split(":");
+          const nextOpenIST = new Date(
+            `${nextDate}T${hours}:${minutes}:00+05:30`
+          );
+          return {
+            isOpen: false,
+            nextOpenTime: nextOpenIST.toISOString(),
+          };
+        }
       }
 
       return { isOpen: false };
@@ -369,22 +375,30 @@ export const getMarketStatus = async (): Promise<{
 
       if (nextDate) {
         const nextTiming = timingData.dateMarketTimeMap[nextDate];
-        const [hours, minutes] = nextTiming.marketOpenTime.split(":");
-        const nextOpenIST = new Date(
-          `${nextDate}T${hours}:${minutes}:00+05:30`
-        );
-        return {
-          isOpen: false,
-          nextOpenTime: nextOpenIST.toISOString(),
-        };
+        if (nextTiming) {
+          const [hours, minutes] = nextTiming.marketOpenTime.split(":");
+          const nextOpenIST = new Date(
+            `${nextDate}T${hours}:${minutes}:00+05:30`
+          );
+          return {
+            isOpen: false,
+            nextOpenTime: nextOpenIST.toISOString(),
+          };
+        }
       }
     }
 
-    return {
-      isOpen,
-      ...(isOpen ? {} : { nextOpenTime: openTime.toISOString() }),
-      ...(isOpen ? { nextCloseTime: closeTime.toISOString() } : {}),
-    };
+    if (isOpen) {
+      return {
+        isOpen: true,
+        nextCloseTime: closeTime.toISOString(),
+      };
+    } else {
+      return {
+        isOpen: false,
+        nextOpenTime: openTime.toISOString(),
+      };
+    }
   } catch (error) {
     return { isOpen: false };
   }

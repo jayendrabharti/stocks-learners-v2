@@ -118,7 +118,7 @@ export async function fetchInstrumentByToken(
     console.log(
       `[On-Demand] Token ${exchangeToken} not found in database, checking CSV...`
     );
-    const csvInstrument = getInstrumentByToken(exchangeToken);
+    const csvInstrument = await getInstrumentByToken(exchangeToken);
 
     if (!csvInstrument) {
       console.log(`[On-Demand] Token ${exchangeToken} not found in CSV either`);
@@ -130,7 +130,7 @@ export async function fetchInstrumentByToken(
       `[On-Demand] Inserting instrument with token ${exchangeToken} into database...`
     );
     instrument = await prisma.instrument.create({
-      data: await csvInstrument,
+      data: csvInstrument,
     });
 
     console.log(
