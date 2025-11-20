@@ -11,7 +11,7 @@ generated
 # TypeScript cache
 *.tsbuildinfo
 
-cache/
+*cache*
 
 # Environment files
 .env*
@@ -40,47 +40,3 @@ coverage/
 
 # Misc
 *.local
-
-# Generated files
-/src/generated/prisma
-
-# Cache directory
-/src/cache
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/generated/prisma
-
-/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma
-
-/src/generated/prisma

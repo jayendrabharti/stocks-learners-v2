@@ -30,7 +30,7 @@ COPY src ./src
 # The actual DATABASE_URL will be provided at runtime
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
 
-# Generate Prisma client and build
+# Build the application
 RUN npm run build
 
 # Production image
@@ -45,10 +45,6 @@ RUN adduser --system --uid 1001 nodejs
 COPY --from=builder /app/build ./build
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-
-# Copy Prisma files for runtime
-COPY --from=builder /app/src/database ./src/database
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Copy static assets
 COPY --from=builder /app/src/public ./src/public
