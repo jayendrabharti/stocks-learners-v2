@@ -26,6 +26,10 @@ COPY --from=build-deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json prisma.config.ts ./
 COPY src ./src
 
+# Set a placeholder DATABASE_URL for Prisma generate
+# The actual DATABASE_URL will be provided at runtime
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
+
 # Generate Prisma client and build
 RUN npm run build
 
