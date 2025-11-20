@@ -26,9 +26,6 @@ COPY --from=build-deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json prisma.config.ts ./
 COPY src ./src
 
-# Set a dummy DATABASE_URL for Prisma generation (not used at build time)
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
-
 # Generate Prisma client and build
 RUN npm run build
 
@@ -45,12 +42,8 @@ COPY --from=builder /app/build ./build
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# --- FIX: Copy the generated Prisma Client from the builder stage ---
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
 # Copy Prisma files for runtime
-COPY --from=builder /app/src/prisma ./src/prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/src/database ./src/database
 
 # Copy static assets
 COPY --from=builder /app/src/public ./src/public
