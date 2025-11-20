@@ -130,7 +130,7 @@ export async function fetchInstrumentByToken(
       `[On-Demand] Inserting instrument with token ${exchangeToken} into database...`
     );
     instrument = await prisma.instrument.create({
-      data: csvInstrument,
+      data: await csvInstrument,
     });
 
     console.log(

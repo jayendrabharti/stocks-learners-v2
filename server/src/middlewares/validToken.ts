@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { getErrorMessage } from "@/utils";
 import { accessSecret } from "@/utils/auth";
-import { User } from "@prisma/client";
+import type { UserModel } from "@/database/generated/models/User";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserModel;
     }
   }
 }

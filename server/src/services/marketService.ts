@@ -326,7 +326,7 @@ export const getMarketStatus = async (): Promise<{
     // Determine today's date in IST
     const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
     const istNow = new Date(now.getTime() + istOffset);
-    const today = istNow.toISOString().split("T")[0];
+    const today: string = istNow.toISOString().split("T")[0];
 
     const todayTiming = timingData.dateMarketTimeMap[today];
 
@@ -382,8 +382,8 @@ export const getMarketStatus = async (): Promise<{
 
     return {
       isOpen,
-      nextOpenTime: isOpen ? undefined : openTime.toISOString(),
-      nextCloseTime: isOpen ? closeTime.toISOString() : undefined,
+      ...(isOpen ? {} : { nextOpenTime: openTime.toISOString() }),
+      ...(isOpen ? { nextCloseTime: closeTime.toISOString() } : {}),
     };
   } catch (error) {
     return { isOpen: false };

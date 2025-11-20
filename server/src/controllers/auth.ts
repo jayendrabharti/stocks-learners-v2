@@ -15,7 +15,7 @@ import { StringValue } from "ms";
 import { getErrorMessage } from "@/utils";
 import { Request, Response } from "express";
 import { oAuth2Client } from "@/utils/googleClient";
-import { User } from "@prisma/client";
+import type { UserModel } from "@/database/generated/models/User";
 import crypto from "crypto";
 import sendMail from "@/utils/sendMail";
 import axios from "axios";
@@ -23,7 +23,7 @@ import axios from "axios";
 export const generateTokens = async (
   req: Request,
   res: Response,
-  user: User
+  user: UserModel
 ) => {
   const clientRefreshToken =
     req.cookies?.refreshToken || req.headers["refresh-token"];

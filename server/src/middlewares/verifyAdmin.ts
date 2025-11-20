@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { getErrorMessage } from "@/utils";
-import { User } from "@prisma/client";
+import type { UserModel } from "@/database/generated/models/User";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserModel;
     }
   }
 }
