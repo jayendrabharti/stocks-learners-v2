@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MarketStatus } from "@/components/market";
-import Search from "@/components/search/search";
+import Search from "@/components/search-bar/search";
 
 type NavBarLinkType = {
   name: string;
