@@ -29,9 +29,6 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
-# Generate Prisma Client (REQUIRED)
-RUN npx prisma generate
-
 # Production image
 FROM base AS runner
 WORKDIR /app
@@ -44,6 +41,7 @@ RUN adduser --system --uid 1001 nodejs
 COPY --from=builder /app/build ./build
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Copy prisma schema + migrations + generated client
 COPY --from=builder /app/src/database ./src/database
