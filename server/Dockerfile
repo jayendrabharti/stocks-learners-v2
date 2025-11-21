@@ -29,6 +29,9 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
+# Generate Prisma Client (REQUIRED)
+RUN npx prisma generate
+
 # Production image
 FROM base AS runner
 WORKDIR /app
@@ -42,7 +45,7 @@ COPY --from=builder /app/build ./build
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Copy the Prisma schema + migrations
+# Copy prisma schema + migrations + generated client
 COPY --from=builder /app/src/database ./src/database
 
 # Copy public assets
