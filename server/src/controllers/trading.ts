@@ -74,10 +74,45 @@ export const buyOrder = async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error) {
     console.error("Buy order error:", error);
+
+    // Categorize error types for better user feedback
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to execute buy order";
+
+    if (
+      errorMessage.includes("Insufficient funds") ||
+      errorMessage.includes("Insufficient margin")
+    ) {
+      return res.status(400).json({
+        success: false,
+        errorCode: "INSUFFICIENT_FUNDS",
+        message: errorMessage,
+      });
+    }
+
+    if (
+      errorMessage.includes("validation failed") ||
+      errorMessage.includes("not allowed")
+    ) {
+      return res.status(400).json({
+        success: false,
+        errorCode: "VALIDATION_ERROR",
+        message: errorMessage,
+      });
+    }
+
+    if (errorMessage.includes("not found")) {
+      return res.status(404).json({
+        success: false,
+        errorCode: "NOT_FOUND",
+        message: errorMessage,
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to execute buy order",
+      errorCode: "EXECUTION_ERROR",
+      message: errorMessage,
     });
   }
 };
@@ -146,10 +181,45 @@ export const sellOrder = async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error) {
     console.error("Sell order error:", error);
+
+    // Categorize error types for better user feedback
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to execute sell order";
+
+    if (
+      errorMessage.includes("Insufficient quantity") ||
+      errorMessage.includes("No open")
+    ) {
+      return res.status(400).json({
+        success: false,
+        errorCode: "INSUFFICIENT_QUANTITY",
+        message: errorMessage,
+      });
+    }
+
+    if (
+      errorMessage.includes("validation failed") ||
+      errorMessage.includes("not allowed")
+    ) {
+      return res.status(400).json({
+        success: false,
+        errorCode: "VALIDATION_ERROR",
+        message: errorMessage,
+      });
+    }
+
+    if (errorMessage.includes("not found")) {
+      return res.status(404).json({
+        success: false,
+        errorCode: "NOT_FOUND",
+        message: errorMessage,
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to execute sell order",
+      errorCode: "EXECUTION_ERROR",
+      message: errorMessage,
     });
   }
 };

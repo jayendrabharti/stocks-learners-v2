@@ -114,20 +114,18 @@ export async function executeBuy(
       throw new Error("User account not found");
     }
 
-    // For MIS, validate margin
+    // For MIS, validate margin and check cash
     if (product === "MIS") {
-      const availableMargin = account.cash - account.usedMargin;
-      const marginValidation = validateMISMargin(
-        orderValue,
-        instrument.leverage,
-        availableMargin
-      );
+      const requiredMargin = (executedPrice * qty) / instrument.leverage;
+      const totalRequired = requiredMargin + fees;
 
-      if (!marginValidation.valid) {
+      if (account.cash < totalRequired) {
         throw new Error(
-          `Margin validation failed: ${marginValidation.errors
-            .map((e) => e.message)
-            .join(", ")}`
+          `Insufficient funds. Required: ₹${totalRequired.toFixed(
+            2
+          )} (Margin: ₹${requiredMargin.toFixed(2)} + Fees: ₹${fees.toFixed(
+            2
+          )}), Available: ₹${account.cash.toFixed(2)}`
         );
       }
     } else {
@@ -222,11 +220,14 @@ export async function executeBuy(
 
       // Update account
       if (product === "MIS") {
-        // For MIS, increase used margin
-        const requiredMargin = orderValue / instrument.leverage;
+        // For MIS, deduct margin + fees from cash and increase used margin
+        const requiredMargin = (executedPrice * qty) / instrument.leverage;
+        const totalDeduction = requiredMargin + fees;
+
         await tx.account.update({
           where: { userId },
           data: {
+            cash: { decrement: totalDeduction },
             usedMargin: { increment: requiredMargin },
             updatedAt: new Date(),
           },

@@ -56,9 +56,12 @@ export interface Portfolio {
   totalInvestedValue: number;
   totalCurrentValue: number;
   totalRealizedPnL: number;
+  totalRealizedPnLAllTime: number;
   totalUnrealizedPnL: number;
   totalPnL: number;
   totalPnLPercentage: number;
+  totalFeesPaid: number;
+  totalFeesInOpenPositions: number;
   holdings: {
     CNC: HoldingsByProduct;
     MIS: HoldingsByProduct;

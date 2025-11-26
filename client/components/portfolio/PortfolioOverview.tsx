@@ -1,33 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getPortfolio, type Portfolio } from "@/services/portfolioApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Activity, PieChart } from "lucide-react";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 
 export function PortfolioOverview() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchPortfolio = async () => {
-    try {
-      setLoading(true);
-      const data = await getPortfolio();
-      setPortfolio(data);
-    } catch (error) {
-      console.error("Failed to fetch portfolio:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPortfolio();
-
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchPortfolio, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { portfolio, portfolioLoading: loading } = usePortfolio();
 
   if (loading) {
     return (

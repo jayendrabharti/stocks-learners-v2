@@ -5,57 +5,35 @@ import { AccountSummary } from "@/components/account/AccountSummary";
 import { PortfolioOverview } from "@/components/portfolio/PortfolioOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Activity, DollarSign } from "lucide-react";
-import { useEffect, useState } from "react";
-import { getPortfolio, type Portfolio } from "@/services/portfolioApi";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 
 export default function Page() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { portfolio, portfolioLoading: loading } = usePortfolio();
 
-  const fetchPortfolio = async () => {
-    try {
-      setLoading(true);
-      const data = await getPortfolio();
-      setPortfolio(data);
-    } catch (error) {
-      console.error("Failed to fetch portfolio:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPortfolio();
-    const interval = setInterval(fetchPortfolio, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Calculate today's performance (positions opened today)
-  const calculateTodayPerformance = () => {
+  // Calculate holdings performance (unrealized P&L from all open positions)
+  const calculateHoldingsPerformance = () => {
     if (!portfolio) return { amount: 0, isPositive: true };
 
-    const today = new Date().toDateString();
-    let todayPnL = 0;
+    let unrealizedPnL = 0;
 
     // Sum up unrealized P&L for all holdings
-    // This gives us the current day's movement since unrealized P&L represents
-    // the difference between current price and buy price
+    // This represents the profit/loss on current holdings since they were bought
     const allHoldings = [
       ...portfolio.holdings.CNC.positions,
       ...portfolio.holdings.MIS.positions,
     ];
 
     allHoldings.forEach((holding) => {
-      todayPnL += holding.unrealizedPnL;
+      unrealizedPnL += holding.unrealizedPnL;
     });
 
     return {
-      amount: todayPnL,
-      isPositive: todayPnL >= 0,
+      amount: unrealizedPnL,
+      isPositive: unrealizedPnL >= 0,
     };
   };
 
-  const todayPerf = calculateTodayPerformance();
+  const holdingsPerf = calculateHoldingsPerformance();
 
   return (
     <AuthGuard>
@@ -78,9 +56,9 @@ export default function Page() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Today's Performance
+                Holdings Performance
               </CardTitle>
-              {todayPerf.isPositive ? (
+              {holdingsPerf.isPositive ? (
                 <TrendingUp className="h-4 w-4 text-green-600" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-600" />
@@ -93,18 +71,18 @@ export default function Page() {
                 <>
                   <div
                     className={`text-2xl font-bold ${
-                      todayPerf.isPositive
+                      holdingsPerf.isPositive
                         ? "text-green-600 dark:text-green-400"
                         : "text-red-600 dark:text-red-400"
                     }`}
                   >
-                    {todayPerf.isPositive ? "+" : ""}₹
-                    {Math.abs(todayPerf.amount).toLocaleString("en-IN", {
+                    {holdingsPerf.isPositive ? "+" : ""}₹
+                    {Math.abs(holdingsPerf.amount).toLocaleString("en-IN", {
                       maximumFractionDigits: 2,
                     })}
                   </div>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    Day change in portfolio
+                    Unrealized P&L on current positions
                   </p>
                 </>
               )}
@@ -137,6 +115,129 @@ export default function Page() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Portfolio Breakdown / Reconciliation */}
+        {!loading && portfolio && (
+          <Card className="bg-muted/30">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">
+                Portfolio Breakdown & P&L Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                {/* Portfolio Value Calculation */}
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Cash:</span>
+                    <span className="font-medium">
+                      ₹
+                      {portfolio.account.totalCash.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      + Holdings Value:
+                    </span>
+                    <span className="font-medium">
+                      ₹
+                      {portfolio.totalCurrentValue.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 font-semibold">
+                    <span>Portfolio Value:</span>
+                    <span>
+                      ₹
+                      {portfolio.totalPortfolioValue.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* P&L Breakdown */}
+                <div className="space-y-2 border-t pt-3">
+                  <div className="text-muted-foreground mb-2 text-xs font-semibold">
+                    P&L Breakdown:
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Realized P&L (All-time):
+                    </span>
+                    <span
+                      className={
+                        portfolio.totalRealizedPnLAllTime >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {portfolio.totalRealizedPnLAllTime >= 0 ? "+" : ""}₹
+                      {portfolio.totalRealizedPnLAllTime.toLocaleString(
+                        "en-IN",
+                        {
+                          maximumFractionDigits: 2,
+                        },
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Unrealized P&L (Current):
+                    </span>
+                    <span
+                      className={
+                        portfolio.totalUnrealizedPnL >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {portfolio.totalUnrealizedPnL >= 0 ? "+" : ""}₹
+                      {portfolio.totalUnrealizedPnL.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 text-xs font-semibold">
+                    <span>Total P&L:</span>
+                    <span
+                      className={
+                        portfolio.totalPnL >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {portfolio.totalPnL >= 0 ? "+" : ""}₹
+                      {portfolio.totalPnL.toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Fees */}
+                {portfolio.totalFeesPaid > 0 && (
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        Total Fees Paid:
+                      </span>
+                      <span className="text-muted-foreground">
+                        ₹
+                        {portfolio.totalFeesPaid.toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <Card>

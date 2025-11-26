@@ -1,11 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
-import {
-  getPortfolio,
-  type Portfolio,
-  type Holding,
-} from "@/services/portfolioApi";
+import { type Portfolio, type Holding } from "@/services/portfolioApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -27,6 +23,7 @@ import ApiClient from "@/utils/ApiClient";
 import Link from "next/link";
 import { instrumentTypeName } from "../trading/InstrumentDataSection";
 import { formatTimestamp } from "@/utils";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 
 interface PortfolioHoldingsProps {
   product?: "CNC" | "MIS";
@@ -37,22 +34,20 @@ export function PortfolioHoldings({
   product,
   sortBy = "name",
 }: PortfolioHoldingsProps) {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { portfolio, portfolioLoading: loading } = usePortfolio();
   const [metadataMap, setMetadataMap] = useState<Record<string, any>>({});
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const fetchPortfolio = async () => {
-    try {
-      setLoading(true);
-      const data = await getPortfolio();
-      setPortfolio(data);
+  // Fetch metadata when portfolio changes
+  useEffect(() => {
+    if (!portfolio) return;
 
+    const fetchMetadata = async () => {
       // Fetch metadata for stocks/indices
       const allHoldings = [
-        ...data.holdings.CNC.positions,
-        ...data.holdings.MIS.positions,
+        ...portfolio.holdings.CNC.positions,
+        ...portfolio.holdings.MIS.positions,
       ];
 
       const newMetadata: Record<string, any> = {};
@@ -84,20 +79,10 @@ export function PortfolioHoldings({
       }
       setMetadataMap(newMetadata);
       setTitleMap(newTitles);
-    } catch (error) {
-      console.error("Failed to fetch portfolio:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    fetchPortfolio();
-
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchPortfolio, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchMetadata();
+  }, [portfolio]);
 
   if (loading) {
     return (

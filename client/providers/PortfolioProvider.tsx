@@ -45,7 +45,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAccount = useCallback(async () => {
     try {
-      setAccountLoading(true);
+      setAccountLoading((loading) => {
+        // Only show loading if we don't have data yet
+        return loading && account === null;
+      });
       const data = await getAccount();
       setAccount(data);
     } catch (error) {
@@ -57,7 +60,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   const refreshPortfolio = useCallback(async () => {
     try {
-      setPortfolioLoading(true);
+      setPortfolioLoading((loading) => {
+        // Only show loading if we don't have data yet
+        return loading && portfolio === null;
+      });
       const data = await getPortfolio();
       setPortfolio(data);
     } catch (error) {
@@ -69,7 +75,10 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   const refreshPositions = useCallback(async () => {
     try {
-      setPositionsLoading(true);
+      setPositionsLoading((loading) => {
+        // Only show loading if we don't have data yet
+        return loading && positions.length === 0;
+      });
       const data = await getPositions();
       setPositions(data);
     } catch (error) {
@@ -87,16 +96,20 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     ]);
   }, [refreshAccount, refreshPortfolio, refreshPositions]);
 
-  // Initial load
+  // Initial load - only run once on mount
   useEffect(() => {
     refreshAll();
-  }, [refreshAll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 30 seconds - only set up once on mount
   useEffect(() => {
-    const interval = setInterval(refreshAll, 30000);
+    const interval = setInterval(() => {
+      refreshAll();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [refreshAll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PortfolioContext.Provider

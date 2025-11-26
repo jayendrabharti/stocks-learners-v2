@@ -164,10 +164,19 @@ export const withdrawFunds = async (
       });
     }
 
+    // Ensure withdrawal doesn't result in negative cash
+    const newCash = account.cash - amount;
+    if (newCash < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Withdrawal would result in negative balance",
+      });
+    }
+
     const updatedAccount = await prisma.account.update({
       where: { userId },
       data: {
-        cash: account.cash - amount,
+        cash: newCash,
       },
     });
 

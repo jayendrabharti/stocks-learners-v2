@@ -4,7 +4,12 @@ import { usePathname } from "next/navigation";
 import React from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { LuMessageSquareText, LuLayoutDashboard, LuUser } from "react-icons/lu";
+import {
+  LuMessageSquareText,
+  LuLayoutDashboard,
+  LuUser,
+  LuTrophy,
+} from "react-icons/lu";
 import { useData } from "@/providers/DataProvider";
 
 interface NavItem {
@@ -31,6 +36,11 @@ export default function AdminSideBar({
       title: "Users",
       href: "/admin/users",
       icon: LuUser,
+    },
+    {
+      title: "Leaderboard",
+      href: "/admin/leaderboard",
+      icon: LuTrophy,
     },
     {
       title: "Contact Us",

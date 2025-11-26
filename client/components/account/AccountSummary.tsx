@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAccount, type AccountBalance } from "@/services/accountApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IndianRupee, TrendingUp, Wallet } from "lucide-react";
+import AddFundsButton from "../portfolio/AddFundsButton";
 
 export function AccountSummary() {
   const [account, setAccount] = useState<AccountBalance | null>(null);
@@ -65,9 +66,14 @@ export function AccountSummary() {
           <Wallet className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            ₹
-            {account.cash.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+          <div className="flex flex-row justify-between">
+            <span className="text-2xl font-bold">
+              ₹
+              {account.cash.toLocaleString("en-IN", {
+                maximumFractionDigits: 2,
+              })}
+            </span>
+            <AddFundsButton />
           </div>
           <p className="text-muted-foreground mt-1 text-xs">
             Total funds in account

@@ -22,6 +22,7 @@ import {
   initializeAutoSquareOffJobs,
   stopAutoSquareOffJobs,
 } from "@/jobs/autoSquareOffJob";
+import PaymentRouter from "./routers/payment";
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use("/watchlist", WatchlistRouter);
 app.use("/trading", TradingRouter);
 app.use("/account", AccountRouter);
 app.use("/portfolio", PortfolioRouter);
+app.use("/payment", PaymentRouter);
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
