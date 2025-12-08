@@ -115,76 +115,84 @@ const executeSquareOff = async (
     `Executing auto square-off for position ${positionId}, qty: ${position.qty}, price: ${closePrice}`
   );
 
-  // Calculate realized P&L for this square-off
-  let totalRealizedPnl = 0;
-  let remainingQtyToSell = position.qty;
+  // Execute all operations in a transaction for atomicity
+  await prisma.$transaction(async (tx) => {
+    // Calculate realized P&L for this square-off
+    let totalRealizedPnl = 0;
+    let remainingQtyToSell = position.qty;
 
-  for (const lot of position.lots) {
-    if (remainingQtyToSell <= 0) break;
+    for (const lot of position.lots) {
+      if (remainingQtyToSell <= 0) break;
 
-    const qtyFromThisLot = Math.min(lot.remainingQty, remainingQtyToSell);
-    const pnlFromLot = (closePrice - lot.buyPrice) * qtyFromThisLot;
-    totalRealizedPnl += pnlFromLot;
-    remainingQtyToSell -= qtyFromThisLot;
-  }
+      const qtyFromThisLot = Math.min(lot.remainingQty, remainingQtyToSell);
+      const pnlFromLot = (closePrice - lot.buyPrice) * qtyFromThisLot;
+      totalRealizedPnl += pnlFromLot;
+      remainingQtyToSell -= qtyFromThisLot;
+    }
 
-  // Create sell transaction
-  await prisma.transaction.create({
-    data: {
-      userId: position.userId,
-      instrumentId: position.instrumentId,
-      side: "SELL",
-      product: position.product,
-      qty: position.qty,
-      price: closePrice,
-      realizedPnl: totalRealizedPnl,
-      positionId: position.id,
-      fees: 0,
-    },
-  });
-
-  // Update lots and position
-  remainingQtyToSell = position.qty;
-
-  for (const lot of position.lots) {
-    if (remainingQtyToSell <= 0) break;
-
-    const qtyFromThisLot = Math.min(lot.remainingQty, remainingQtyToSell);
-
-    await prisma.positionLot.update({
-      where: { id: lot.id },
+    // Create sell transaction
+    await tx.transaction.create({
       data: {
-        remainingQty: lot.remainingQty - qtyFromThisLot,
+        userId: position.userId,
+        instrumentId: position.instrumentId,
+        side: "SELL",
+        product: position.product,
+        qty: position.qty,
+        price: closePrice,
+        realizedPnl: totalRealizedPnl,
+        positionId: position.id,
+        fees: 0,
       },
     });
 
-    remainingQtyToSell -= qtyFromThisLot;
-  }
+    // Update lots
+    remainingQtyToSell = position.qty;
+    for (const lot of position.lots) {
+      if (remainingQtyToSell <= 0) break;
 
-  // Update position
-  await prisma.position.update({
-    where: { id: position.id },
-    data: {
-      qty: 0,
-      isOpen: false,
-      realizedPnl: position.realizedPnl + totalRealizedPnl,
-      autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
-    },
+      const qtyFromThisLot = Math.min(lot.remainingQty, remainingQtyToSell);
+
+      await tx.positionLot.update({
+        where: { id: lot.id },
+        data: {
+          remainingQty: lot.remainingQty - qtyFromThisLot,
+        },
+      });
+
+      remainingQtyToSell -= qtyFromThisLot;
+    }
+
+    // Update position
+    await tx.position.update({
+      where: { id: position.id },
+      data: {
+        qty: 0,
+        isOpen: false,
+        realizedPnl: position.realizedPnl + totalRealizedPnl,
+        autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
+      },
+    });
+
+    // Calculate margin to release from original buy prices
+    const releasedMargin = position.lots.reduce(
+      (sum, lot) => sum + (lot.buyPrice * lot.remainingQty) / position.instrument.leverage,
+      0
+    );
+
+    // Update user account
+    const totalProceeds = closePrice * position.qty;
+    await tx.account.update({
+      where: { userId: position.userId },
+      data: {
+        cash: { increment: totalProceeds },
+        usedMargin: { decrement: releasedMargin },
+      },
+    });
+
+    console.log(
+      `Auto square-off completed for position ${positionId}. Realized P&L: ${totalRealizedPnl}`
+    );
   });
-
-  // Update user account
-  const totalProceeds = closePrice * position.qty;
-  await prisma.account.update({
-    where: { userId: position.userId },
-    data: {
-      cash: { increment: totalProceeds },
-      usedMargin: { decrement: position.avgPrice * position.qty },
-    },
-  });
-
-  console.log(
-    `Auto square-off completed for position ${positionId}. Realized P&L: ${totalRealizedPnl}`
-  );
 };
 
 /**
@@ -197,7 +205,7 @@ export const processPendingSquareOffs = async (): Promise<void> => {
 
     const now = new Date();
 
-    // Find all MIS positions that should be squared off
+    // Find all MIS positions that should be squared off (MAIN ACCOUNT)
     const pendingPositions = await prisma.position.findMany({
       where: {
         product: TradeType.MIS,
@@ -205,15 +213,13 @@ export const processPendingSquareOffs = async (): Promise<void> => {
         qty: { gt: 0 },
         OR: [
           {
-            // Positions with autoSquareOffAt in the past and status PENDING
             autoSquareOffAt: { lte: now },
             autoSquareOffStatus: AutoSquareOffStatus.PENDING,
           },
           {
-            // Positions that failed before - retry
             autoSquareOffStatus: AutoSquareOffStatus.FAILED,
             autoSquareOffAt: { lte: now },
-            squareOffAttempts: { lt: 5 }, // Max 5 retry attempts
+            squareOffAttempts: { lt: 5 },
           },
         ],
       },
@@ -225,11 +231,40 @@ export const processPendingSquareOffs = async (): Promise<void> => {
       },
     });
 
-    console.log(`Found ${pendingPositions.length} positions to square off`);
+    // Find all EVENT MIS positions that should be squared off
+    const pendingEventPositions = await prisma.eventPosition.findMany({
+      where: {
+        product: TradeType.MIS,
+        isOpen: true,
+        qty: { gt: 0 },
+        OR: [
+          {
+            autoSquareOffAt: { lte: now },
+            autoSquareOffStatus: AutoSquareOffStatus.PENDING,
+          },
+          {
+            autoSquareOffStatus: AutoSquareOffStatus.FAILED,
+            autoSquareOffAt: { lte: now },
+            squareOffAttempts: { lt: 5 },
+          },
+        ],
+      },
+      include: {
+        instrument: true,
+        lots: {
+          where: { remainingQty: { gt: 0 } },
+        },
+        eventAccount: true, // Need this for margin update
+      },
+    });
 
+    console.log(
+      `Found ${pendingPositions.length} main positions and ${pendingEventPositions.length} event positions to square off`
+    );
+
+    // Process main account positions
     for (const position of pendingPositions) {
       try {
-        // Update status to IN_PROGRESS
         await prisma.position.update({
           where: { id: position.id },
           data: {
@@ -238,87 +273,44 @@ export const processPendingSquareOffs = async (): Promise<void> => {
           },
         });
 
-        let closePrice: number;
+        const closePrice = await determineSquareOffPrice(
+          position,
+          now
+        );
 
-        // Check if we're past the square-off time
-        const squareOffTime = position.autoSquareOffAt;
-        const timeDiff = now.getTime() - (squareOffTime?.getTime() || 0);
-
-        // Get average buy price from lots
-        const avgBuyPrice =
-          position.lots.reduce((sum, lot) => sum + lot.buyPrice, 0) /
-            position.lots.length || 0;
-
-        if (timeDiff > 5 * 60 * 1000) {
-          // More than 5 minutes late - use historical data
-          console.log(
-            `Position ${position.id} is late for square-off. Fetching historical price...`
-          );
-
-          try {
-            const historicalResult = await fetchHistoricalData({
-              scriptCode: position.instrument.tradingSymbol,
-              exchange: position.instrument.exchange,
-              segment: position.instrument.segment,
-              timeRange: "1D",
-            });
-
-            if (
-              historicalResult.historicalData?.candles &&
-              historicalResult.historicalData.candles.length > 0
-            ) {
-              // Use the last candle's close price (closest to market close)
-              const lastCandle =
-                historicalResult.historicalData.candles[
-                  historicalResult.historicalData.candles.length - 1
-                ];
-              closePrice = lastCandle[4]; // close price is at index 4
-              console.log(`Using historical close price: ${closePrice}`);
-            } else {
-              // Fallback to current live price
-              console.log("Historical data not available, using live price");
-              const liveResult = await fetchLiveData({
-                scriptCode: position.instrument.tradingSymbol,
-                exchange: position.instrument.exchange,
-                type: position.instrument.type,
-              });
-              closePrice = liveResult.liveData?.ltp || avgBuyPrice;
-            }
-          } catch (histError) {
-            console.error("Error fetching historical data:", histError);
-            // Fallback to live price or average buy price
-            try {
-              const liveResult = await fetchLiveData({
-                scriptCode: position.instrument.tradingSymbol,
-                exchange: position.instrument.exchange,
-                type: position.instrument.type,
-              });
-              closePrice = liveResult.liveData?.ltp || avgBuyPrice;
-            } catch {
-              closePrice = avgBuyPrice;
-            }
-          }
-        } else {
-          // Within 5 minutes - use live price
-          try {
-            const liveResult = await fetchLiveData({
-              scriptCode: position.instrument.tradingSymbol,
-              exchange: position.instrument.exchange,
-              type: position.instrument.type,
-            });
-            closePrice = liveResult.liveData?.ltp || avgBuyPrice;
-          } catch {
-            closePrice = avgBuyPrice;
-          }
-        }
-
-        // Execute the square-off
         await executeSquareOff(position.id, closePrice);
       } catch (error: any) {
         console.error(`Error squaring off position ${position.id}:`, error);
-
-        // Mark as failed
         await prisma.position.update({
+          where: { id: position.id },
+          data: {
+            autoSquareOffStatus: AutoSquareOffStatus.FAILED,
+            lastSquareOffError: error.message || "Unknown error",
+          },
+        });
+      }
+    }
+
+    // Process event account positions
+    for (const position of pendingEventPositions) {
+      try {
+        await prisma.eventPosition.update({
+          where: { id: position.id },
+          data: {
+            autoSquareOffStatus: AutoSquareOffStatus.IN_PROGRESS,
+            squareOffAttempts: { increment: 1 },
+          },
+        });
+
+        const closePrice = await determineSquareOffPrice(
+          position,
+          now
+        );
+
+        await executeEventSquareOff(position, closePrice);
+      } catch (error: any) {
+        console.error(`Error squaring off event position ${position.id}:`, error);
+        await prisma.eventPosition.update({
           where: { id: position.id },
           data: {
             autoSquareOffStatus: AutoSquareOffStatus.FAILED,
@@ -335,25 +327,165 @@ export const processPendingSquareOffs = async (): Promise<void> => {
 };
 
 /**
+ * Determine the price to use for square-off
+ */
+async function determineSquareOffPrice(
+  position: any,
+  now: Date
+): Promise<number> {
+  const squareOffTime = position.autoSquareOffAt;
+  const timeDiff = now.getTime() - (squareOffTime?.getTime() || 0);
+
+  const avgBuyPrice =
+    position.lots.reduce((sum: number, lot: any) => sum + lot.buyPrice, 0) /
+      position.lots.length || 0;
+
+  if (timeDiff > 5 * 60 * 1000) {
+    // More than 5 minutes late - use historical data
+    try {
+      const historicalResult = await fetchHistoricalData({
+        scriptCode: position.instrument.tradingSymbol,
+        exchange: position.instrument.exchange,
+        segment: position.instrument.segment,
+        timeRange: "1D",
+      });
+
+      if (
+        historicalResult.historicalData?.candles &&
+        historicalResult.historicalData.candles.length > 0
+      ) {
+        const lastCandle =
+          historicalResult.historicalData.candles[
+            historicalResult.historicalData.candles.length - 1
+          ];
+        return lastCandle[4]; // close price
+      }
+    } catch (error) {
+      console.error("Error fetching historical data:", error);
+    }
+  }
+
+  // Use live price
+  try {
+    const liveResult = await fetchLiveData({
+      scriptCode: position.instrument.tradingSymbol,
+      exchange: position.instrument.exchange,
+      type: position.instrument.type,
+    });
+    return liveResult.liveData?.ltp || avgBuyPrice;
+  } catch {
+    return avgBuyPrice;
+  }
+}
+
+
+/**
+ * Execute square-off for event position
+ */
+async function executeEventSquareOff(
+  position: any,
+  closePrice: number
+): Promise<void> {
+  console.log(
+    `Executing auto square-off for event position ${position.id}, qty: ${position.qty}, price: ${closePrice}`
+  );
+
+  await prisma.$transaction(async (tx) => {
+    // Calculate realized P&L
+    let totalRealizedPnl = 0;
+    for (const lot of position.lots) {
+      const pnlFromLot = (closePrice - lot.buyPrice) * lot.remainingQty;
+      totalRealizedPnl += pnlFromLot;
+    }
+
+    // Create transaction
+    await tx.eventTransaction.create({
+      data: {
+        eventAccountId: position.eventAccountId,
+        instrumentId: position.instrumentId,
+        side: "SELL",
+        product: position.product,
+        qty: position.qty,
+        price: closePrice,
+        realizedPnl: totalRealizedPnl,
+        positionId: position.id,
+        fees: 0,
+      },
+    });
+
+    // Update lots
+    for (const lot of position.lots) {
+      await tx.eventPositionLot.update({
+        where: { id: lot.id },
+        data: { remainingQty: 0 },
+      });
+    }
+
+    // Update position
+    await tx.eventPosition.update({
+      where: { id: position.id },
+      data: {
+        qty: 0,
+        isOpen: false,
+        realizedPnl: position.realizedPnl + totalRealizedPnl,
+        autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
+      },
+    });
+
+    // Calculate and release margin
+    const releasedMargin = position.lots.reduce(
+      (sum: number, lot: any) =>
+        sum + (lot.buyPrice * lot.remainingQty) / position.instrument.leverage,
+      0
+    );
+
+    // Update event account
+    const proceeds = closePrice * position.qty;
+    await tx.eventAccount.update({
+      where: { id: position.eventAccountId },
+      data: {
+        cash: { increment: proceeds },
+        usedMargin: { decrement: releasedMargin },
+      },
+    });
+  });
+
+  console.log(
+    `Auto square-off completed for event position ${position.id}`
+  );
+}
+
+/**
  * Update auto square-off time for a position
  * Called when a MIS position is created
  */
 export const setAutoSquareOffTime = async (
-  positionId: string
+  positionId: string,
+  isEventPosition: boolean = false
 ): Promise<void> => {
   try {
     const nextCloseTime = await getNextMarketCloseTime();
 
-    await prisma.position.update({
-      where: { id: positionId },
-      data: {
-        autoSquareOffAt: nextCloseTime,
-        autoSquareOffStatus: AutoSquareOffStatus.PENDING,
-      },
-    });
+    if (isEventPosition) {
+      await prisma.eventPosition.update({
+        where: { id: positionId },
+        data: {
+          autoSquareOffAt: nextCloseTime,
+          autoSquareOffStatus: AutoSquareOffStatus.PENDING,
+        },
+      });
+    } else {
+      await prisma.position.update({
+        where: { id: positionId },
+        data: {
+          autoSquareOffAt: nextCloseTime,
+          autoSquareOffStatus: AutoSquareOffStatus.PENDING,
+        },
+      });
+    }
 
     console.log(
-      `Set auto square-off time for position ${positionId} to ${nextCloseTime.toISOString()}`
+      `Set auto square-off time for ${isEventPosition ? "event " : ""}position ${positionId} to ${nextCloseTime.toISOString()}`
     );
   } catch (error) {
     console.error(

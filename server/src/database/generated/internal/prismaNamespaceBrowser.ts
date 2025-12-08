@@ -60,7 +60,15 @@ export const ModelName = {
   Instrument: 'Instrument',
   Transaction: 'Transaction',
   Position: 'Position',
-  PositionLot: 'PositionLot'
+  PositionLot: 'PositionLot',
+  AppSettings: 'AppSettings',
+  Payment: 'Payment',
+  Event: 'Event',
+  EventRegistration: 'EventRegistration',
+  EventAccount: 'EventAccount',
+  EventPosition: 'EventPosition',
+  EventTransaction: 'EventTransaction',
+  EventPositionLot: 'EventPositionLot'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -242,6 +250,139 @@ export const PositionLotScalarFieldEnum = {
 } as const
 
 export type PositionLotScalarFieldEnum = (typeof PositionLotScalarFieldEnum)[keyof typeof PositionLotScalarFieldEnum]
+
+
+export const AppSettingsScalarFieldEnum = {
+  id: 'id',
+  exchangeRate: 'exchangeRate',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+} as const
+
+export type AppSettingsScalarFieldEnum = (typeof AppSettingsScalarFieldEnum)[keyof typeof AppSettingsScalarFieldEnum]
+
+
+export const PaymentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  razorpayOrderId: 'razorpayOrderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  purpose: 'purpose',
+  referenceId: 'referenceId',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  slug: 'slug',
+  registrationStartAt: 'registrationStartAt',
+  registrationEndAt: 'registrationEndAt',
+  eventStartAt: 'eventStartAt',
+  eventEndAt: 'eventEndAt',
+  registrationFee: 'registrationFee',
+  initialBalance: 'initialBalance',
+  isActive: 'isActive',
+  maxParticipants: 'maxParticipants',
+  bannerImage: 'bannerImage',
+  rules: 'rules',
+  prizes: 'prizes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+export const EventRegistrationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  eventId: 'eventId',
+  paymentId: 'paymentId',
+  orderId: 'orderId',
+  paymentStatus: 'paymentStatus',
+  amountPaid: 'amountPaid',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventRegistrationScalarFieldEnum = (typeof EventRegistrationScalarFieldEnum)[keyof typeof EventRegistrationScalarFieldEnum]
+
+
+export const EventAccountScalarFieldEnum = {
+  id: 'id',
+  registrationId: 'registrationId',
+  cash: 'cash',
+  usedMargin: 'usedMargin',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventAccountScalarFieldEnum = (typeof EventAccountScalarFieldEnum)[keyof typeof EventAccountScalarFieldEnum]
+
+
+export const EventPositionScalarFieldEnum = {
+  id: 'id',
+  eventAccountId: 'eventAccountId',
+  instrumentId: 'instrumentId',
+  qty: 'qty',
+  avgPrice: 'avgPrice',
+  realizedPnl: 'realizedPnl',
+  product: 'product',
+  isOpen: 'isOpen',
+  autoSquareOffAt: 'autoSquareOffAt',
+  autoSquareOffStatus: 'autoSquareOffStatus',
+  squareOffAttempts: 'squareOffAttempts',
+  lastSquareOffError: 'lastSquareOffError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventPositionScalarFieldEnum = (typeof EventPositionScalarFieldEnum)[keyof typeof EventPositionScalarFieldEnum]
+
+
+export const EventTransactionScalarFieldEnum = {
+  id: 'id',
+  eventAccountId: 'eventAccountId',
+  instrumentId: 'instrumentId',
+  side: 'side',
+  product: 'product',
+  qty: 'qty',
+  price: 'price',
+  limitPrice: 'limitPrice',
+  realizedPnl: 'realizedPnl',
+  positionId: 'positionId',
+  fees: 'fees',
+  createdAt: 'createdAt'
+} as const
+
+export type EventTransactionScalarFieldEnum = (typeof EventTransactionScalarFieldEnum)[keyof typeof EventTransactionScalarFieldEnum]
+
+
+export const EventPositionLotScalarFieldEnum = {
+  id: 'id',
+  positionId: 'positionId',
+  buyTransactionId: 'buyTransactionId',
+  totalQty: 'totalQty',
+  remainingQty: 'remainingQty',
+  buyPrice: 'buyPrice',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventPositionLotScalarFieldEnum = (typeof EventPositionLotScalarFieldEnum)[keyof typeof EventPositionLotScalarFieldEnum]
 
 
 export const SortOrder = {

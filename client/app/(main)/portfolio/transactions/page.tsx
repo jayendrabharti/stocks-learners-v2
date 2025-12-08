@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TrendingUp, TrendingDown, Clock, ArrowDownUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import ApiClient from "@/utils/ApiClient";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 
 interface Transaction {
   id: string;
@@ -29,6 +30,7 @@ interface Transaction {
 }
 
 export default function TransactionsPage() {
+  const { activeContext } = usePortfolio();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [metadataMap, setMetadataMap] = useState<Record<string, any>>({});
@@ -37,7 +39,12 @@ export default function TransactionsPage() {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const response = await ApiClient.get("/trading/transactions");
+        
+        // Fetch transactions based on active context
+        const response = activeContext.type === "EVENT" && activeContext.eventId
+          ? await ApiClient.get(`/events/${activeContext.eventId}/trading/transactions`)
+          : await ApiClient.get("/trading/transactions");
+        
         const txns = response.data.transactions || [];
         setTransactions(txns);
 
@@ -65,7 +72,7 @@ export default function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, []);
+  }, [activeContext.type, activeContext.eventId]);
 
   const buyTransactions = transactions.filter((t) => t.side === "BUY");
   const sellTransactions = transactions.filter((t) => t.side === "SELL");

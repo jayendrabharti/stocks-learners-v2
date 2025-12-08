@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { executeBuyOrder, executeSellOrder } from "@/services/tradingApi";
+import eventTradingApi from "@/services/eventTradingApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ import {
 import { TrendingUp, TrendingDown, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { usePortfolio } from "@/providers/PortfolioProvider";
+import { ErrorAlertDialog } from "@/components/ui/error-alert-dialog";
 
 interface BuySellSectionProps {
   exchangeToken: string;
@@ -47,13 +49,18 @@ export function BuySellSection({
   exchange,
   segment,
 }: BuySellSectionProps) {
-  const { account, accountLoading, refreshAll } = usePortfolio();
+  const { account, accountLoading, refreshAll, activeContext } = usePortfolio();
 
   const [qty, setQty] = useState<string>(lotSize.toString());
   const [product, setProduct] = useState<ProductType>("CNC");
   const [orderSide, setOrderSide] = useState<"BUY" | "SELL" | null>(null);
   const [loading, setLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{
+    message: string;
+    errorCode?: string;
+    action?: { label: string; href?: string; onClick?: () => void };
+  } | null>(null);
 
   const handleOrderClick = (side: "BUY" | "SELL") => {
     if (!exchangeToken) {
@@ -86,10 +93,22 @@ export function BuySellSection({
         product,
       };
 
-      const result =
-        orderSide === "BUY"
-          ? await executeBuyOrder(orderData)
-          : await executeSellOrder(orderData);
+      let result;
+
+      // Route to appropriate trading API based on active context
+      if (activeContext.type === "EVENT" && activeContext.eventId) {
+        // Use event trading API
+        result =
+          orderSide === "BUY"
+            ? await eventTradingApi.buyOrder(activeContext.eventId, orderData)
+            : await eventTradingApi.sellOrder(activeContext.eventId, orderData);
+      } else {
+        // Use main trading API
+        result =
+          orderSide === "BUY"
+            ? await executeBuyOrder(orderData)
+            : await executeSellOrder(orderData);
+      }
 
       toast.success(result.message, {
         description: `${orderSide} ${qty} ${tradingSymbol} @ ₹${result.executedPrice.toFixed(2)}`,
@@ -100,8 +119,34 @@ export function BuySellSection({
 
       // Refresh portfolio data
       await refreshAll();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Order failed");
+    } catch (error: any) {
+      setShowConfirmDialog(false);
+      
+      // Parse error response
+      const errorData = error?.response?.data?.error || error;
+      const errorMessage = errorData?.message || error?.message || "Order failed";
+      const errorCode = errorData?.code || errorData?.errorCode;
+      const suggestedAction = errorData?.action;
+      
+      // Determine action based on error code
+      let action = undefined;
+      if (errorCode === "INSUFFICIENT_FUNDS" || errorCode === "INSUFFICIENT_MARGIN") {
+        action = {
+          label: "Add Funds",
+          href: "/add-funds",
+        };
+      } else if (suggestedAction) {
+        action = {
+          label: suggestedAction,
+          onClick: () => setErrorDialog(null),
+        };
+      }
+      
+      setErrorDialog({
+        message: errorMessage,
+        errorCode,
+        action,
+      });
     } finally {
       setLoading(false);
     }
@@ -266,6 +311,17 @@ export function BuySellSection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Error Alert Dialog */}
+      {errorDialog && (
+        <ErrorAlertDialog
+          open={!!errorDialog}
+          onOpenChange={(open) => !open && setErrorDialog(null)}
+          message={errorDialog.message}
+          errorCode={errorDialog.errorCode}
+          action={errorDialog.action}
+        />
+      )}
     </>
   );
 }

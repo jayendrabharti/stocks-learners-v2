@@ -3,9 +3,14 @@ import DashboardNewUsersTable from "@/components/admin/DashboardNewUsersTable";
 import DashboardStatCard, {
   DashboardStatCardProps,
 } from "@/components/admin/DashboardStatCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import ApiClient from "@/utils/ApiClient";
-import { MailIcon, User2Icon, UserLockIcon } from "lucide-react";
+import { MailIcon, User2Icon, UserLockIcon, Trophy, Calendar, Users, DollarSign, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminPage() {
   const [data, setData] = useState<{
@@ -14,9 +19,19 @@ export default function AdminPage() {
     recentUsers: User[];
     contactFormCount: number;
     pendingContactFormCount: number;
+    // Event stats
+    totalEvents: number;
+    activeEvents: number;
+    liveEvents: number;
+    totalRegistrations: number;
+    confirmedRegistrations: number;
+    totalEventRevenue: number;
   } | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number>(1.0);
+  const [newExchangeRate, setNewExchangeRate] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     ApiClient.get("/admin/dashboard")
@@ -28,7 +43,46 @@ export default function AdminPage() {
           err.response?.data?.error?.message || "Failed to load dashboard data",
         );
       });
+
+    // Load current exchange rate
+    ApiClient.get("/admin/settings")
+      .then((response) => {
+        setExchangeRate(response.data.exchangeRate);
+        setNewExchangeRate(response.data.exchangeRate.toString());
+      })
+      .catch((err) => {
+        console.error("Failed to load settings:", err);
+      });
   }, []);
+
+  const handleUpdateExchangeRate = async () => {
+    const rate = parseFloat(newExchangeRate);
+    
+    if (isNaN(rate) || rate <= 0) {
+      toast.error("Invalid exchange rate", {
+        description: "Please enter a valid positive number",
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await ApiClient.put("/admin/settings/exchange-rate", {
+        exchangeRate: rate,
+      });
+
+      if (response.status === 200) {
+        setExchangeRate(rate);
+        toast.success("Exchange rate updated successfully!");
+      }
+    } catch (err: any) {
+      toast.error("Failed to update exchange rate", {
+        description: err.response?.data?.error?.message || "Unknown error",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (error || !data) {
     return (
@@ -54,6 +108,42 @@ export default function AdminPage() {
       shortcut: {
         link: "/admin/users?role_filter=admin",
         label: "View Admins",
+      },
+    },
+    {
+      title: "Total Events",
+      value: data.totalEvents,
+      icon: <Trophy />,
+      shortcut: {
+        link: "/admin/events",
+        label: "View Events",
+      },
+    },
+    {
+      title: "Live Events",
+      value: data.liveEvents,
+      icon: <Calendar />,
+      shortcut: {
+        link: "/admin/events",
+        label: "View Events",
+      },
+    },
+    {
+      title: "Event Registrations",
+      value: data.confirmedRegistrations,
+      icon: <Users />,
+      shortcut: {
+        link: "/admin/events",
+        label: "View Events",
+      },
+    },
+    {
+      title: "Event Revenue",
+      value: `₹${data.totalEventRevenue.toLocaleString()}`,
+      icon: <DollarSign />,
+      shortcut: {
+        link: "/admin/events",
+        label: "View Events",
       },
     },
     {
@@ -83,6 +173,48 @@ export default function AdminPage() {
           <DashboardStatCard key={index} {...stat} />
         ))}
       </div>
+
+      {/* Exchange Rate Settings */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            App Settings
+          </CardTitle>
+          <CardDescription>
+            Manage application settings and configurations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-md space-y-4">
+            <div>
+              <Label htmlFor="exchangeRate">Exchange Rate (USD to INR)</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Current rate: 1 USD = ₹{exchangeRate.toFixed(2)}
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  id="exchangeRate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newExchangeRate}
+                  onChange={(e) => setNewExchangeRate(e.target.value)}
+                  placeholder="Enter new exchange rate"
+                  disabled={isUpdating}
+                />
+                <Button 
+                  onClick={handleUpdateExchangeRate}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? "Updating..." : "Update"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <DashboardNewUsersTable newUsers={data.recentUsers} />
     </>
   );

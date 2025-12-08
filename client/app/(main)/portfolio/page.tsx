@@ -1,6 +1,5 @@
 "use client";
 
-import AuthGuard from "@/auth/AuthGuard";
 import { AccountSummary } from "@/components/account/AccountSummary";
 import { PortfolioOverview } from "@/components/portfolio/PortfolioOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +35,6 @@ export default function Page() {
   const holdingsPerf = calculateHoldingsPerformance();
 
   return (
-    <AuthGuard>
       <div className="space-y-6 pb-6">
         <div>
           <h1 className="mb-2 text-3xl font-bold">Dashboard</h1>
@@ -277,6 +275,5 @@ export default function Page() {
           </CardContent>
         </Card>
       </div>
-    </AuthGuard>
   );
 }

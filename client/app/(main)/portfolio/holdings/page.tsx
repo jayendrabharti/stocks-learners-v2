@@ -1,6 +1,5 @@
 "use client";
 
-import AuthGuard from "@/auth/AuthGuard";
 import { PortfolioHoldings } from "@/components/portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,7 +16,6 @@ export default function HoldingsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   return (
-    <AuthGuard>
       <div className="space-y-6 pb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -71,6 +69,5 @@ export default function HoldingsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AuthGuard>
   );
 }

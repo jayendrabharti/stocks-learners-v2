@@ -89,3 +89,43 @@ export type Position = Prisma.PositionModel
  * 
  */
 export type PositionLot = Prisma.PositionLotModel
+/**
+ * Model AppSettings
+ * 
+ */
+export type AppSettings = Prisma.AppSettingsModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel
+/**
+ * Model EventRegistration
+ * 
+ */
+export type EventRegistration = Prisma.EventRegistrationModel
+/**
+ * Model EventAccount
+ * 
+ */
+export type EventAccount = Prisma.EventAccountModel
+/**
+ * Model EventPosition
+ * 
+ */
+export type EventPosition = Prisma.EventPositionModel
+/**
+ * Model EventTransaction
+ * 
+ */
+export type EventTransaction = Prisma.EventTransactionModel
+/**
+ * Model EventPositionLot
+ * 
+ */
+export type EventPositionLot = Prisma.EventPositionLotModel

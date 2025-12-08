@@ -18,12 +18,43 @@ export const getDashboardData = async (_req: Request, res: Response) => {
       where: { status: "PENDING" },
     });
 
+    // Event statistics
+    const totalEvents = await prisma.event.count();
+    const activeEvents = await prisma.event.count({
+      where: { isActive: true },
+    });
+    const liveEvents = await prisma.event.count({
+      where: {
+        isActive: true,
+        eventStartAt: { lte: new Date() },
+        eventEndAt: { gte: new Date() },
+      },
+    });
+    const totalRegistrations = await prisma.eventRegistration.count();
+    const confirmedRegistrations = await prisma.eventRegistration.count({
+      where: { status: "CONFIRMED" },
+    });
+    
+    // Calculate total revenue from event registrations
+    const revenueData = await prisma.eventRegistration.aggregate({
+      where: { paymentStatus: "COMPLETED" },
+      _sum: { amountPaid: true },
+    });
+    const totalEventRevenue = revenueData._sum.amountPaid || 0;
+
     res.status(200).json({
       userCount,
       adminCount,
       recentUsers,
       contactFormCount,
       pendingContactFormCount,
+      // Event stats
+      totalEvents,
+      activeEvents,
+      liveEvents,
+      totalRegistrations,
+      confirmedRegistrations,
+      totalEventRevenue,
     });
   } catch (error) {
     console.error("Error retrieving dashboard data:", error);
@@ -118,5 +149,82 @@ export const getAllUsers = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ error: { message: "Error retrieving users" } });
+  }
+};
+
+/**
+ * Get app settings (exchange rate, etc.)
+ */
+export const getAppSettings = async (_req: Request, res: Response) => {
+  try {
+    const settings = await prisma.appSettings.findFirst();
+
+    if (!settings) {
+      // Create default settings if none exist
+      const newSettings = await prisma.appSettings.create({
+        data: {
+          exchangeRate: 1.0,
+        },
+      });
+      return res.status(200).json(newSettings);
+    }
+
+    return res.status(200).json(settings);
+  } catch (error) {
+    console.error("Error retrieving app settings:", error);
+    return res
+      .status(500)
+      .json({ error: { message: "Error retrieving app settings" } });
+  }
+};
+
+/**
+ * Update exchange rate
+ */
+export const updateExchangeRate = async (req: Request, res: Response) => {
+  try {
+    const { exchangeRate } = req.body;
+
+    // Validate exchange rate
+    if (
+      typeof exchangeRate !== "number" ||
+      exchangeRate <= 0 ||
+      !isFinite(exchangeRate)
+    ) {
+      return res.status(400).json({
+        error: { message: "Invalid exchange rate. Must be a positive number." },
+      });
+    }
+
+    // Get or create settings
+    let settings = await prisma.appSettings.findFirst();
+
+    if (!settings) {
+      settings = await prisma.appSettings.create({
+        data: {
+          exchangeRate,
+          updatedBy: req.user?.id || null,
+        },
+      });
+    } else {
+      settings = await prisma.appSettings.update({
+        where: { id: settings.id },
+        data: {
+          exchangeRate,
+          updatedBy: req.user?.id || null,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return res.status(200).json({
+      message: "Exchange rate updated successfully",
+      settings,
+    });
+  } catch (error) {
+    console.error("Error updating exchange rate:", error);
+    return res
+      .status(500)
+      .json({ error: { message: "Error updating exchange rate" } });
   }
 };

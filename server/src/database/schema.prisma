@@ -26,13 +26,15 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  refreshTokens  RefreshToken[]
-  otp            otp?
-  watchlistItems WatchlistItem[]
-  contactForms   ContactForm[]
-  account        Account?
-  transactions   Transaction[]
-  positions      Position[]
+  refreshTokens      RefreshToken[]
+  otp                otp?
+  watchlistItems     WatchlistItem[]
+  contactForms       ContactForm[]
+  account            Account?
+  transactions       Transaction[]
+  positions          Position[]
+  eventRegistrations EventRegistration[]
+  payments           Payment[]
 
   @@map("users")
 }
@@ -158,8 +160,10 @@ model Instrument {
   // MIS / Leverage
   leverage Float @default(1)
 
-  transactions Transaction[]
-  positions    Position[]
+  transactions      Transaction[]
+  positions         Position[]
+  eventPositions    EventPosition[]
+  eventTransactions EventTransaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,6 +263,245 @@ model PositionLot {
 }
 
 // -------------------------------------
+// APP SETTINGS
+// -------------------------------------
+
+model AppSettings {
+  id           String   @id @default(cuid())
+  exchangeRate Float    @default(1.0) // Real ₹ to dummy ₹ conversion
+  updatedAt    DateTime @updatedAt
+  updatedBy    String? // Admin user ID
+
+  @@map("app_settings")
+}
+
+// -------------------------------------
+// PAYMENT LOGGING
+// -------------------------------------
+
+model Payment {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Razorpay details
+  razorpayOrderId   String  @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  // Payment info
+  amount   Float
+  currency String        @default("INR")
+  status   PaymentStatus @default(PENDING)
+
+  // Purpose
+  purpose     String // "EVENT_REGISTRATION", "FUND_DEPOSIT", etc.
+  referenceId String? // EventRegistration ID, etc.
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([purpose])
+  @@map("payments")
+}
+
+// -------------------------------------
+// EVENTS
+// -------------------------------------
+
+model Event {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  slug        String  @unique
+
+  // Timing
+  registrationStartAt DateTime
+  registrationEndAt   DateTime
+  eventStartAt        DateTime
+  eventEndAt          DateTime
+
+  // Financial
+  registrationFee Float // Real rupees
+  initialBalance  Float // Dummy money for participants
+
+  // Settings
+  isActive        Boolean @default(true)
+  maxParticipants Int?
+
+  // Metadata
+  bannerImage String?
+  rules       String? // Markdown
+  prizes      Json? // Prize structure
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String // Admin user ID
+
+  registrations EventRegistration[]
+
+  @@index([eventStartAt, eventEndAt])
+  @@index([isActive])
+  @@index([slug])
+  @@map("events")
+}
+
+// -------------------------------------
+// EVENT REGISTRATION
+// -------------------------------------
+
+model EventRegistration {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  // Payment
+  paymentId     String? // Razorpay payment ID
+  orderId       String? // Razorpay order ID
+  paymentStatus PaymentStatus @default(PENDING)
+  amountPaid    Float
+
+  // Status
+  status RegistrationStatus @default(PENDING)
+
+  // Event account
+  eventAccount EventAccount?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, eventId])
+  @@index([eventId, status])
+  @@index([paymentStatus])
+  @@map("event_registrations")
+}
+
+// -------------------------------------
+// EVENT ACCOUNT
+// -------------------------------------
+
+model EventAccount {
+  id             String            @id @default(cuid())
+  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  registrationId String            @unique
+
+  cash       Float @default(0)
+  usedMargin Float @default(0)
+
+  positions    EventPosition[]
+  transactions EventTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("event_accounts")
+}
+
+// -------------------------------------
+// EVENT POSITION
+// -------------------------------------
+
+model EventPosition {
+  id             String       @id @default(cuid())
+  eventAccount   EventAccount @relation(fields: [eventAccountId], references: [id], onDelete: Cascade)
+  eventAccountId String
+
+  instrument   Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  instrumentId String
+
+  qty         Int       @default(0)
+  avgPrice    Float     @default(0)
+  realizedPnl Float     @default(0)
+  product     TradeType
+
+  isOpen Boolean @default(true)
+
+  // MIS Auto Square-off
+  autoSquareOffAt     DateTime?
+  autoSquareOffStatus AutoSquareOffStatus @default(PENDING)
+  squareOffAttempts   Int                 @default(0)
+  lastSquareOffError  String?
+
+  transactions EventTransaction[]
+  lots         EventPositionLot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventAccountId, instrumentId, product])
+  @@index([eventAccountId, product])
+  @@index([eventAccountId, isOpen])
+  @@index([autoSquareOffAt, autoSquareOffStatus])
+  @@map("event_positions")
+}
+
+// -------------------------------------
+// EVENT TRANSACTION
+// -------------------------------------
+
+model EventTransaction {
+  id             String       @id @default(cuid())
+  eventAccount   EventAccount @relation(fields: [eventAccountId], references: [id], onDelete: Cascade)
+  eventAccountId String
+
+  instrument   Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  instrumentId String
+
+  side    TradeSide
+  product TradeType
+
+  qty        Int
+  price      Float
+  limitPrice Float?
+
+  realizedPnl Float?
+
+  positionId String?
+  position   EventPosition? @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  // BUY transaction creates lots
+  buyLots EventPositionLot[] @relation("EventBuyTransaction")
+
+  fees      Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([eventAccountId])
+  @@index([createdAt])
+  @@map("event_transactions")
+}
+
+// -------------------------------------
+// EVENT POSITION LOT
+// -------------------------------------
+
+model EventPositionLot {
+  id         String        @id @default(cuid())
+  position   EventPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  positionId String
+
+  buyTransaction   EventTransaction @relation("EventBuyTransaction", fields: [buyTransactionId], references: [id], onDelete: Cascade)
+  buyTransactionId String
+
+  totalQty     Int
+  remainingQty Int   @default(0)
+  buyPrice     Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([positionId])
+  @@map("event_position_lots")
+}
+
+// -------------------------------------
 // ENUMS
 // -------------------------------------
 
@@ -302,4 +545,17 @@ enum AutoSquareOffStatus {
   IN_PROGRESS
   COMPLETED
   FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }

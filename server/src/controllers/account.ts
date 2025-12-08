@@ -18,24 +18,31 @@ export const getAccount = async (
       });
     }
 
-    // Get or create account
-    let account = await prisma.account.findUnique({
-      where: { userId },
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    if (!account) {
-      // Create account with initial balance 0
-      account = await prisma.account.create({
-        data: {
-          userId,
-          cash: 0,
-          usedMargin: 0,
-        },
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please log in again.",
       });
     }
 
-    // Calculate available margin
-    const availableMargin = account.cash - account.usedMargin;
+    // Get or create account (atomic operation)
+    const account = await prisma.account.upsert({
+      where: { userId },
+      create: {
+        userId,
+        cash: 0,
+        usedMargin: 0,
+      },
+      update: {}, // No update needed, just fetch
+    });
+
+    // Available margin = cash (margin is already deducted from cash in trading operations)
+    const availableMargin = account.cash;
 
     return res.status(200).json({
       success: true,
@@ -43,19 +50,23 @@ export const getAccount = async (
         cash: account.cash,
         usedMargin: account.usedMargin,
         availableMargin,
+        totalFunds: account.cash + account.usedMargin, // For transparency
       },
     });
   } catch (error) {
     console.error("Error fetching account:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch account details",
+      error: {
+        code: "SERVER_ERROR",
+        message: "Failed to fetch account details",
+      },
     });
   }
 };
 
 /**
- * Deposit funds (manual - for testing before payment integration)
+ * Deposit funds (with exchange rate)
  */
 export const depositFunds = async (
   req: Request,
@@ -63,7 +74,7 @@ export const depositFunds = async (
 ): Promise<Response> => {
   try {
     const userId = req.user?.id;
-    const { amount } = req.body;
+    const { amount } = req.body; // Real money amount
 
     if (!userId) {
       return res.status(401).json({
@@ -79,35 +90,51 @@ export const depositFunds = async (
       });
     }
 
-    // Get or create account
-    let account = await prisma.account.findUnique({
-      where: { userId },
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    if (!account) {
-      account = await prisma.account.create({
-        data: {
-          userId,
-          cash: amount,
-          usedMargin: 0,
-        },
-      });
-    } else {
-      account = await prisma.account.update({
-        where: { userId },
-        data: {
-          cash: account.cash + amount,
-        },
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please log in again.",
       });
     }
 
+    // Get exchange rate
+    const settings = await prisma.appSettings.findFirst();
+    const exchangeRate = settings?.exchangeRate || 1.0;
+
+    // Calculate dummy money
+    const dummyMoney = amount * exchangeRate;
+
+    // Use upsert to atomically create or update account (prevents race condition)
+    const account = await prisma.account.upsert({
+      where: { userId },
+      create: {
+        userId,
+        cash: dummyMoney,
+        usedMargin: 0,
+      },
+      update: {
+        cash: { increment: dummyMoney },
+      },
+    });
+
     return res.status(200).json({
       success: true,
-      message: `Successfully deposited ₹${amount}`,
+      message: `Successfully deposited ₹${amount} (received ₹${dummyMoney} dummy money)`,
+      deposit: {
+        realMoney: amount,
+        exchangeRate,
+        dummyMoney,
+      },
       account: {
         cash: account.cash,
         usedMargin: account.usedMargin,
-        availableMargin: account.cash - account.usedMargin,
+        availableMargin: account.cash, // Cash already excludes used margin
+        totalFunds: account.cash + account.usedMargin,
       },
     });
   } catch (error) {
@@ -155,28 +182,20 @@ export const withdrawFunds = async (
       });
     }
 
-    const availableMargin = account.cash - account.usedMargin;
+    // Available margin = cash (margin already deducted)
+    const availableMargin = account.cash;
 
     if (amount > availableMargin) {
       return res.status(400).json({
         success: false,
-        message: "Insufficient available margin for withdrawal",
-      });
-    }
-
-    // Ensure withdrawal doesn't result in negative cash
-    const newCash = account.cash - amount;
-    if (newCash < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Withdrawal would result in negative balance",
+        message: `Insufficient funds. Available: ₹${availableMargin.toFixed(2)}, Requested: ₹${amount.toFixed(2)}`,
       });
     }
 
     const updatedAccount = await prisma.account.update({
       where: { userId },
       data: {
-        cash: newCash,
+        cash: { decrement: amount },
       },
     });
 
@@ -186,7 +205,8 @@ export const withdrawFunds = async (
       account: {
         cash: updatedAccount.cash,
         usedMargin: updatedAccount.usedMargin,
-        availableMargin: updatedAccount.cash - updatedAccount.usedMargin,
+        availableMargin: updatedAccount.cash, // Cash already excludes used margin
+        totalFunds: updatedAccount.cash + updatedAccount.usedMargin,
       },
     });
   } catch (error) {

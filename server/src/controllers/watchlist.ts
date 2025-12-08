@@ -6,7 +6,9 @@ export const getAllWatchlistItems = async (req: Request, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(500).json({
+        success: false,
         error: {
+          code: "UNAUTHORIZED",
           message: "User id not found",
         },
       });
@@ -19,9 +21,13 @@ export const getAllWatchlistItems = async (req: Request, res: Response) => {
     });
     return res.status(200).json({ watchlistItems });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: { message: "Error retrieving users" } });
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: "SERVER_ERROR",
+        message: "Error retrieving watchlist",
+      },
+    });
   }
 };
 
@@ -32,16 +38,20 @@ export const addToWatchlist = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId || !searchId || !instrumentType) {
-      return res.status(500).json({
+      return res.status(400).json({
+        success: false,
         error: {
+          code: "VALIDATION_ERROR",
           message: "UserId, searchId, or instrumentType not found",
         },
       });
     }
 
     if (instrumentType !== "IDX" && instrumentType !== "EQ" && !tradingSymbol) {
-      return res.status(500).json({
+      return res.status(400).json({
+        success: false,
         error: {
+          code: "VALIDATION_ERROR",
           message: "TradingSymbol is required for this instrument type",
         },
       });
@@ -56,12 +66,12 @@ export const addToWatchlist = async (req: Request, res: Response) => {
       },
     });
 
-    console.log("3");
-
     return res.status(201).json({ newWatchlistItem });
   } catch (error) {
     return res.status(500).json({
+      success: false,
       error: {
+        code: "SERVER_ERROR",
         message: getErrorMessage(error, "Couldn't add to watchlist."),
       },
     });
@@ -72,8 +82,10 @@ export const removeFromWatchlist = async (req: Request, res: Response) => {
   try {
     const { id } = req.query;
     if (typeof id !== "string" || !req.user?.id) {
-      return res.status(500).json({
+      return res.status(400).json({
+        success: false,
         error: {
+          code: "VALIDATION_ERROR",
           message: "Watchlist item id or user id not found",
         },
       });
@@ -89,7 +101,9 @@ export const removeFromWatchlist = async (req: Request, res: Response) => {
       .json({ success: true, message: "Watchlist item removed successfully" });
   } catch (error) {
     return res.status(500).json({
+      success: false,
       error: {
+        code: "SERVER_ERROR",
         message: getErrorMessage(error, "Couldn't remove from watchlist."),
       },
     });

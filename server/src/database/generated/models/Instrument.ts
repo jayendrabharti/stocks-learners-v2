@@ -386,6 +386,8 @@ export type InstrumentWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Instrument"> | Date | string
   transactions?: Prisma.TransactionListRelationFilter
   positions?: Prisma.PositionListRelationFilter
+  eventPositions?: Prisma.EventPositionListRelationFilter
+  eventTransactions?: Prisma.EventTransactionListRelationFilter
 }
 
 export type InstrumentOrderByWithRelationInput = {
@@ -415,6 +417,8 @@ export type InstrumentOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   positions?: Prisma.PositionOrderByRelationAggregateInput
+  eventPositions?: Prisma.EventPositionOrderByRelationAggregateInput
+  eventTransactions?: Prisma.EventTransactionOrderByRelationAggregateInput
 }
 
 export type InstrumentWhereUniqueInput = Prisma.AtLeast<{
@@ -447,6 +451,8 @@ export type InstrumentWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Instrument"> | Date | string
   transactions?: Prisma.TransactionListRelationFilter
   positions?: Prisma.PositionListRelationFilter
+  eventPositions?: Prisma.EventPositionListRelationFilter
+  eventTransactions?: Prisma.EventTransactionListRelationFilter
 }, "id" | "exchangeToken">
 
 export type InstrumentOrderByWithAggregationInput = {
@@ -538,6 +544,8 @@ export type InstrumentCreateInput = {
   updatedAt?: Date | string
   transactions?: Prisma.TransactionCreateNestedManyWithoutInstrumentInput
   positions?: Prisma.PositionCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentUncheckedCreateInput = {
@@ -567,6 +575,8 @@ export type InstrumentUncheckedCreateInput = {
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutInstrumentInput
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionUncheckedCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentUpdateInput = {
@@ -596,6 +606,8 @@ export type InstrumentUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUpdateManyWithoutInstrumentNestedInput
   positions?: Prisma.PositionUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUpdateManyWithoutInstrumentNestedInput
 }
 
 export type InstrumentUncheckedUpdateInput = {
@@ -625,6 +637,8 @@ export type InstrumentUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutInstrumentNestedInput
   positions?: Prisma.PositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUncheckedUpdateManyWithoutInstrumentNestedInput
 }
 
 export type InstrumentCreateManyInput = {
@@ -854,6 +868,34 @@ export type InstrumentUpdateOneRequiredWithoutPositionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstrumentUpdateToOneWithWhereWithoutPositionsInput, Prisma.InstrumentUpdateWithoutPositionsInput>, Prisma.InstrumentUncheckedUpdateWithoutPositionsInput>
 }
 
+export type InstrumentCreateNestedOneWithoutEventPositionsInput = {
+  create?: Prisma.XOR<Prisma.InstrumentCreateWithoutEventPositionsInput, Prisma.InstrumentUncheckedCreateWithoutEventPositionsInput>
+  connectOrCreate?: Prisma.InstrumentCreateOrConnectWithoutEventPositionsInput
+  connect?: Prisma.InstrumentWhereUniqueInput
+}
+
+export type InstrumentUpdateOneRequiredWithoutEventPositionsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstrumentCreateWithoutEventPositionsInput, Prisma.InstrumentUncheckedCreateWithoutEventPositionsInput>
+  connectOrCreate?: Prisma.InstrumentCreateOrConnectWithoutEventPositionsInput
+  upsert?: Prisma.InstrumentUpsertWithoutEventPositionsInput
+  connect?: Prisma.InstrumentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstrumentUpdateToOneWithWhereWithoutEventPositionsInput, Prisma.InstrumentUpdateWithoutEventPositionsInput>, Prisma.InstrumentUncheckedUpdateWithoutEventPositionsInput>
+}
+
+export type InstrumentCreateNestedOneWithoutEventTransactionsInput = {
+  create?: Prisma.XOR<Prisma.InstrumentCreateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedCreateWithoutEventTransactionsInput>
+  connectOrCreate?: Prisma.InstrumentCreateOrConnectWithoutEventTransactionsInput
+  connect?: Prisma.InstrumentWhereUniqueInput
+}
+
+export type InstrumentUpdateOneRequiredWithoutEventTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstrumentCreateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedCreateWithoutEventTransactionsInput>
+  connectOrCreate?: Prisma.InstrumentCreateOrConnectWithoutEventTransactionsInput
+  upsert?: Prisma.InstrumentUpsertWithoutEventTransactionsInput
+  connect?: Prisma.InstrumentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstrumentUpdateToOneWithWhereWithoutEventTransactionsInput, Prisma.InstrumentUpdateWithoutEventTransactionsInput>, Prisma.InstrumentUncheckedUpdateWithoutEventTransactionsInput>
+}
+
 export type InstrumentCreateWithoutTransactionsInput = {
   id?: string
   exchange: $Enums.Exchange
@@ -880,6 +922,8 @@ export type InstrumentCreateWithoutTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentUncheckedCreateWithoutTransactionsInput = {
@@ -908,6 +952,8 @@ export type InstrumentUncheckedCreateWithoutTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionUncheckedCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentCreateOrConnectWithoutTransactionsInput = {
@@ -952,6 +998,8 @@ export type InstrumentUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUpdateManyWithoutInstrumentNestedInput
 }
 
 export type InstrumentUncheckedUpdateWithoutTransactionsInput = {
@@ -980,6 +1028,8 @@ export type InstrumentUncheckedUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUncheckedUpdateManyWithoutInstrumentNestedInput
 }
 
 export type InstrumentCreateWithoutPositionsInput = {
@@ -1008,6 +1058,8 @@ export type InstrumentCreateWithoutPositionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentUncheckedCreateWithoutPositionsInput = {
@@ -1036,6 +1088,8 @@ export type InstrumentUncheckedCreateWithoutPositionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionUncheckedCreateNestedManyWithoutInstrumentInput
 }
 
 export type InstrumentCreateOrConnectWithoutPositionsInput = {
@@ -1080,6 +1134,8 @@ export type InstrumentUpdateWithoutPositionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUpdateManyWithoutInstrumentNestedInput
 }
 
 export type InstrumentUncheckedUpdateWithoutPositionsInput = {
@@ -1108,6 +1164,280 @@ export type InstrumentUncheckedUpdateWithoutPositionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUncheckedUpdateManyWithoutInstrumentNestedInput
+}
+
+export type InstrumentCreateWithoutEventPositionsInput = {
+  id?: string
+  exchange: $Enums.Exchange
+  segment: $Enums.Segment
+  series?: string | null
+  tradingSymbol: string
+  exchangeToken: string
+  growwSymbol?: string | null
+  name?: string | null
+  isin?: string | null
+  type: $Enums.InstrumentType
+  expiry?: Date | string | null
+  strike?: number | null
+  underlyingSymbol?: string | null
+  underlyingExchangeToken?: string | null
+  searchId?: string | null
+  lotSize?: number
+  tickSize?: number
+  freezeQty?: number
+  buyAllowed?: boolean
+  sellAllowed?: boolean
+  isReserved?: boolean
+  leverage?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.TransactionCreateNestedManyWithoutInstrumentInput
+  positions?: Prisma.PositionCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionCreateNestedManyWithoutInstrumentInput
+}
+
+export type InstrumentUncheckedCreateWithoutEventPositionsInput = {
+  id?: string
+  exchange: $Enums.Exchange
+  segment: $Enums.Segment
+  series?: string | null
+  tradingSymbol: string
+  exchangeToken: string
+  growwSymbol?: string | null
+  name?: string | null
+  isin?: string | null
+  type: $Enums.InstrumentType
+  expiry?: Date | string | null
+  strike?: number | null
+  underlyingSymbol?: string | null
+  underlyingExchangeToken?: string | null
+  searchId?: string | null
+  lotSize?: number
+  tickSize?: number
+  freezeQty?: number
+  buyAllowed?: boolean
+  sellAllowed?: boolean
+  isReserved?: boolean
+  leverage?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutInstrumentInput
+  positions?: Prisma.PositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventTransactions?: Prisma.EventTransactionUncheckedCreateNestedManyWithoutInstrumentInput
+}
+
+export type InstrumentCreateOrConnectWithoutEventPositionsInput = {
+  where: Prisma.InstrumentWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstrumentCreateWithoutEventPositionsInput, Prisma.InstrumentUncheckedCreateWithoutEventPositionsInput>
+}
+
+export type InstrumentUpsertWithoutEventPositionsInput = {
+  update: Prisma.XOR<Prisma.InstrumentUpdateWithoutEventPositionsInput, Prisma.InstrumentUncheckedUpdateWithoutEventPositionsInput>
+  create: Prisma.XOR<Prisma.InstrumentCreateWithoutEventPositionsInput, Prisma.InstrumentUncheckedCreateWithoutEventPositionsInput>
+  where?: Prisma.InstrumentWhereInput
+}
+
+export type InstrumentUpdateToOneWithWhereWithoutEventPositionsInput = {
+  where?: Prisma.InstrumentWhereInput
+  data: Prisma.XOR<Prisma.InstrumentUpdateWithoutEventPositionsInput, Prisma.InstrumentUncheckedUpdateWithoutEventPositionsInput>
+}
+
+export type InstrumentUpdateWithoutEventPositionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  exchange?: Prisma.EnumExchangeFieldUpdateOperationsInput | $Enums.Exchange
+  segment?: Prisma.EnumSegmentFieldUpdateOperationsInput | $Enums.Segment
+  series?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tradingSymbol?: Prisma.StringFieldUpdateOperationsInput | string
+  exchangeToken?: Prisma.StringFieldUpdateOperationsInput | string
+  growwSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInstrumentTypeFieldUpdateOperationsInput | $Enums.InstrumentType
+  expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  strike?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  underlyingSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingExchangeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  searchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lotSize?: Prisma.IntFieldUpdateOperationsInput | number
+  tickSize?: Prisma.FloatFieldUpdateOperationsInput | number
+  freezeQty?: Prisma.IntFieldUpdateOperationsInput | number
+  buyAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sellAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  leverage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.TransactionUpdateManyWithoutInstrumentNestedInput
+  positions?: Prisma.PositionUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUpdateManyWithoutInstrumentNestedInput
+}
+
+export type InstrumentUncheckedUpdateWithoutEventPositionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  exchange?: Prisma.EnumExchangeFieldUpdateOperationsInput | $Enums.Exchange
+  segment?: Prisma.EnumSegmentFieldUpdateOperationsInput | $Enums.Segment
+  series?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tradingSymbol?: Prisma.StringFieldUpdateOperationsInput | string
+  exchangeToken?: Prisma.StringFieldUpdateOperationsInput | string
+  growwSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInstrumentTypeFieldUpdateOperationsInput | $Enums.InstrumentType
+  expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  strike?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  underlyingSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingExchangeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  searchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lotSize?: Prisma.IntFieldUpdateOperationsInput | number
+  tickSize?: Prisma.FloatFieldUpdateOperationsInput | number
+  freezeQty?: Prisma.IntFieldUpdateOperationsInput | number
+  buyAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sellAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  leverage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutInstrumentNestedInput
+  positions?: Prisma.PositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventTransactions?: Prisma.EventTransactionUncheckedUpdateManyWithoutInstrumentNestedInput
+}
+
+export type InstrumentCreateWithoutEventTransactionsInput = {
+  id?: string
+  exchange: $Enums.Exchange
+  segment: $Enums.Segment
+  series?: string | null
+  tradingSymbol: string
+  exchangeToken: string
+  growwSymbol?: string | null
+  name?: string | null
+  isin?: string | null
+  type: $Enums.InstrumentType
+  expiry?: Date | string | null
+  strike?: number | null
+  underlyingSymbol?: string | null
+  underlyingExchangeToken?: string | null
+  searchId?: string | null
+  lotSize?: number
+  tickSize?: number
+  freezeQty?: number
+  buyAllowed?: boolean
+  sellAllowed?: boolean
+  isReserved?: boolean
+  leverage?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.TransactionCreateNestedManyWithoutInstrumentInput
+  positions?: Prisma.PositionCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionCreateNestedManyWithoutInstrumentInput
+}
+
+export type InstrumentUncheckedCreateWithoutEventTransactionsInput = {
+  id?: string
+  exchange: $Enums.Exchange
+  segment: $Enums.Segment
+  series?: string | null
+  tradingSymbol: string
+  exchangeToken: string
+  growwSymbol?: string | null
+  name?: string | null
+  isin?: string | null
+  type: $Enums.InstrumentType
+  expiry?: Date | string | null
+  strike?: number | null
+  underlyingSymbol?: string | null
+  underlyingExchangeToken?: string | null
+  searchId?: string | null
+  lotSize?: number
+  tickSize?: number
+  freezeQty?: number
+  buyAllowed?: boolean
+  sellAllowed?: boolean
+  isReserved?: boolean
+  leverage?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutInstrumentInput
+  positions?: Prisma.PositionUncheckedCreateNestedManyWithoutInstrumentInput
+  eventPositions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutInstrumentInput
+}
+
+export type InstrumentCreateOrConnectWithoutEventTransactionsInput = {
+  where: Prisma.InstrumentWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstrumentCreateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedCreateWithoutEventTransactionsInput>
+}
+
+export type InstrumentUpsertWithoutEventTransactionsInput = {
+  update: Prisma.XOR<Prisma.InstrumentUpdateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedUpdateWithoutEventTransactionsInput>
+  create: Prisma.XOR<Prisma.InstrumentCreateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedCreateWithoutEventTransactionsInput>
+  where?: Prisma.InstrumentWhereInput
+}
+
+export type InstrumentUpdateToOneWithWhereWithoutEventTransactionsInput = {
+  where?: Prisma.InstrumentWhereInput
+  data: Prisma.XOR<Prisma.InstrumentUpdateWithoutEventTransactionsInput, Prisma.InstrumentUncheckedUpdateWithoutEventTransactionsInput>
+}
+
+export type InstrumentUpdateWithoutEventTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  exchange?: Prisma.EnumExchangeFieldUpdateOperationsInput | $Enums.Exchange
+  segment?: Prisma.EnumSegmentFieldUpdateOperationsInput | $Enums.Segment
+  series?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tradingSymbol?: Prisma.StringFieldUpdateOperationsInput | string
+  exchangeToken?: Prisma.StringFieldUpdateOperationsInput | string
+  growwSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInstrumentTypeFieldUpdateOperationsInput | $Enums.InstrumentType
+  expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  strike?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  underlyingSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingExchangeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  searchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lotSize?: Prisma.IntFieldUpdateOperationsInput | number
+  tickSize?: Prisma.FloatFieldUpdateOperationsInput | number
+  freezeQty?: Prisma.IntFieldUpdateOperationsInput | number
+  buyAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sellAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  leverage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.TransactionUpdateManyWithoutInstrumentNestedInput
+  positions?: Prisma.PositionUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUpdateManyWithoutInstrumentNestedInput
+}
+
+export type InstrumentUncheckedUpdateWithoutEventTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  exchange?: Prisma.EnumExchangeFieldUpdateOperationsInput | $Enums.Exchange
+  segment?: Prisma.EnumSegmentFieldUpdateOperationsInput | $Enums.Segment
+  series?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tradingSymbol?: Prisma.StringFieldUpdateOperationsInput | string
+  exchangeToken?: Prisma.StringFieldUpdateOperationsInput | string
+  growwSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumInstrumentTypeFieldUpdateOperationsInput | $Enums.InstrumentType
+  expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  strike?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  underlyingSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  underlyingExchangeToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  searchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lotSize?: Prisma.IntFieldUpdateOperationsInput | number
+  tickSize?: Prisma.FloatFieldUpdateOperationsInput | number
+  freezeQty?: Prisma.IntFieldUpdateOperationsInput | number
+  buyAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sellAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isReserved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  leverage?: Prisma.FloatFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutInstrumentNestedInput
+  positions?: Prisma.PositionUncheckedUpdateManyWithoutInstrumentNestedInput
+  eventPositions?: Prisma.EventPositionUncheckedUpdateManyWithoutInstrumentNestedInput
 }
 
 
@@ -1118,11 +1448,15 @@ export type InstrumentUncheckedUpdateWithoutPositionsInput = {
 export type InstrumentCountOutputType = {
   transactions: number
   positions: number
+  eventPositions: number
+  eventTransactions: number
 }
 
 export type InstrumentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | InstrumentCountOutputTypeCountTransactionsArgs
   positions?: boolean | InstrumentCountOutputTypeCountPositionsArgs
+  eventPositions?: boolean | InstrumentCountOutputTypeCountEventPositionsArgs
+  eventTransactions?: boolean | InstrumentCountOutputTypeCountEventTransactionsArgs
 }
 
 /**
@@ -1147,6 +1481,20 @@ export type InstrumentCountOutputTypeCountTransactionsArgs<ExtArgs extends runti
  */
 export type InstrumentCountOutputTypeCountPositionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PositionWhereInput
+}
+
+/**
+ * InstrumentCountOutputType without action
+ */
+export type InstrumentCountOutputTypeCountEventPositionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventPositionWhereInput
+}
+
+/**
+ * InstrumentCountOutputType without action
+ */
+export type InstrumentCountOutputTypeCountEventTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventTransactionWhereInput
 }
 
 
@@ -1177,6 +1525,8 @@ export type InstrumentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   updatedAt?: boolean
   transactions?: boolean | Prisma.Instrument$transactionsArgs<ExtArgs>
   positions?: boolean | Prisma.Instrument$positionsArgs<ExtArgs>
+  eventPositions?: boolean | Prisma.Instrument$eventPositionsArgs<ExtArgs>
+  eventTransactions?: boolean | Prisma.Instrument$eventTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.InstrumentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instrument"]>
 
@@ -1265,6 +1615,8 @@ export type InstrumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type InstrumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | Prisma.Instrument$transactionsArgs<ExtArgs>
   positions?: boolean | Prisma.Instrument$positionsArgs<ExtArgs>
+  eventPositions?: boolean | Prisma.Instrument$eventPositionsArgs<ExtArgs>
+  eventTransactions?: boolean | Prisma.Instrument$eventTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.InstrumentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstrumentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1275,6 +1627,8 @@ export type $InstrumentPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     positions: Prisma.$PositionPayload<ExtArgs>[]
+    eventPositions: Prisma.$EventPositionPayload<ExtArgs>[]
+    eventTransactions: Prisma.$EventTransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1697,6 +2051,8 @@ export interface Prisma__InstrumentClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   transactions<T extends Prisma.Instrument$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instrument$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   positions<T extends Prisma.Instrument$positionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instrument$positionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventPositions<T extends Prisma.Instrument$eventPositionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instrument$eventPositionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventTransactions<T extends Prisma.Instrument$eventTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Instrument$eventTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2183,6 +2539,54 @@ export type Instrument$positionsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.PositionScalarFieldEnum | Prisma.PositionScalarFieldEnum[]
+}
+
+/**
+ * Instrument.eventPositions
+ */
+export type Instrument$eventPositionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventPosition
+   */
+  select?: Prisma.EventPositionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventPosition
+   */
+  omit?: Prisma.EventPositionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventPositionInclude<ExtArgs> | null
+  where?: Prisma.EventPositionWhereInput
+  orderBy?: Prisma.EventPositionOrderByWithRelationInput | Prisma.EventPositionOrderByWithRelationInput[]
+  cursor?: Prisma.EventPositionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventPositionScalarFieldEnum | Prisma.EventPositionScalarFieldEnum[]
+}
+
+/**
+ * Instrument.eventTransactions
+ */
+export type Instrument$eventTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventTransaction
+   */
+  select?: Prisma.EventTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventTransaction
+   */
+  omit?: Prisma.EventTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventTransactionInclude<ExtArgs> | null
+  where?: Prisma.EventTransactionWhereInput
+  orderBy?: Prisma.EventTransactionOrderByWithRelationInput | Prisma.EventTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.EventTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventTransactionScalarFieldEnum | Prisma.EventTransactionScalarFieldEnum[]
 }
 
 /**

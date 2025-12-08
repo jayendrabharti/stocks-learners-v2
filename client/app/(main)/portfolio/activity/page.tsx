@@ -1,18 +1,17 @@
 "use client";
 
-import AuthGuard from "@/auth/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Activity,
-  ShoppingCart,
   TrendingUp,
   TrendingDown,
   Clock,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ApiClient from "@/utils/ApiClient";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 
 interface Transaction {
   id: string;
@@ -35,6 +34,7 @@ interface Transaction {
 }
 
 export default function Page() {
+  const { activeContext } = usePortfolio();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [metadataMap, setMetadataMap] = useState<Record<string, any>>({});
@@ -43,7 +43,12 @@ export default function Page() {
     const fetchActivity = async () => {
       try {
         setLoading(true);
-        const response = await ApiClient.get("/trading/transactions");
+        
+        // Fetch transactions based on active context
+        const response = activeContext.type === "EVENT" && activeContext.eventId
+          ? await ApiClient.get(`/events/${activeContext.eventId}/trading/transactions`)
+          : await ApiClient.get("/trading/transactions");
+        
         const txns = response.data.transactions || [];
         // Show only recent 20 activities
         setTransactions(txns.slice(0, 20));
@@ -72,11 +77,10 @@ export default function Page() {
     };
 
     fetchActivity();
-  }, []);
+  }, [activeContext.type, activeContext.eventId]);
 
   if (loading) {
     return (
-      <AuthGuard>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -90,12 +94,10 @@ export default function Page() {
             </div>
           </CardContent>
         </Card>
-      </AuthGuard>
     );
   }
 
   return (
-    <AuthGuard>
       <div className="space-y-6 pb-6">
         <div>
           <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold">
@@ -254,6 +256,5 @@ export default function Page() {
           </CardContent>
         </Card>
       </div>
-    </AuthGuard>
   );
 }

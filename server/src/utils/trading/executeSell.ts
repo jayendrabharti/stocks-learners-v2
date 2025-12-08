@@ -197,8 +197,15 @@ export async function executeSell(
 
       // Update account
       if (product === "MIS") {
-        // For MIS, release margin and add proceeds
-        const releasedMargin = (executedPrice * qty) / instrument.leverage;
+        // For MIS, release margin based on original buy prices from lots
+        // Calculate margin to release from consumed lots (not from sell price)
+        const releasedMargin = fifoResult.consumptions.reduce(
+          (sum, consumption) =>
+            sum +
+            (consumption.lot.buyPrice * consumption.consumedQty) /
+              instrument.leverage,
+          0
+        );
         const proceeds = orderValue - fees;
 
         await tx.account.update({

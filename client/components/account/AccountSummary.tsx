@@ -1,32 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getAccount, type AccountBalance } from "@/services/accountApi";
+import { usePortfolio } from "@/providers/PortfolioProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IndianRupee, TrendingUp, Wallet } from "lucide-react";
 import AddFundsButton from "../portfolio/AddFundsButton";
 
 export function AccountSummary() {
-  const [account, setAccount] = useState<AccountBalance | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchAccount = async () => {
-    try {
-      setLoading(true);
-      const data = await getAccount();
-      setAccount(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch account");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAccount();
-  }, []);
+  const { account, accountLoading: loading } = usePortfolio();
 
   if (loading) {
     return (
@@ -45,16 +25,6 @@ export function AccountSummary() {
     );
   }
 
-  if (error) {
-    return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <p className="text-destructive text-sm">{error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (!account) return null;
 
   return (
@@ -69,7 +39,7 @@ export function AccountSummary() {
           <div className="flex flex-row justify-between">
             <span className="text-2xl font-bold">
               ₹
-              {account.cash.toLocaleString("en-IN", {
+              {account.totalCash.toLocaleString("en-IN", {
                 maximumFractionDigits: 2,
               })}
             </span>

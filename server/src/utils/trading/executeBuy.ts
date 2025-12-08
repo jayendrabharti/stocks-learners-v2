@@ -5,7 +5,7 @@
 
 import prisma from "@/database/client";
 import type { TradeType } from "@/database/generated/enums";
-import { validateOrder, validateMISMargin } from "./validateOrder";
+import { validateOrder } from "./validateOrder";
 import { getLivePrice } from "./livePrice";
 import {
   recalculatePositionOnBuy,

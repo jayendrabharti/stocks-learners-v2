@@ -6,7 +6,7 @@
 import ApiClient from "@/utils/ApiClient";
 
 export interface AccountBalance {
-  cash: number;
+  totalCash: number;
   usedMargin: number;
   availableMargin: number;
 }
@@ -21,20 +21,26 @@ export interface AccountResponse {
  * Get user account details
  */
 export async function getAccount(): Promise<AccountBalance> {
-  const response = await ApiClient.get<AccountResponse>("/account");
+  const response = await ApiClient.get<any>("/account");
 
   if (!response.data.success) {
     throw new Error(response.data.message || "Failed to fetch account");
   }
 
-  return response.data.account;
+  // Map backend 'cash' to 'totalCash'
+  const account = response.data.account;
+  return {
+    totalCash: account.cash,
+    usedMargin: account.usedMargin,
+    availableMargin: account.availableMargin,
+  };
 }
 
 /**
  * Deposit funds (manual - for testing)
  */
 export async function depositFunds(amount: number): Promise<AccountBalance> {
-  const response = await ApiClient.post<AccountResponse>("/account/deposit", {
+  const response = await ApiClient.post<any>("/account/deposit", {
     amount,
   });
 
@@ -42,14 +48,19 @@ export async function depositFunds(amount: number): Promise<AccountBalance> {
     throw new Error(response.data.message || "Failed to deposit funds");
   }
 
-  return response.data.account;
+  const account = response.data.account;
+  return {
+    totalCash: account.cash,
+    usedMargin: account.usedMargin,
+    availableMargin: account.availableMargin,
+  };
 }
 
 /**
  * Withdraw funds (manual - for testing)
  */
 export async function withdrawFunds(amount: number): Promise<AccountBalance> {
-  const response = await ApiClient.post<AccountResponse>("/account/withdraw", {
+  const response = await ApiClient.post<any>("/account/withdraw", {
     amount,
   });
 
@@ -57,5 +68,10 @@ export async function withdrawFunds(amount: number): Promise<AccountBalance> {
     throw new Error(response.data.message || "Failed to withdraw funds");
   }
 
-  return response.data.account;
+  const account = response.data.account;
+  return {
+    totalCash: account.cash,
+    usedMargin: account.usedMargin,
+    availableMargin: account.availableMargin,
+  };
 }

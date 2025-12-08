@@ -18,6 +18,7 @@ import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/providers/SessionProvider";
 import Countdown, { CountdownRendererFn } from "react-countdown";
+import { ErrorAlertDialog } from "@/components/ui/error-alert-dialog";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,6 +30,10 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [sendingOtp, startSendingOtp] = useTransition();
   const [verifyingOtp, startVerifyingOtp] = useTransition();
+  const [errorDialog, setErrorDialog] = useState<{
+    message: string;
+    errorCode?: string;
+  } | null>(null);
 
   const sendOtp = async () => {
     startSendingOtp(async () => {
@@ -48,8 +53,11 @@ export default function LoginPage() {
         } else {
           toast.error("Error sending OTP");
         }
-      } catch (error) {
-        toast.error("Error sending OTP");
+      } catch (error: any) {
+        setErrorDialog({
+          message: error?.response?.data?.error?.message || "Error sending OTP",
+          errorCode: error?.response?.data?.error?.code,
+        });
       }
     });
   };
@@ -70,8 +78,11 @@ export default function LoginPage() {
         toast.success("OTP verified successfully");
         router.push(redirect || "/");
         refreshSession();
-      } catch (error) {
-        toast.error("Error verifying OTP");
+      } catch (error: any) {
+        setErrorDialog({
+          message: error?.response?.data?.error?.message || "Error verifying OTP",
+          errorCode: error?.response?.data?.error?.code,
+        });
       }
     });
   };
@@ -176,6 +187,16 @@ export default function LoginPage() {
           </>
         )}
       </CardContent>
+      
+      {/* Error Alert Dialog */}
+      {errorDialog && (
+        <ErrorAlertDialog
+          open={!!errorDialog}
+          onOpenChange={(open) => !open && setErrorDialog(null)}
+          message={errorDialog.message}
+          errorCode={errorDialog.errorCode}
+        />
+      )}
     </Card>
   );
 }

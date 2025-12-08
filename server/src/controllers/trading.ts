@@ -85,8 +85,11 @@ export const buyOrder = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         success: false,
-        errorCode: "INSUFFICIENT_FUNDS",
-        message: errorMessage,
+        error: {
+          code: "INSUFFICIENT_FUNDS",
+          message: errorMessage,
+          action: "Add funds to continue trading",
+        },
       });
     }
 
@@ -96,23 +99,30 @@ export const buyOrder = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         success: false,
-        errorCode: "VALIDATION_ERROR",
-        message: errorMessage,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: errorMessage,
+          action: "Please check order details and try again",
+        },
       });
     }
 
     if (errorMessage.includes("not found")) {
       return res.status(404).json({
         success: false,
-        errorCode: "NOT_FOUND",
-        message: errorMessage,
+        error: {
+          code: "INSTRUMENT_NOT_FOUND",
+          message: errorMessage,
+        },
       });
     }
 
     return res.status(500).json({
       success: false,
-      errorCode: "EXECUTION_ERROR",
-      message: errorMessage,
+      error: {
+        code: "ORDER_EXECUTION_FAILED",
+        message: errorMessage,
+      },
     });
   }
 };
@@ -203,23 +213,30 @@ export const sellOrder = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         success: false,
-        errorCode: "VALIDATION_ERROR",
-        message: errorMessage,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: errorMessage,
+          action: "Please check order details and try again",
+        },
       });
     }
 
     if (errorMessage.includes("not found")) {
       return res.status(404).json({
         success: false,
-        errorCode: "NOT_FOUND",
-        message: errorMessage,
+        error: {
+          code: "POSITION_NOT_FOUND",
+          message: errorMessage,
+        },
       });
     }
 
     return res.status(500).json({
       success: false,
-      errorCode: "EXECUTION_ERROR",
-      message: errorMessage,
+      error: {
+        code: "ORDER_EXECUTION_FAILED",
+        message: errorMessage,
+      },
     });
   }
 };

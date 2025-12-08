@@ -38,6 +38,11 @@ export default function AdminSideBar({
       icon: LuUser,
     },
     {
+      title: "Events",
+      href: "/admin/events",
+      icon: LuTrophy,
+    },
+    {
       title: "Leaderboard",
       href: "/admin/leaderboard",
       icon: LuTrophy,

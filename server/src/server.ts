@@ -23,6 +23,9 @@ import {
   stopAutoSquareOffJobs,
 } from "@/jobs/autoSquareOffJob";
 import PaymentRouter from "./routers/payment";
+import EventsRouter from "./routers/events";
+import EventTradingRouter from "./routers/eventTrading";
+import SettingsRouter from "./routers/settings";
 
 dotenv.config();
 
@@ -42,8 +45,6 @@ app.use(
       process.env.NODE_ENV !== "development" && clientBaseUrl
         ? clientBaseUrl
         : (origin, callback) => {
-            // In development, allow any origin for flexibility
-            // In production, only allow CLIENT_BASE_URL
             if (!origin) return callback(null, true);
             return callback(null, origin);
           },
@@ -73,6 +74,9 @@ app.use("/trading", TradingRouter);
 app.use("/account", AccountRouter);
 app.use("/portfolio", PortfolioRouter);
 app.use("/payment", PaymentRouter);
+app.use("/events", EventsRouter);
+app.use("/events", EventTradingRouter);
+app.use("/settings", SettingsRouter);
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
@@ -89,11 +93,9 @@ process.on("SIGINT", () => {
 app.listen(PORT as number, "0.0.0.0", () => {
   console.log(`🚀 Trading Server is running on port ${PORT}`);
 
-  // Initialize daily instrument sync scheduler
   scheduleDailyInstrumentSync();
   console.log("📅 Instrument sync scheduler initialized");
 
-  // Initialize auto square-off jobs
   initializeAutoSquareOffJobs();
   console.log("⏰ Auto square-off scheduler initialized");
 });

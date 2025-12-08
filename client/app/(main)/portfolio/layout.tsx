@@ -7,14 +7,10 @@ import {
   LayoutDashboard,
   TrendingUp,
   ArrowDownUp,
-  Activity,
-  Menu,
-  X,
-  ChevronDown,
+  Activity
 } from "lucide-react";
-import { useState } from "react";
-import { it } from "node:test";
 import { Button } from "@/components/ui/button";
+import AuthGuard from "@/auth/AuthGuard";
 
 const navItems = [
   {
@@ -47,6 +43,7 @@ export default function PortfolioLayout({
   const pathname = usePathname();
 
   return (
+    <AuthGuard>
     <div className="flex w-full flex-col">
       {/* Mobile Menu */}
       <div className="bg-secondary fixed bottom-0 left-0 z-10 grid w-full grid-cols-4 items-center justify-around gap-3 border-t p-2 md:hidden">
@@ -100,5 +97,6 @@ export default function PortfolioLayout({
         <main className="min-w-0 flex-1 p-4">{children}</main>
       </div>
     </div>
+    </AuthGuard>
   );
 }
