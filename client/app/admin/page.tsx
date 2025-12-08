@@ -3,12 +3,27 @@ import DashboardNewUsersTable from "@/components/admin/DashboardNewUsersTable";
 import DashboardStatCard, {
   DashboardStatCardProps,
 } from "@/components/admin/DashboardStatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import ApiClient from "@/utils/ApiClient";
-import { MailIcon, User2Icon, UserLockIcon, Trophy, Calendar, Users, DollarSign, Settings } from "lucide-react";
+import {
+  MailIcon,
+  User2Icon,
+  UserLockIcon,
+  Trophy,
+  Calendar,
+  Users,
+  DollarSign,
+  Settings,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -57,7 +72,7 @@ export default function AdminPage() {
 
   const handleUpdateExchangeRate = async () => {
     const rate = parseFloat(newExchangeRate);
-    
+
     if (isNaN(rate) || rate <= 0) {
       toast.error("Invalid exchange rate", {
         description: "Please enter a valid positive number",
@@ -167,15 +182,24 @@ export default function AdminPage() {
   ];
 
   return (
-    <>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-2">
+          Overview of platform statistics and management
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
           <DashboardStatCard key={index} {...stat} />
         ))}
       </div>
 
       {/* Exchange Rate Settings */}
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -188,9 +212,11 @@ export default function AdminPage() {
         <CardContent>
           <div className="max-w-md space-y-4">
             <div>
-              <Label htmlFor="exchangeRate">Exchange Rate (USD to INR)</Label>
-              <p className="text-sm text-muted-foreground mb-2">
-                Current rate: 1 USD = ₹{exchangeRate.toFixed(2)}
+              <Label htmlFor="exchangeRate" className="text-sm font-medium">
+                Exchange Rate (INR to Credits)
+              </Label>
+              <p className="text-muted-foreground mt-1 mb-3 text-sm">
+                Current rate: ₹1 = {exchangeRate.toFixed(2)} Credits
               </p>
               <div className="flex gap-2">
                 <Input
@@ -202,10 +228,14 @@ export default function AdminPage() {
                   onChange={(e) => setNewExchangeRate(e.target.value)}
                   placeholder="Enter new exchange rate"
                   disabled={isUpdating}
+                  className="max-w-xs"
                 />
-                <Button 
+                <Button
                   onClick={handleUpdateExchangeRate}
-                  disabled={isUpdating}
+                  disabled={
+                    isUpdating || newExchangeRate === exchangeRate.toString()
+                  }
+                  className="min-w-24"
                 >
                   {isUpdating ? "Updating..." : "Update"}
                 </Button>
@@ -215,7 +245,8 @@ export default function AdminPage() {
         </CardContent>
       </Card>
 
+      {/* Recent Users */}
       <DashboardNewUsersTable newUsers={data.recentUsers} />
-    </>
+    </div>
   );
 }

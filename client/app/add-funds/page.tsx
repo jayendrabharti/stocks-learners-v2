@@ -53,7 +53,9 @@ export default function PaymentPage() {
         setExchangeRate(rate);
 
         // Create order
-        const orderRes = await ApiClient.get(`/payment/create-order?amount=${amount}`);
+        const orderRes = await ApiClient.get(
+          `/payment/create-order?amount=${amount}`,
+        );
         console.log(orderRes.data.order);
         setOrder(orderRes.data.order);
       } catch (err) {
@@ -80,7 +82,7 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <Card className="w-96">
-        <CardContent className="flex flex-col items-center justify-center h-40 gap-4">
+        <CardContent className="flex h-40 flex-col items-center justify-center gap-4">
           <Spinner />
           <p className="text-muted-foreground">Preparing payment...</p>
         </CardContent>
@@ -99,23 +101,28 @@ export default function PaymentPage() {
     // Verify order
     // We don't need to pass amount here anymore as backend calculates it from payment
     // But keeping it for consistency if needed, though backend ignores it for calculation now
-    ApiClient.get(
-      `/payment/verify-order?payment_id=${razorpay_payment_id}`,
-    ).then((res) => {
-      console.log(res);
-      if (res.data.success) {
-        const deposited = res.data.depositedAmount;
-        toast.success(`Payment successful! Added ${deposited} credits to your wallet.`);
-        router.push("/portfolio");
-      } else {
-        toast.error("Payment verification failed. Please contact support.");
-      }
-    }).catch(err => {
-      setErrorDialog({
-        message: err?.response?.data?.error?.message || "Payment verification failed",
-        errorCode: err?.response?.data?.error?.code || "PAYMENT_VERIFICATION_FAILED",
+    ApiClient.get(`/payment/verify-order?payment_id=${razorpay_payment_id}`)
+      .then((res) => {
+        console.log(res);
+        if (res.data.success) {
+          const deposited = res.data.depositedAmount;
+          toast.success(
+            `Payment successful! Added ${deposited} credits to your wallet.`,
+          );
+          router.push("/portfolio");
+        } else {
+          toast.error("Payment verification failed. Please contact support.");
+        }
+      })
+      .catch((err) => {
+        setErrorDialog({
+          message:
+            err?.response?.data?.error?.message ||
+            "Payment verification failed",
+          errorCode:
+            err?.response?.data?.error?.code || "PAYMENT_VERIFICATION_FAILED",
+        });
       });
-    });
   };
 
   const handlePayment = () => {
@@ -154,57 +161,70 @@ export default function PaymentPage() {
   const payableAmountINR = order ? order.amount / 100 : 0;
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-10">
+    <div className="flex min-h-[80vh] items-center justify-center p-4">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      <CardContent className="flex flex-col gap-6 pt-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Add Funds</h1>
-          <p className="text-muted-foreground">Complete your payment to add funds</p>
-        </div>
+      <Card className="w-full max-w-md">
+        <CardContent className="flex flex-col gap-6 pt-6">
+          <div className="space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Add Funds</h1>
+            <p className="text-muted-foreground">
+              Complete your payment to add funds to your wallet
+            </p>
+          </div>
 
-        <div className="space-y-4 rounded-lg border p-4 bg-muted/50">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Amount to Add:</span>
-            <span className="font-medium">{Number(amount).toLocaleString()} Credits</span>
+          <div className="bg-muted/30 space-y-3 rounded-lg border p-5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Amount to Add:</span>
+              <span className="font-semibold">
+                {Number(amount).toLocaleString()} Credits
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Exchange Rate:</span>
+              <span className="font-semibold">₹1 = {exchangeRate} Credits</span>
+            </div>
+            <div className="flex items-center justify-between border-t pt-3">
+              <span className="font-bold">You Pay:</span>
+              <span className="text-2xl font-bold">
+                ₹
+                {payableAmountINR.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Exchange Rate:</span>
-            <span className="font-medium">1 INR = {exchangeRate} Credits</span>
-          </div>
-          <div className="border-t pt-2 flex justify-between font-bold text-lg">
-            <span>You Pay:</span>
-            <span>₹{payableAmountINR.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-          </div>
-        </div>
 
-        <Button
-          className="w-full text-lg py-6"
-          onClick={handlePayment}
-          disabled={processing || !order}
-        >
-          {processing ? (
-            <>
-              <Spinner className="mr-2" /> Processing...
-            </>
-          ) : (
-            `Pay ₹${payableAmountINR.toLocaleString('en-IN')}`
-          )}
-        </Button>
-        
-        <p className="text-xs text-center text-muted-foreground">
-          Secured by Razorpay
-        </p>
-      </CardContent>
-      
-      {/* Error Alert Dialog */}
-      {errorDialog && (
-        <ErrorAlertDialog
-          open={!!errorDialog}
-          onOpenChange={(open) => !open && setErrorDialog(null)}
-          message={errorDialog.message}
-          errorCode={errorDialog.errorCode}
-        />
-      )}
-    </Card>
+          <Button
+            className="h-12 w-full text-base font-semibold"
+            onClick={handlePayment}
+            disabled={processing || !order}
+          >
+            {processing ? (
+              <>
+                <Spinner className="mr-2" /> Processing Payment...
+              </>
+            ) : (
+              `Pay ₹${payableAmountINR.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            )}
+          </Button>
+
+          <p className="text-muted-foreground flex items-center justify-center gap-1 text-center text-xs">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+            Secured by Razorpay
+          </p>
+        </CardContent>
+
+        {/* Error Alert Dialog */}
+        {errorDialog && (
+          <ErrorAlertDialog
+            open={!!errorDialog}
+            onOpenChange={(open) => !open && setErrorDialog(null)}
+            message={errorDialog.message}
+            errorCode={errorDialog.errorCode}
+          />
+        )}
+      </Card>
+    </div>
   );
 }

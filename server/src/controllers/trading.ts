@@ -45,6 +45,27 @@ export const buyOrder = async (req: Request, res: Response) => {
       });
     }
 
+    // Validate and parse quantity
+    const parsedQty = parseInt(qty);
+    if (isNaN(parsedQty) || parsedQty <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quantity. Must be a positive number",
+      });
+    }
+
+    // Validate and parse limit price if provided
+    let parsedLimitPrice: number | undefined;
+    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
+      parsedLimitPrice = parseFloat(limitPrice);
+      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid limit price. Must be a positive number",
+        });
+      }
+    }
+
     // Find instrument by exchange token
     const instrument = await prisma.instrument.findUnique({
       where: { exchangeToken },
@@ -61,12 +82,12 @@ export const buyOrder = async (req: Request, res: Response) => {
     const buyInput: any = {
       userId,
       instrumentId: instrument.id,
-      qty: parseInt(qty),
+      qty: parsedQty,
       product: product as TradeType,
     };
 
-    if (limitPrice) {
-      buyInput.limitPrice = parseFloat(limitPrice);
+    if (parsedLimitPrice) {
+      buyInput.limitPrice = parsedLimitPrice;
     }
 
     const result = await executeBuy(buyInput);
@@ -162,6 +183,27 @@ export const sellOrder = async (req: Request, res: Response) => {
       });
     }
 
+    // Validate and parse quantity
+    const parsedQty = parseInt(qty);
+    if (isNaN(parsedQty) || parsedQty <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quantity. Must be a positive number",
+      });
+    }
+
+    // Validate and parse limit price if provided
+    let parsedLimitPrice: number | undefined;
+    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
+      parsedLimitPrice = parseFloat(limitPrice);
+      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid limit price. Must be a positive number",
+        });
+      }
+    }
+
     // Find instrument by exchange token
     const instrument = await prisma.instrument.findUnique({
       where: { exchangeToken },
@@ -178,12 +220,12 @@ export const sellOrder = async (req: Request, res: Response) => {
     const sellInput: any = {
       userId,
       instrumentId: instrument.id,
-      qty: parseInt(qty),
+      qty: parsedQty,
       product: product as TradeType,
     };
 
-    if (limitPrice) {
-      sellInput.limitPrice = parseFloat(limitPrice);
+    if (parsedLimitPrice) {
+      sellInput.limitPrice = parsedLimitPrice;
     }
 
     const result = await executeSell(sellInput);

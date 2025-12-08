@@ -163,32 +163,34 @@ function PositionsList({ positions }: { positions: any[] }) {
         return (
           <div
             key={position.id}
-            className="bg-card rounded-lg border transition-colors"
+            className="bg-card rounded-lg border transition-all hover:shadow-md"
           >
-            <div className="hover:bg-muted/50 p-3">
-              <div className="flex items-start justify-between">
+            <div className="hover:bg-muted/30 p-4 transition-colors">
+              <div className="flex items-start justify-between gap-4">
                 <Link
                   href={instrumentUrl}
-                  className="flex flex-1 items-start gap-3"
+                  className="flex min-w-0 flex-1 items-start gap-3"
                 >
-                  <Avatar className="h-10 w-10 rounded-lg">
+                  <Avatar className="h-12 w-12 shrink-0 rounded-lg">
                     <AvatarImage
                       src={metadata?.logoUrl}
                       alt={position.instrument.tradingSymbol}
                     />
-                    <AvatarFallback className="rounded-lg">
+                    <AvatarFallback className="bg-primary/10 text-primary rounded-lg font-semibold">
                       {position.instrument.tradingSymbol.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <div className="font-semibold hover:underline">
-                      {titleMap[position.id]}
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="truncate font-semibold hover:underline">
+                      {titleMap[position.id] ||
+                        position.instrument.name ||
+                        position.instrument.tradingSymbol}
                     </div>
                     <div className="text-muted-foreground text-xs">
                       {position.instrument.tradingSymbol} •{" "}
                       {position.instrument.exchange}
                     </div>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className="text-xs">
                         {position.product}
                       </Badge>
@@ -199,40 +201,43 @@ function PositionsList({ positions }: { positions: any[] }) {
                   </div>
                 </Link>
 
-                <div className="ml-3 shrink-0 space-y-1 text-right">
+                <div className="shrink-0 space-y-1.5 text-right">
                   <div className="text-sm">
                     <span className="text-muted-foreground">Qty: </span>
-                    <span className="font-medium">{position.qty}</span>
+                    <span className="font-semibold">{position.qty}</span>
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Avg: </span>
-                    <span className="font-medium">
+                    <span className="font-semibold">
                       ₹{position.avgPrice.toFixed(2)}
                     </span>
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">LTP: </span>
-                    <span className="font-medium">
+                    <span className="font-semibold">
                       ₹{position.currentPrice.toFixed(2)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t pt-3">
-                <div className="text-muted-foreground text-sm">
-                  Value: ₹
-                  {position.currentValue.toLocaleString("en-IN", {
-                    maximumFractionDigits: 0,
-                  })}
+              <div className="mt-3 flex items-center justify-between border-t pt-3">
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Current Value: </span>
+                  <span className="font-semibold">
+                    ₹
+                    {position.currentValue.toLocaleString("en-IN", {
+                      maximumFractionDigits: 0,
+                    })}
+                  </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div
-                      className={`font-semibold ${
+                      className={`text-lg font-bold ${
                         isProfitable
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-red-600 dark:text-red-400"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
                       {isProfitable && "+"}₹
@@ -241,10 +246,10 @@ function PositionsList({ positions }: { positions: any[] }) {
                       })}
                     </div>
                     <div
-                      className={`flex items-center justify-end gap-1 text-xs ${
+                      className={`flex items-center justify-end gap-1 text-xs font-medium ${
                         isProfitable
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-red-600 dark:text-red-400"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
                       {isProfitable ? (

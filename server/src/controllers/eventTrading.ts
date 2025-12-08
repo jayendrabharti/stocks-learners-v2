@@ -16,13 +16,13 @@ import { calculateEventPortfolio } from "@/services/eventAccountService.js";
 export const buyOrder = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    
+
     if (!eventId) {
       return res.status(400).json({
         error: { message: "Event ID is required" },
       });
     }
-    
+
     const { exchangeToken, qty, product, limitPrice } = req.body;
     const userId = req.user?.id;
 
@@ -35,8 +35,29 @@ export const buyOrder = async (req: Request, res: Response) => {
     // Validate required fields
     if (!exchangeToken || !qty || !product) {
       return res.status(400).json({
-        error: { message: "Missing required fields: exchangeToken, qty, product" },
+        error: {
+          message: "Missing required fields: exchangeToken, qty, product",
+        },
       });
+    }
+
+    // Validate and parse quantity
+    const parsedQty = parseInt(qty);
+    if (isNaN(parsedQty) || parsedQty <= 0) {
+      return res.status(400).json({
+        error: { message: "Invalid quantity. Must be a positive number" },
+      });
+    }
+
+    // Validate and parse limit price if provided
+    let parsedLimitPrice: number | undefined;
+    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
+      parsedLimitPrice = parseFloat(limitPrice);
+      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
+        return res.status(400).json({
+          error: { message: "Invalid limit price. Must be a positive number" },
+        });
+      }
     }
 
     // Find instrument by exchange token
@@ -67,9 +88,7 @@ export const buyOrder = async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Fix timezone handling for event timeframe validation
-    // Temporarily disabled - was blocking trades
-    /*
+    // Validate event timeframe (with proper UTC handling)
     const now = new Date();
     if (now < event.eventStartAt) {
       return res.status(400).json({
@@ -82,10 +101,9 @@ export const buyOrder = async (req: Request, res: Response) => {
         error: { message: "Event trading has ended" },
       });
     }
-    */
 
     // Get user's event account
-    const registration = await prisma.eventRegistration.findFirst({
+    const registration = (await prisma.eventRegistration.findFirst({
       where: {
         userId,
         eventId: eventId as string,
@@ -94,11 +112,13 @@ export const buyOrder = async (req: Request, res: Response) => {
       include: {
         eventAccount: true,
       },
-    }) as any;
+    })) as any;
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
-        error: { message: "Event account not found or registration not confirmed" },
+        error: {
+          message: "Event account not found or registration not confirmed",
+        },
       });
     }
 
@@ -106,9 +126,9 @@ export const buyOrder = async (req: Request, res: Response) => {
     const result = await executeEventBuy({
       eventAccountId: registration.eventAccount.id,
       instrumentId: instrument.id,
-      qty: parseInt(qty),
+      qty: parsedQty,
       product,
-      limitPrice: limitPrice ? parseFloat(limitPrice) : undefined,
+      limitPrice: parsedLimitPrice,
     });
 
     return res.status(200).json(result);
@@ -127,13 +147,13 @@ export const buyOrder = async (req: Request, res: Response) => {
 export const sellOrder = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    
+
     if (!eventId) {
       return res.status(400).json({
         error: { message: "Event ID is required" },
       });
     }
-    
+
     const { exchangeToken, qty, product, limitPrice } = req.body;
     const userId = req.user?.id;
 
@@ -146,8 +166,29 @@ export const sellOrder = async (req: Request, res: Response) => {
     // Validate required fields
     if (!exchangeToken || !qty || !product) {
       return res.status(400).json({
-        error: { message: "Missing required fields: exchangeToken, qty, product" },
+        error: {
+          message: "Missing required fields: exchangeToken, qty, product",
+        },
       });
+    }
+
+    // Validate and parse quantity
+    const parsedQty = parseInt(qty);
+    if (isNaN(parsedQty) || parsedQty <= 0) {
+      return res.status(400).json({
+        error: { message: "Invalid quantity. Must be a positive number" },
+      });
+    }
+
+    // Validate and parse limit price if provided
+    let parsedLimitPrice: number | undefined;
+    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
+      parsedLimitPrice = parseFloat(limitPrice);
+      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
+        return res.status(400).json({
+          error: { message: "Invalid limit price. Must be a positive number" },
+        });
+      }
     }
 
     // Find instrument by exchange token
@@ -162,7 +203,7 @@ export const sellOrder = async (req: Request, res: Response) => {
     }
 
     // Get user's event account
-    const registration = await prisma.eventRegistration.findFirst({
+    const registration = (await prisma.eventRegistration.findFirst({
       where: {
         userId,
         eventId: eventId as string,
@@ -171,11 +212,13 @@ export const sellOrder = async (req: Request, res: Response) => {
       include: {
         eventAccount: true,
       },
-    }) as any;
+    })) as any;
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
-        error: { message: "Event account not found or registration not confirmed" },
+        error: {
+          message: "Event account not found or registration not confirmed",
+        },
       });
     }
 
@@ -183,9 +226,9 @@ export const sellOrder = async (req: Request, res: Response) => {
     const result = await executeEventSell({
       eventAccountId: registration.eventAccount.id,
       instrumentId: instrument.id,
-      qty: parseInt(qty),
+      qty: parsedQty,
       product,
-      limitPrice: limitPrice ? parseFloat(limitPrice) : undefined,
+      limitPrice: parsedLimitPrice,
     });
 
     return res.status(200).json(result);
@@ -220,7 +263,7 @@ export const getPositions = async (req: Request, res: Response) => {
     }
 
     // Get user's event account
-    const registration = await prisma.eventRegistration.findFirst({
+    const registration = (await prisma.eventRegistration.findFirst({
       where: {
         userId,
         eventId: eventId as string,
@@ -229,7 +272,7 @@ export const getPositions = async (req: Request, res: Response) => {
       include: {
         eventAccount: true,
       },
-    }) as any;
+    })) as any;
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
@@ -298,7 +341,7 @@ export const getTransactions = async (req: Request, res: Response) => {
     }
 
     // Get user's event account
-    const registration = await prisma.eventRegistration.findFirst({
+    const registration = (await prisma.eventRegistration.findFirst({
       where: {
         userId,
         eventId: eventId as string,
@@ -307,7 +350,7 @@ export const getTransactions = async (req: Request, res: Response) => {
       include: {
         eventAccount: true,
       },
-    }) as any;
+    })) as any;
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
@@ -382,7 +425,7 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
     }
 
     // Get user's event account
-    const registration = await prisma.eventRegistration.findFirst({
+    const registration = (await prisma.eventRegistration.findFirst({
       where: {
         userId,
         eventId: eventId as string,
@@ -391,7 +434,7 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
       include: {
         eventAccount: true,
       },
-    }) as any;
+    })) as any;
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
@@ -400,7 +443,9 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
     }
 
     // Calculate portfolio
-    const portfolio = await calculateEventPortfolio(registration.eventAccount.id);
+    const portfolio = await calculateEventPortfolio(
+      registration.eventAccount.id
+    );
 
     return res.status(200).json(portfolio);
   } catch (error) {

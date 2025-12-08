@@ -3,7 +3,13 @@
 import ApiClient from "@/utils/ApiClient";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -106,141 +112,182 @@ export default function AdminEventsPage() {
             </p>
           </div>
           <Button onClick={() => router.push("/admin/events/create")}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Event
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
-        <Card className="p-4">
-          <div className="text-muted-foreground text-sm">Total Events</div>
-          <div className="mt-2 text-2xl font-bold">{events.length}</div>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-muted-foreground text-sm">Total Events</div>
+            <div className="mt-2 text-3xl font-bold">{events.length}</div>
+          </CardContent>
         </Card>
-        <Card className="p-4">
-          <div className="text-muted-foreground text-sm">Active Events</div>
-          <div className="mt-2 text-2xl font-bold">
-            {events.filter((e) => e.isActive).length}
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-muted-foreground text-sm">Active Events</div>
+            <div className="mt-2 text-3xl font-bold text-emerald-600">
+              {events.filter((e) => e.isActive).length}
+            </div>
+          </CardContent>
         </Card>
-        <Card className="p-4">
-          <div className="text-muted-foreground text-sm">Live Events</div>
-          <div className="mt-2 text-2xl font-bold">
-            {events.filter((e) => e.status === "ACTIVE").length}
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-muted-foreground text-sm">Live Events</div>
+            <div className="mt-2 text-3xl font-bold text-orange-600">
+              {events.filter((e) => e.status === "ACTIVE").length}
+            </div>
+          </CardContent>
         </Card>
-        <Card className="p-4">
-          <div className="text-muted-foreground text-sm">Total Participants</div>
-          <div className="mt-2 text-2xl font-bold">
-            {events.reduce((sum, e) => sum + e.registrationCount, 0)}
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-muted-foreground text-sm">
+              Total Participants
+            </div>
+            <div className="mt-2 text-3xl font-bold text-blue-600">
+              {events.reduce((sum, e) => sum + e.registrationCount, 0)}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
       {/* Events Table */}
       {events.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Calendar className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-          <h3 className="text-xl font-semibold mb-2">No events yet</h3>
-          <p className="text-muted-foreground mb-6">
-            Create your first trading event to get started
-          </p>
-          <Button onClick={() => router.push("/admin/events/create")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Event
-          </Button>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="bg-muted mb-4 rounded-full p-4">
+              <Calendar className="text-muted-foreground h-10 w-10" />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold">No events yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-sm text-center">
+              Create your first trading event to get started with event
+              management
+            </p>
+            <Button
+              onClick={() => router.push("/admin/events/create")}
+              size="lg"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </CardContent>
         </Card>
       ) : (
-        <Card className="overflow-hidden">
+        <Card>
           <CardHeader>
             <CardTitle>All Events</CardTitle>
-            <CardDescription>Manage your trading events</CardDescription>
+            <CardDescription>
+              Manage and monitor your trading events
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Event</TableHead>
+                    <TableHead className="w-[250px]">Event</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Dates</TableHead>
                     <TableHead>Participants</TableHead>
                     <TableHead>Fee</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[180px] text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {events.map((event) => (
-                    <TableRow key={event.id}>
+                    <TableRow key={event.id} className="hover:bg-muted/50">
                       <TableCell>
                         <div>
-                          <p className="font-medium">{event.title}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="font-semibold">{event.title}</p>
+                          <p className="text-muted-foreground mt-1 text-xs">
                             {event.slug}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1.5">
                           {getStatusBadge(event.status)}
                           {!event.isActive && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="w-fit text-xs">
                               Inactive
                             </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
-                          <p>
-                            {format(new Date(event.eventStartAt), "MMM dd, yyyy")}
+                        <div className="space-y-1 text-sm">
+                          <p className="font-medium">
+                            {format(
+                              new Date(event.eventStartAt),
+                              "MMM dd, yyyy",
+                            )}
                           </p>
-                          <p className="text-muted-foreground">to</p>
-                          <p>
+                          <p className="text-muted-foreground text-xs">to</p>
+                          <p className="font-medium">
                             {format(new Date(event.eventEndAt), "MMM dd, yyyy")}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>
+                        <div className="flex items-center gap-2">
+                          <Users className="text-muted-foreground h-4 w-4" />
+                          <span className="font-semibold">
                             {event.registrationCount}
-                            {event.maxParticipants && ` / ${event.maxParticipants}`}
+                            {event.maxParticipants && (
+                              <span className="text-muted-foreground font-normal">
+                                {" "}
+                                / {event.maxParticipants}
+                              </span>
+                            )}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium">
-                          ₹{event.registrationFee}
+                        <span className="font-semibold">
+                          {event.registrationFee === 0
+                            ? "Free"
+                            : `₹${event.registrationFee.toLocaleString("en-IN")}`}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon-sm"
                             onClick={() =>
                               router.push(`/admin/events/${event.id}`)
                             }
+                            title="Edit Event"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon-sm"
                             onClick={() =>
-                              router.push(`/admin/events/${event.id}/registrations`)
+                              router.push(
+                                `/admin/events/${event.id}/registrations`,
+                              )
                             }
+                            title="View Registrations"
                           >
                             <Users className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="destructive"
-                            size="sm"
+                            size="icon-sm"
                             onClick={() => handleDelete(event.id)}
                             disabled={event.registrationCount > 0}
+                            title={
+                              event.registrationCount > 0
+                                ? "Cannot delete event with registrations"
+                                : "Delete Event"
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

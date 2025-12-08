@@ -26,8 +26,16 @@ import PaymentRouter from "./routers/payment";
 import EventsRouter from "./routers/events";
 import EventTradingRouter from "./routers/eventTrading";
 import SettingsRouter from "./routers/settings";
+import {
+  validateRequiredEnvVars,
+  validateSecretStrength,
+} from "@/utils/validateEnv";
 
 dotenv.config();
+
+// Validate environment variables on startup
+validateRequiredEnvVars();
+validateSecretStrength();
 
 const app = express();
 

@@ -12,12 +12,14 @@ export function AccountSummary() {
     return (
       <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+              <div className="bg-muted h-4 w-24 animate-pulse rounded"></div>
+              <div className="bg-muted h-4 w-4 animate-pulse rounded"></div>
             </CardHeader>
             <CardContent>
-              <div className="bg-muted h-8 rounded"></div>
+              <div className="bg-muted mb-2 h-8 w-32 animate-pulse rounded"></div>
+              <div className="bg-muted h-3 w-40 animate-pulse rounded"></div>
             </CardContent>
           </Card>
         ))}

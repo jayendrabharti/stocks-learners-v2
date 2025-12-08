@@ -12,25 +12,41 @@ import {
   getTransactions,
 } from "@/controllers/trading";
 import validToken from "@/middlewares/validToken";
+import rateLimit from "express-rate-limit";
 
 const TradingRouter = express.Router();
 
 // All trading routes require authentication
 TradingRouter.use(validToken);
 
+// Rate limiting for trading endpoints (prevent abuse)
+const tradingLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // 30 requests per minute per user
+  message: {
+    success: false,
+    error: {
+      code: "RATE_LIMIT_EXCEEDED",
+      message: "Too many trading requests. Please wait a moment and try again.",
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * POST /trading/buy
  * Execute a BUY order
  * Body: { instrumentId, qty, product, limitPrice? }
  */
-TradingRouter.post("/buy", buyOrder);
+TradingRouter.post("/buy", tradingLimiter, buyOrder);
 
 /**
  * POST /trading/sell
  * Execute a SELL order
  * Body: { instrumentId, qty, product, limitPrice? }
  */
-TradingRouter.post("/sell", sellOrder);
+TradingRouter.post("/sell", tradingLimiter, sellOrder);
 
 /**
  * GET /trading/positions

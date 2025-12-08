@@ -27,6 +27,7 @@ import { TrendingUp, TrendingDown, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { usePortfolio } from "@/providers/PortfolioProvider";
 import { ErrorAlertDialog } from "@/components/ui/error-alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface BuySellSectionProps {
   exchangeToken: string;
@@ -68,14 +69,27 @@ export function BuySellSection({
       return;
     }
 
-    if (!qty || parseInt(qty) <= 0) {
-      toast.error("Please enter a valid quantity");
+    const parsedQty = parseInt(qty);
+
+    if (!qty || isNaN(parsedQty) || parsedQty <= 0) {
+      toast.error("Please enter a valid positive quantity");
       return;
     }
 
-    if (parseInt(qty) % lotSize !== 0) {
+    if (parsedQty % lotSize !== 0) {
       toast.error(`Quantity must be a multiple of lot size (${lotSize})`);
       return;
+    }
+
+    // For BUY orders, check if user has sufficient funds
+    if (side === "BUY" && !accountLoading && account) {
+      const requiredAmount = product === "MIS" ? requiredMargin : orderValue;
+      if (requiredAmount > account.availableMargin) {
+        toast.error("Insufficient funds", {
+          description: `Required: ₹${requiredAmount.toFixed(2)}, Available: ₹${account.availableMargin.toFixed(2)}`,
+        });
+        return;
+      }
     }
 
     setOrderSide(side);
@@ -121,16 +135,20 @@ export function BuySellSection({
       await refreshAll();
     } catch (error: any) {
       setShowConfirmDialog(false);
-      
+
       // Parse error response
       const errorData = error?.response?.data?.error || error;
-      const errorMessage = errorData?.message || error?.message || "Order failed";
+      const errorMessage =
+        errorData?.message || error?.message || "Order failed";
       const errorCode = errorData?.code || errorData?.errorCode;
       const suggestedAction = errorData?.action;
-      
+
       // Determine action based on error code
       let action = undefined;
-      if (errorCode === "INSUFFICIENT_FUNDS" || errorCode === "INSUFFICIENT_MARGIN") {
+      if (
+        errorCode === "INSUFFICIENT_FUNDS" ||
+        errorCode === "INSUFFICIENT_MARGIN"
+      ) {
         action = {
           label: "Add Funds",
           href: "/add-funds",
@@ -141,7 +159,7 @@ export function BuySellSection({
           onClick: () => setErrorDialog(null),
         };
       }
-      
+
       setErrorDialog({
         message: errorMessage,
         errorCode,
@@ -155,6 +173,13 @@ export function BuySellSection({
   const orderValue = currentPrice * parseInt(qty || "0");
   const requiredMargin = product === "MIS" ? orderValue / 5 : orderValue;
 
+  // Check if user has sufficient funds for BUY
+  const hasSufficientFunds =
+    !accountLoading && account
+      ? (product === "MIS" ? requiredMargin : orderValue) <=
+        account.availableMargin
+      : true; // Default to true if loading to avoid flickering
+
   return (
     <>
       <Card>
@@ -165,7 +190,9 @@ export function BuySellSection({
               <div className="flex items-center gap-2 text-sm font-normal">
                 <Wallet className="text-muted-foreground h-4 w-4" />
                 <span className="text-muted-foreground">Available:</span>
-                <span className="font-semibold text-green-600">
+                <span
+                  className={`font-semibold ${hasSufficientFunds ? "text-green-600" : "text-red-600"}`}
+                >
                   ₹
                   {account.availableMargin.toLocaleString("en-IN", {
                     maximumFractionDigits: 0,
@@ -208,22 +235,58 @@ export function BuySellSection({
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          {/* Insufficient Funds Warning */}
+          {!accountLoading && !hasSufficientFunds && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950/30">
+              <div className="flex items-start gap-2">
+                <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500" />
+                <div>
+                  <p className="font-medium text-amber-900 dark:text-amber-100">
+                    Insufficient Funds
+                  </p>
+                  <p className="mt-1 text-amber-700 dark:text-amber-300">
+                    Required: ₹
+                    {(product === "MIS"
+                      ? requiredMargin
+                      : orderValue
+                    ).toLocaleString("en-IN", {
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    • Available: ₹
+                    {account?.availableMargin.toLocaleString("en-IN", {
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 pt-4">
             <Button
               onClick={() => handleOrderClick("BUY")}
-              className="bg-green-600 hover:bg-green-700"
-              disabled={loading || !exchangeToken}
+              className="h-11 bg-emerald-600 font-semibold text-white transition-all hover:bg-emerald-700 disabled:bg-emerald-600/50 disabled:text-white/70"
+              disabled={loading || !exchangeToken || !hasSufficientFunds}
+              title={!hasSufficientFunds ? "Insufficient funds" : undefined}
             >
-              <TrendingUp className="mr-2 h-4 w-4" />
-              BUY
+              {loading && orderSide === "BUY" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <TrendingUp className="mr-2 h-4 w-4" />
+              )}
+              {loading && orderSide === "BUY" ? "Buying..." : "BUY"}
             </Button>
             <Button
               onClick={() => handleOrderClick("SELL")}
-              className="bg-red-600 hover:bg-red-700"
+              className="h-11 bg-rose-600 font-semibold text-white transition-all hover:bg-rose-700 disabled:bg-rose-600/50 disabled:text-white/70"
               disabled={loading || !exchangeToken}
             >
-              <TrendingDown className="mr-2 h-4 w-4" />
-              SELL
+              {loading && orderSide === "SELL" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <TrendingDown className="mr-2 h-4 w-4" />
+              )}
+              {loading && orderSide === "SELL" ? "Selling..." : "SELL"}
             </Button>
           </div>
         </CardContent>
@@ -231,44 +294,48 @@ export function BuySellSection({
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm {orderSide} Order</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl">
+              Confirm {orderSide} Order
+            </DialogTitle>
+            <DialogDescription className="text-base">
               Please review your order details before confirming
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 py-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Instrument:</span>
-              <span className="font-medium">{tradingSymbol}</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">Instrument:</span>
+              <span className="font-semibold">{tradingSymbol}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Side:</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">Side:</span>
               <span
-                className={`font-medium ${
-                  orderSide === "BUY" ? "text-green-600" : "text-red-600"
+                className={`font-semibold ${
+                  orderSide === "BUY"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-rose-600 dark:text-rose-400"
                 }`}
               >
                 {orderSide}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Quantity:</span>
-              <span className="font-medium">{qty}</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">Quantity:</span>
+              <span className="font-semibold">{qty}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Product:</span>
-              <span className="font-medium">{product}</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">Product:</span>
+              <span className="font-semibold">{product}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Price:</span>
-              <span className="font-medium">₹{currentPrice.toFixed(2)}</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground text-sm">Price:</span>
+              <span className="font-semibold">₹{currentPrice.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between border-t pt-3">
-              <span className="font-semibold">Order Value:</span>
-              <span className="font-semibold">
+            <div className="mt-2 flex items-center justify-between border-t pt-3">
+              <span className="font-bold">Order Value:</span>
+              <span className="text-lg font-bold">
                 ₹
                 {orderValue.toLocaleString("en-IN", {
                   maximumFractionDigits: 2,
@@ -276,9 +343,11 @@ export function BuySellSection({
               </span>
             </div>
             {product === "MIS" && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Required Margin:</span>
-                <span className="font-medium">
+              <div className="bg-muted/50 flex items-center justify-between rounded-md px-3 py-2">
+                <span className="text-muted-foreground text-sm">
+                  Required Margin (20%):
+                </span>
+                <span className="font-semibold">
                   ₹
                   {requiredMargin.toLocaleString("en-IN", {
                     maximumFractionDigits: 2,
@@ -288,25 +357,27 @@ export function BuySellSection({
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
               disabled={loading}
+              className="min-w-24"
             >
               Cancel
             </Button>
             <Button
               onClick={executeOrder}
               disabled={loading}
-              className={
+              className={cn(
+                "min-w-32 font-semibold",
                 orderSide === "BUY"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
-              }
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "bg-rose-600 text-white hover:bg-rose-700",
+              )}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirm {orderSide}
+              {loading ? "Processing..." : `Confirm ${orderSide}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -343,6 +414,12 @@ function OrderInputs({
   requiredAmount: number;
   product: ProductType;
 }) {
+  const { account, accountLoading } = usePortfolio();
+  const hasSufficientFunds =
+    !accountLoading && account
+      ? requiredAmount <= account.availableMargin
+      : true;
+
   return (
     <>
       <div className="space-y-2">
@@ -374,7 +451,9 @@ function OrderInputs({
           <span className="text-muted-foreground font-medium">
             {product === "MIS" ? "Required Margin:" : "Required Amount:"}
           </span>
-          <span className="font-semibold">
+          <span
+            className={`font-semibold ${!hasSufficientFunds ? "text-red-600" : ""}`}
+          >
             ₹
             {requiredAmount.toLocaleString("en-IN", {
               maximumFractionDigits: 2,
@@ -384,6 +463,14 @@ function OrderInputs({
         {product === "MIS" && (
           <p className="text-muted-foreground text-xs">
             5x leverage applied (only 20% margin required)
+          </p>
+        )}
+        {!hasSufficientFunds && account && (
+          <p className="text-xs font-medium text-red-600">
+            Insufficient funds. Available: ₹
+            {account.availableMargin.toLocaleString("en-IN", {
+              maximumFractionDigits: 2,
+            })}
           </p>
         )}
       </div>

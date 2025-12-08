@@ -20,7 +20,9 @@ interface AccountSwitcherProps {
   compact?: boolean;
 }
 
-export default function AccountSwitcher({ compact = false }: AccountSwitcherProps) {
+export default function AccountSwitcher({
+  compact = false,
+}: AccountSwitcherProps) {
   const { activeContext, switchContext } = usePortfolio();
   const [registrations, setRegistrations] = useState<any[]>([]);
   const router = useRouter();
@@ -33,12 +35,12 @@ export default function AccountSwitcher({ compact = false }: AccountSwitcherProp
     try {
       const response = await eventsApi.getUserRegistrations();
       console.log("All registrations:", response.registrations);
-      
+
       // Show confirmed and pending registrations
       const activeRegistrations = response.registrations.filter(
-        (reg: any) => reg.status === "CONFIRMED" || reg.status === "PENDING"
+        (reg: any) => reg.status === "CONFIRMED" || reg.status === "PENDING",
       );
-      
+
       console.log("Filtered registrations:", activeRegistrations);
       setRegistrations(activeRegistrations);
     } catch (error) {
@@ -73,7 +75,10 @@ export default function AccountSwitcher({ compact = false }: AccountSwitcherProp
             )}
           </Button>
         ) : (
-          <Button variant="outline" className="w-full md:w-[180px] justify-between shrink-0">
+          <Button
+            variant="outline"
+            className="w-full shrink-0 justify-between md:w-[180px]"
+          >
             <div className="flex items-center gap-2 truncate">
               {activeContext.type === "MAIN" ? (
                 <>
@@ -83,26 +88,35 @@ export default function AccountSwitcher({ compact = false }: AccountSwitcherProp
               ) : (
                 <>
                   <Trophy className="h-4 w-4" />
-                  <span className="truncate">{activeContext.eventTitle?.slice(0, 10) || "Event"}</span>
+                  <span className="truncate">
+                    {activeContext.eventTitle?.slice(0, 10) || "Event"}
+                  </span>
                 </>
               )}
             </div>
-            <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[240px]">
+      <DropdownMenuContent className="w-60">
         <DropdownMenuLabel>Switch Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
-        <DropdownMenuItem onClick={handleSwitchToMain} className="gap-2 cursor-pointer">
+
+        <DropdownMenuItem
+          onClick={handleSwitchToMain}
+          className="cursor-pointer gap-2"
+        >
           <Wallet className="h-4 w-4" />
           <div className="flex flex-col">
             <span>Main Account</span>
-            <span className="text-xs text-muted-foreground">Personal Portfolio</span>
+            <span className="text-muted-foreground text-xs">
+              Personal Portfolio
+            </span>
           </div>
           {activeContext.type === "MAIN" && (
-            <Badge variant="secondary" className="ml-auto">Active</Badge>
+            <Badge variant="secondary" className="ml-auto">
+              Active
+            </Badge>
           )}
         </DropdownMenuItem>
 
@@ -114,18 +128,21 @@ export default function AccountSwitcher({ compact = false }: AccountSwitcherProp
               <DropdownMenuItem
                 key={reg.id}
                 onClick={() => handleSwitchToEvent(reg)}
-                className="gap-2 cursor-pointer"
+                className="cursor-pointer gap-2"
               >
                 <Trophy className="h-4 w-4" />
                 <div className="flex flex-col truncate">
                   <span className="truncate">{reg.event.title}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {reg.event.status.replace("_", " ")}
                   </span>
                 </div>
-                {activeContext.type === "EVENT" && activeContext.eventTitle === reg.event.title && (
-                  <Badge variant="secondary" className="ml-auto">Active</Badge>
-                )}
+                {activeContext.type === "EVENT" &&
+                  activeContext.eventTitle === reg.event.title && (
+                    <Badge variant="secondary" className="ml-auto">
+                      Active
+                    </Badge>
+                  )}
               </DropdownMenuItem>
             ))}
           </>

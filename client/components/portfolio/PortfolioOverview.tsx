@@ -11,12 +11,14 @@ export function PortfolioOverview() {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-2">
-              <div className="bg-muted h-4 w-24 rounded"></div>
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="bg-muted h-4 w-28 animate-pulse rounded"></div>
+              <div className="bg-muted h-4 w-4 animate-pulse rounded"></div>
             </CardHeader>
             <CardContent>
-              <div className="bg-muted h-8 rounded"></div>
+              <div className="bg-muted mb-2 h-8 w-32 animate-pulse rounded"></div>
+              <div className="bg-muted h-3 w-36 animate-pulse rounded"></div>
             </CardContent>
           </Card>
         ))}

@@ -83,10 +83,12 @@ export const depositFunds = async (
       });
     }
 
-    if (!amount || amount <= 0) {
+    // Validate and parse amount
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid amount",
+        message: "Invalid amount. Must be a positive number",
       });
     }
 
@@ -107,7 +109,7 @@ export const depositFunds = async (
     const exchangeRate = settings?.exchangeRate || 1.0;
 
     // Calculate dummy money
-    const dummyMoney = amount * exchangeRate;
+    const dummyMoney = parsedAmount * exchangeRate;
 
     // Use upsert to atomically create or update account (prevents race condition)
     const account = await prisma.account.upsert({
@@ -124,9 +126,9 @@ export const depositFunds = async (
 
     return res.status(200).json({
       success: true,
-      message: `Successfully deposited ₹${amount} (received ₹${dummyMoney} dummy money)`,
+      message: `Successfully deposited ₹${parsedAmount} (received ₹${dummyMoney} dummy money)`,
       deposit: {
-        realMoney: amount,
+        realMoney: parsedAmount,
         exchangeRate,
         dummyMoney,
       },
@@ -164,10 +166,12 @@ export const withdrawFunds = async (
       });
     }
 
-    if (!amount || amount <= 0) {
+    // Validate and parse amount
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid amount",
+        message: "Invalid amount. Must be a positive number",
       });
     }
 
@@ -185,23 +189,25 @@ export const withdrawFunds = async (
     // Available margin = cash (margin already deducted)
     const availableMargin = account.cash;
 
-    if (amount > availableMargin) {
+    if (parsedAmount > availableMargin) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient funds. Available: ₹${availableMargin.toFixed(2)}, Requested: ₹${amount.toFixed(2)}`,
+        message: `Insufficient funds. Available: ₹${availableMargin.toFixed(
+          2
+        )}, Requested: ₹${parsedAmount.toFixed(2)}`,
       });
     }
 
     const updatedAccount = await prisma.account.update({
       where: { userId },
       data: {
-        cash: { decrement: amount },
+        cash: { decrement: parsedAmount },
       },
     });
 
     return res.status(200).json({
       success: true,
-      message: `Successfully withdrew ₹${amount}`,
+      message: `Successfully withdrew ₹${parsedAmount}`,
       account: {
         cash: updatedAccount.cash,
         usedMargin: updatedAccount.usedMargin,

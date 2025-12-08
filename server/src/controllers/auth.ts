@@ -145,9 +145,9 @@ export const refreshUserToken = async (req: Request, res: Response) => {
     });
   }
 
-  jwt.verify(clientRefreshToken, refreshSecret);
-
   try {
+    // Verify JWT token
+    jwt.verify(clientRefreshToken, refreshSecret);
     const { id: userId } = jwt.verify(
       clientRefreshToken,
       refreshSecret
@@ -193,9 +193,10 @@ export const getNewAccessToken = async (req: Request, res: Response) => {
     });
   }
 
-  jwt.verify(clientRefreshToken, refreshSecret);
-
   try {
+    // Verify JWT token
+    jwt.verify(clientRefreshToken, refreshSecret);
+
     const { id: userId } = jwt.verify(
       clientRefreshToken,
       refreshSecret

@@ -47,32 +47,39 @@ export default function AddFundsButton() {
   const payableAmount = amount ? amount / exchangeRate : 0;
 
   return (
-    <Dialog onOpenChange={(open) => {
-      if (open) fetchExchangeRate();
-    }}>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        if (!amount) {
-          toast.error("Add amount.");
-          return;
-        }
-        router.push(`/add-funds?amount=${amount}`);
-      }}>
-        <DialogTrigger asChild>
-          <Button variant={"outline"}>
-            Add Funds <PlusIcon className="ml-2 h-4 w-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+    <Dialog
+      onOpenChange={(open) => {
+        if (open) fetchExchangeRate();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant={"outline"} size="sm">
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Add Funds
+        </Button>
+      </DialogTrigger>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!amount || amount < 1) {
+            toast.error("Please enter a valid amount");
+            return;
+          }
+          router.push(`/add-funds?amount=${amount}`);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Funds to Wallet</DialogTitle>
-            <DialogDescription>
-              Enter the amount of credits you want to add.
+            <DialogTitle className="text-xl">Add Funds to Wallet</DialogTitle>
+            <DialogDescription className="text-base">
+              Enter the amount of credits you want to add to your trading wallet
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="amount">Amount (Credits)</Label>
+              <Label htmlFor="amount" className="text-sm font-medium">
+                Amount (Credits)
+              </Label>
               <Input
                 id="amount"
                 name="amount"
@@ -81,30 +88,49 @@ export default function AddFundsButton() {
                 onChange={(e) => setAmount(Number(e.target.value))}
                 placeholder="Enter amount"
                 min={1}
+                step={100}
+                className="h-11"
               />
             </div>
-            
+
             {loading ? (
-              <div className="text-sm text-muted-foreground">Loading rates...</div>
+              <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
+                <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+                Loading exchange rates...
+              </div>
             ) : (
-              <div className="rounded-md bg-muted p-3 text-sm space-y-1">
-                <div className="flex justify-between">
+              <div className="bg-muted/50 space-y-2 rounded-lg border p-4">
+                <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Exchange Rate:</span>
-                  <span className="font-medium">1 INR = {exchangeRate} Credits</span>
+                  <span className="font-medium">
+                    ₹1 = {exchangeRate} Credits
+                  </span>
                 </div>
-                <div className="flex justify-between font-semibold pt-2 border-t mt-2">
-                  <span>You Pay:</span>
-                  <span>₹{payableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <div className="flex items-center justify-between border-t pt-2">
+                  <span className="font-semibold">You Pay:</span>
+                  <span className="text-lg font-bold">
+                    ₹
+                    {payableAmount.toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
-              <Button variant="outline" type="button">Cancel</Button>
+              <Button variant="outline" type="button" className="min-w-24">
+                Cancel
+              </Button>
             </DialogClose>
-            <Button type="submit">
-              Proceed to Pay
+            <Button
+              type="submit"
+              disabled={!amount || amount < 1 || loading}
+              className="min-w-32"
+            >
+              Proceed to Payment
             </Button>
           </DialogFooter>
         </DialogContent>
