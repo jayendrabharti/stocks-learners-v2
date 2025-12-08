@@ -244,8 +244,11 @@ export const sellOrder = async (req: Request, res: Response) => {
     ) {
       return res.status(400).json({
         success: false,
-        errorCode: "INSUFFICIENT_QUANTITY",
-        message: errorMessage,
+        error: {
+          code: "INSUFFICIENT_QUANTITY",
+          message: errorMessage,
+          action: "You can only sell from existing holdings",
+        },
       });
     }
 

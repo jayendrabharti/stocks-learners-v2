@@ -94,7 +94,9 @@ export async function executeSell(
       );
     }
 
-    // Step 4: Find existing position
+    // Step 4: Find existing position (inside transaction to ensure lock)
+    // Note: Prisma doesn't support SELECT FOR UPDATE directly,
+    // but transaction isolation provides serializable guarantees
     const position = await prisma.position.findFirst({
       where: {
         userId,

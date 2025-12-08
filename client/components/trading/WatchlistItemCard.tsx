@@ -1,6 +1,12 @@
 "use client";
 import { instrumentTypeName } from "@/components/trading/InstrumentDataSection";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatTimestamp } from "@/utils";
 import { ExternalLink, Trash2Icon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -123,19 +129,29 @@ export default function WatchlistItemCard({
           </div>
         </div>
       </div>
-      <Button
-        variant={"destructive"}
-        size="icon"
-        className="ml-auto shrink-0 transition-all group-hover:scale-105"
-        onClick={() =>
-          startDeleting(async () => {
-            await removeWatchlistItem(watchlistItem.id);
-          })
-        }
-        disabled={deleting}
-      >
-        <Trash2Icon className="h-4 w-4" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={"destructive"}
+              size="icon"
+              className="ml-auto shrink-0 transition-all group-hover:scale-105"
+              onClick={() =>
+                startDeleting(async () => {
+                  await removeWatchlistItem(watchlistItem.id);
+                })
+              }
+              disabled={deleting}
+              aria-label={`Remove ${watchlistItem.tradingSymbol} from watchlist`}
+            >
+              <Trash2Icon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Remove from watchlist</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </motion.div>
   );
 }

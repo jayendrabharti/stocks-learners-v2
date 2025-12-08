@@ -181,6 +181,7 @@ export const Instruments = async (
 
     // Transform to match frontend expected format
     const transformedInstruments = instruments.map((inst) => ({
+      id: inst.id, // Include database ID for frontend compatibility
       exchange: inst.exchange,
       exchange_token: inst.exchangeToken,
       trading_symbol: inst.tradingSymbol,

@@ -57,7 +57,6 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
 
       if (fetchedUser) {
         setUser(fetchedUser);
-        console.log(fetchedUser);
         setStatus("authenticated");
       } else {
         setUser(null);

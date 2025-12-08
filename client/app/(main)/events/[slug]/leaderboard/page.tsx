@@ -10,7 +10,7 @@ import { ArrowLeft, Trophy } from "lucide-react";
 export default function LeaderboardPage() {
   const params = useParams();
   const router = useRouter();
-  const eventId = params.eventId as string;
+  const eventId = params.slug as string;
 
   const [event, setEvent] = useState<Event | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -33,7 +33,7 @@ export default function LeaderboardPage() {
       setLeaderboard(leaderboardData.leaderboard);
       setUserRank(leaderboardData.userRank);
     } catch (error) {
-      console.error("Error loading data:", error);
+      // Error handled silently - user will see "event not found" state
     } finally {
       setIsLoading(false);
     }
@@ -41,10 +41,10 @@ export default function LeaderboardPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-96 bg-muted rounded" />
+          <div className="bg-muted h-8 w-1/3 rounded" />
+          <div className="bg-muted h-96 rounded" />
         </div>
       </div>
     );
@@ -52,22 +52,22 @@ export default function LeaderboardPage() {
 
   if (!event) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <h2 className="text-2xl font-bold mb-4">Event not found</h2>
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h2 className="mb-4 text-2xl font-bold">Event not found</h2>
         <Button onClick={() => router.push("/events")}>Back to Events</Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
       <Button
         variant="ghost"
         onClick={() => router.push(`/events/${event.slug}`)}
         className="mb-4"
       >
-        <ArrowLeft className="h-4 w-4 mr-2" />
+        <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Event
       </Button>
 

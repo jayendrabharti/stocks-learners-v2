@@ -3,12 +3,26 @@
 import ApiClient from "@/utils/ApiClient";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Calendar, DollarSign, Users, Trophy } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ArrowLeft,
+  Save,
+  Calendar,
+  DollarSign,
+  Users,
+  Trophy,
+} from "lucide-react";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -29,14 +43,19 @@ export default function CreateEventPage() {
     prizes: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Auto-generate slug from title
     if (name === "title") {
-      const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      setFormData(prev => ({ ...prev, slug }));
+      const slug = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      setFormData((prev) => ({ ...prev, slug }));
     }
   };
 
@@ -51,7 +70,7 @@ export default function CreateEventPage() {
         try {
           prizesData = JSON.parse(formData.prizes);
         } catch {
-          alert("Invalid prizes JSON format");
+          toast.error("Invalid prizes JSON format");
           setIsSubmitting(false);
           return;
         }
@@ -61,31 +80,38 @@ export default function CreateEventPage() {
         title: formData.title,
         description: formData.description || null,
         slug: formData.slug,
-        registrationStartAt: new Date(formData.registrationStartAt).toISOString(),
+        registrationStartAt: new Date(
+          formData.registrationStartAt,
+        ).toISOString(),
         registrationEndAt: new Date(formData.registrationEndAt).toISOString(),
         eventStartAt: new Date(formData.eventStartAt).toISOString(),
         eventEndAt: new Date(formData.eventEndAt).toISOString(),
         registrationFee: parseFloat(formData.registrationFee),
         initialBalance: parseFloat(formData.initialBalance),
-        maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : null,
+        maxParticipants: formData.maxParticipants
+          ? parseInt(formData.maxParticipants)
+          : null,
         bannerImage: formData.bannerImage || null,
         rules: formData.rules || null,
         prizes: prizesData,
       });
 
       if (response.status === 201) {
-        alert("Event created successfully!");
+        toast.success("Event created successfully!");
         router.push("/admin/events");
       }
     } catch (error: any) {
       console.error("Error creating event:", error);
-      const message = error.response?.data?.error?.message || error.message || "Failed to create event";
+      const message =
+        error.response?.data?.error?.message ||
+        error.message ||
+        "Failed to create event";
       const details = error.response?.data?.error?.details;
-      
+
       if (details && Array.isArray(details)) {
-        alert(`${message}\n\n${details.join("\n")}`);
+        toast.error(`${message}\n\n${details.join("\n")}`);
       } else {
-        alert(message);
+        toast.error(message);
       }
     } finally {
       setIsSubmitting(false);
@@ -93,7 +119,7 @@ export default function CreateEventPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
       <div className="mb-6">
         <Button
@@ -101,7 +127,7 @@ export default function CreateEventPage() {
           onClick={() => router.push("/admin/events")}
           className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Events
         </Button>
         <h1 className="text-3xl font-bold">Create New Event</h1>
@@ -118,7 +144,9 @@ export default function CreateEventPage() {
               <Trophy className="h-5 w-5" />
               Basic Information
             </CardTitle>
-            <CardDescription>Event title, description, and slug</CardDescription>
+            <CardDescription>
+              Event title, description, and slug
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -143,7 +171,7 @@ export default function CreateEventPage() {
                 placeholder="summer-trading-championship-2024"
                 required
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 Auto-generated from title, or customize
               </p>
             </div>
@@ -185,7 +213,9 @@ export default function CreateEventPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="registrationStartAt">Registration Start *</Label>
+                <Label htmlFor="registrationStartAt">
+                  Registration Start *
+                </Label>
                 <Input
                   id="registrationStartAt"
                   name="registrationStartAt"
@@ -242,7 +272,9 @@ export default function CreateEventPage() {
               <DollarSign className="h-5 w-5" />
               Financial Settings
             </CardTitle>
-            <CardDescription>Registration fee and initial balance</CardDescription>
+            <CardDescription>
+              Registration fee and initial balance
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -283,7 +315,9 @@ export default function CreateEventPage() {
               <Users className="h-5 w-5" />
               Participants
             </CardTitle>
-            <CardDescription>Maximum number of participants (optional)</CardDescription>
+            <CardDescription>
+              Maximum number of participants (optional)
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div>
@@ -329,7 +363,7 @@ export default function CreateEventPage() {
                 placeholder='{"1st": "₹10,000", "2nd": "₹5,000", "3rd": "₹2,500"}'
                 rows={4}
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 Enter prizes in JSON format
               </p>
             </div>
@@ -344,7 +378,7 @@ export default function CreateEventPage() {
             disabled={isSubmitting}
             className="flex-1"
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="mr-2 h-4 w-4" />
             {isSubmitting ? "Creating..." : "Create Event"}
           </Button>
           <Button

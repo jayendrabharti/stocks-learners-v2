@@ -5,6 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ApiClient from "@/utils/ApiClient";
 import { toast } from "sonner";
 import {
@@ -389,16 +395,26 @@ export default function AdminContactFormsPage() {
           <Card className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
             <div className="border-border flex items-center justify-between border-b p-6">
               <h2 className="text-xl font-bold">Manage Contact Form</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setSelectedForm(null);
-                  setAdminNotes("");
-                }}
-              >
-                <X className="h-5 w-5" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedForm(null);
+                        setAdminNotes("");
+                      }}
+                      aria-label="Close dialog"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Close</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <div className="space-y-6 p-6">

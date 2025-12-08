@@ -20,8 +20,6 @@ import { formatTimestamp } from "@/utils";
 export function HoldingsSection() {
   const { positions, positionsLoading } = usePortfolio();
 
-  console.log("HoldingsSection rendered", { positions, positionsLoading });
-
   if (positionsLoading) {
     return (
       <Card>

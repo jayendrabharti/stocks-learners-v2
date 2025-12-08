@@ -14,6 +14,8 @@ import Link from "next/link";
 import RevealHero from "@/components/animations/RevealHero";
 import { formatCurrency, formatNumber } from "@/services/marketApi";
 
+import { SKELETON_LOADER_COUNT } from "@/utils/constants";
+
 export default function FnOPage() {
   const [topUnderlyings, setTopUnderlyings] = useState<FnOUnderlying[]>([]);
   const [topContracts, setTopContracts] = useState<FnOContract[]>([]);
@@ -216,7 +218,7 @@ export default function FnOPage() {
 
         {contractsLoading ? (
           <div className="w-full space-y-3">
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: SKELETON_LOADER_COUNT }).map((_, i) => (
               <Skeleton key={i} className="h-20 w-full" />
             ))}
           </div>

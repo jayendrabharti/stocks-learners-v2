@@ -50,7 +50,14 @@ export function BuySellSection({
   exchange,
   segment,
 }: BuySellSectionProps) {
-  const { account, accountLoading, refreshAll, activeContext } = usePortfolio();
+  const {
+    account,
+    accountLoading,
+    refreshAll,
+    activeContext,
+    positions,
+    positionsLoading,
+  } = usePortfolio();
 
   const [qty, setQty] = useState<string>(lotSize.toString());
   const [product, setProduct] = useState<ProductType>("CNC");
@@ -180,6 +187,17 @@ export function BuySellSection({
         account.availableMargin
       : true; // Default to true if loading to avoid flickering
 
+  // Check if user has position for SELL
+  const hasPosition =
+    !positionsLoading && positions.length > 0
+      ? positions.some(
+          (pos) =>
+            pos.instrument?.exchangeToken === exchangeToken &&
+            pos.product === product &&
+            pos.qty > 0,
+        )
+      : false;
+
   return (
     <>
       <Card>
@@ -279,7 +297,10 @@ export function BuySellSection({
             <Button
               onClick={() => handleOrderClick("SELL")}
               className="h-11 bg-rose-600 font-semibold text-white transition-all hover:bg-rose-700 disabled:bg-rose-600/50 disabled:text-white/70"
-              disabled={loading || !exchangeToken}
+              disabled={loading || !exchangeToken || !hasPosition}
+              title={
+                !hasPosition ? `No ${product} position to sell` : undefined
+              }
             >
               {loading && orderSide === "SELL" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

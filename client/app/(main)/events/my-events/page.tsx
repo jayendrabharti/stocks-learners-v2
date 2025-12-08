@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import eventsApi, { EventRegistration } from "@/services/eventsApi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Calendar, TrendingUp, ArrowRight } from "lucide-react";
@@ -32,7 +38,7 @@ export default function MyEventsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "CONFIRMED":
-        return <Badge className="bg-green-500">Confirmed</Badge>;
+        return <Badge className="bg-emerald-600">Confirmed</Badge>;
       case "CANCELLED":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -45,7 +51,7 @@ export default function MyEventsPage() {
       case "UPCOMING":
         return <Badge className="bg-blue-500">Upcoming</Badge>;
       case "REGISTRATION_OPEN":
-        return <Badge className="bg-green-500">Registration Open</Badge>;
+        return <Badge className="bg-emerald-600">Registration Open</Badge>;
       case "ACTIVE":
         return <Badge className="bg-orange-500">Live Now</Badge>;
       case "ENDED":
@@ -57,11 +63,11 @@ export default function MyEventsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
+          <div className="bg-muted h-8 w-1/3 rounded" />
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-muted rounded" />
+            <div key={i} className="bg-muted h-48 rounded" />
           ))}
         </div>
       </div>
@@ -69,11 +75,11 @@ export default function MyEventsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Trophy className="h-8 w-8 text-primary" />
+        <div className="mb-2 flex items-center gap-3">
+          <Trophy className="text-primary h-8 w-8" />
           <h1 className="text-4xl font-bold">My Events</h1>
         </div>
         <p className="text-muted-foreground text-lg">
@@ -85,18 +91,21 @@ export default function MyEventsPage() {
       {registrations.length > 0 ? (
         <div className="space-y-4">
           {registrations.map((registration) => (
-            <Card key={registration.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={registration.id}
+              className="transition-shadow hover:shadow-lg"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-xl mb-2">
+                    <CardTitle className="mb-2 text-xl">
                       {registration.event.title}
                     </CardTitle>
                     <CardDescription>
                       {registration.event.description}
                     </CardDescription>
                   </div>
-                  <div className="flex flex-col gap-2 items-end">
+                  <div className="flex flex-col items-end gap-2">
                     {getStatusBadge(registration.status)}
                     {getEventStatusBadge(registration.event.status)}
                   </div>
@@ -104,21 +113,24 @@ export default function MyEventsPage() {
               </CardHeader>
 
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Calendar className="text-muted-foreground h-4 w-4" />
                     <div>
                       <p className="font-medium">Registered</p>
                       <p className="text-muted-foreground">
-                        {registration.registeredAt 
-                          ? format(new Date(registration.registeredAt), "MMM dd, yyyy")
+                        {registration.registeredAt
+                          ? format(
+                              new Date(registration.registeredAt),
+                              "MMM dd, yyyy",
+                            )
                           : "N/A"}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <TrendingUp className="text-muted-foreground h-4 w-4" />
                     <div>
                       <p className="font-medium">Initial Balance</p>
                       <p className="text-muted-foreground">
@@ -128,7 +140,7 @@ export default function MyEventsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 text-sm">
-                    <Trophy className="h-4 w-4 text-muted-foreground" />
+                    <Trophy className="text-muted-foreground h-4 w-4" />
                     <div>
                       <p className="font-medium">Event Account</p>
                       <p className="text-muted-foreground">
@@ -140,7 +152,9 @@ export default function MyEventsPage() {
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => router.push(`/events/${registration.event.id}`)}
+                    onClick={() =>
+                      router.push(`/events/${registration.event.id}`)
+                    }
                     variant="outline"
                   >
                     View Event
@@ -154,14 +168,16 @@ export default function MyEventsPage() {
                         }
                       >
                         Start Trading
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     )}
 
                   {registration.status === "CONFIRMED" && (
                     <Button
                       onClick={() =>
-                        router.push(`/events/${registration.event.id}/leaderboard`)
+                        router.push(
+                          `/events/${registration.event.id}/leaderboard`,
+                        )
                       }
                       variant="outline"
                     >
@@ -174,15 +190,15 @@ export default function MyEventsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No event registrations yet</h3>
+        <div className="py-12 text-center">
+          <Trophy className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+          <h3 className="mb-2 text-xl font-semibold">
+            No event registrations yet
+          </h3>
           <p className="text-muted-foreground mb-6">
             Browse available events and register to start competing
           </p>
-          <Button onClick={() => router.push("/events")}>
-            Browse Events
-          </Button>
+          <Button onClick={() => router.push("/events")}>Browse Events</Button>
         </div>
       )}
     </div>

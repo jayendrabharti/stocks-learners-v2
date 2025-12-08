@@ -3,12 +3,26 @@
 import ApiClient from "@/utils/ApiClient";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Calendar, DollarSign, Users, Trophy } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ArrowLeft,
+  Save,
+  Calendar,
+  DollarSign,
+  Users,
+  Trophy,
+} from "lucide-react";
 
 export default function EditEventPage() {
   const params = useParams();
@@ -44,13 +58,17 @@ export default function EditEventPage() {
       if (response.status !== 200) throw new Error("Failed to load event");
 
       const data = response.data;
-      
+
       setFormData({
         title: data.title,
         description: data.description || "",
         slug: data.slug,
-        registrationStartAt: new Date(data.registrationStartAt).toISOString().slice(0, 16),
-        registrationEndAt: new Date(data.registrationEndAt).toISOString().slice(0, 16),
+        registrationStartAt: new Date(data.registrationStartAt)
+          .toISOString()
+          .slice(0, 16),
+        registrationEndAt: new Date(data.registrationEndAt)
+          .toISOString()
+          .slice(0, 16),
         eventStartAt: new Date(data.eventStartAt).toISOString().slice(0, 16),
         eventEndAt: new Date(data.eventEndAt).toISOString().slice(0, 16),
         registrationFee: data.registrationFee.toString(),
@@ -62,15 +80,17 @@ export default function EditEventPage() {
       });
     } catch (error) {
       console.error("Error loading event:", error);
-      alert("Failed to load event");
+      toast.error("Failed to load event");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +103,7 @@ export default function EditEventPage() {
         try {
           prizesData = JSON.parse(formData.prizes);
         } catch {
-          alert("Invalid prizes JSON format");
+          toast.error("Invalid prizes JSON format");
           setIsSubmitting(false);
           return;
         }
@@ -93,13 +113,17 @@ export default function EditEventPage() {
         title: formData.title,
         description: formData.description || null,
         slug: formData.slug,
-        registrationStartAt: new Date(formData.registrationStartAt).toISOString(),
+        registrationStartAt: new Date(
+          formData.registrationStartAt,
+        ).toISOString(),
         registrationEndAt: new Date(formData.registrationEndAt).toISOString(),
         eventStartAt: new Date(formData.eventStartAt).toISOString(),
         eventEndAt: new Date(formData.eventEndAt).toISOString(),
         registrationFee: parseFloat(formData.registrationFee),
         initialBalance: parseFloat(formData.initialBalance),
-        maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : null,
+        maxParticipants: formData.maxParticipants
+          ? parseInt(formData.maxParticipants)
+          : null,
         bannerImage: formData.bannerImage || null,
         rules: formData.rules || null,
         prizes: prizesData,
@@ -109,11 +133,11 @@ export default function EditEventPage() {
         throw new Error("Failed to update event");
       }
 
-      alert("Event updated successfully!");
+      toast.success("Event updated successfully!");
       router.push("/admin/events");
     } catch (error) {
       console.error("Error updating event:", error);
-      alert("Failed to update event");
+      toast.error("Failed to update event");
     } finally {
       setIsSubmitting(false);
     }
@@ -121,17 +145,17 @@ export default function EditEventPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-64 bg-muted rounded" />
+          <div className="bg-muted h-8 w-1/3 rounded" />
+          <div className="bg-muted h-64 rounded" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
       <div className="mb-6">
         <Button
@@ -139,7 +163,7 @@ export default function EditEventPage() {
           onClick={() => router.push("/admin/events")}
           className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Events
         </Button>
         <h1 className="text-3xl font-bold">Edit Event</h1>
@@ -214,7 +238,9 @@ export default function EditEventPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="registrationStartAt">Registration Start *</Label>
+                <Label htmlFor="registrationStartAt">
+                  Registration Start *
+                </Label>
                 <Input
                   id="registrationStartAt"
                   name="registrationStartAt"
@@ -362,7 +388,7 @@ export default function EditEventPage() {
             disabled={isSubmitting}
             className="flex-1"
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="mr-2 h-4 w-4" />
             {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
           <Button

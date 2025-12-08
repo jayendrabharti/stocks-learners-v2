@@ -14,6 +14,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { ErrorAlertDialog } from "@/components/ui/error-alert-dialog";
 
+import { RAZORPAY_AMOUNT_MULTIPLIER } from "@/utils/constants";
+
 declare global {
   interface Window {
     Razorpay: any;
@@ -56,7 +58,6 @@ export default function PaymentPage() {
         const orderRes = await ApiClient.get(
           `/payment/create-order?amount=${amount}`,
         );
-        console.log(orderRes.data.order);
         setOrder(orderRes.data.order);
       } catch (err) {
         console.error(err);
@@ -103,7 +104,6 @@ export default function PaymentPage() {
     // But keeping it for consistency if needed, though backend ignores it for calculation now
     ApiClient.get(`/payment/verify-order?payment_id=${razorpay_payment_id}`)
       .then((res) => {
-        console.log(res);
         if (res.data.success) {
           const deposited = res.data.depositedAmount;
           toast.success(
@@ -158,7 +158,9 @@ export default function PaymentPage() {
   };
 
   // Calculate display values
-  const payableAmountINR = order ? order.amount / 100 : 0;
+  const payableAmountINR = order
+    ? order.amount / RAZORPAY_AMOUNT_MULTIPLIER
+    : 0;
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center p-4">

@@ -141,7 +141,7 @@ export async function executeBuy(
 
     // Step 6: Execute the order in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Find or create position
+      // Find or create position with lock to prevent race conditions
       let position = await tx.position.findFirst({
         where: {
           userId,

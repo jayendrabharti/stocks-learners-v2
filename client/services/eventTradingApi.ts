@@ -5,6 +5,13 @@
 
 import ApiClient from "@/utils/ApiClient";
 
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface Position {
   id: string;
   instrumentId: string;
@@ -46,8 +53,18 @@ export interface Portfolio {
   totalPnL: number;
   totalPnLPercentage: number;
   holdings: {
-    CNC: { positions: Position[]; count: number; totalValue: number; totalPnL: number };
-    MIS: { positions: Position[]; count: number; totalValue: number; totalPnL: number };
+    CNC: {
+      positions: Position[];
+      count: number;
+      totalValue: number;
+      totalPnL: number;
+    };
+    MIS: {
+      positions: Position[];
+      count: number;
+      totalValue: number;
+      totalPnL: number;
+    };
   };
 }
 
@@ -61,7 +78,7 @@ export async function buyOrder(
     qty: number;
     product: string;
     limitPrice?: number;
-  }
+  },
 ): Promise<{
   success: boolean;
   transactionId: string;
@@ -73,7 +90,7 @@ export async function buyOrder(
 }> {
   const response = await ApiClient.post(
     `/events/${eventId}/trading/buy`,
-    params
+    params,
   );
   return response.data;
 }
@@ -88,7 +105,7 @@ export async function sellOrder(
     qty: number;
     product: string;
     limitPrice?: number;
-  }
+  },
 ): Promise<{
   success: boolean;
   transactionId: string;
@@ -101,7 +118,7 @@ export async function sellOrder(
 }> {
   const response = await ApiClient.post(
     `/events/${eventId}/trading/sell`,
-    params
+    params,
   );
   return response.data;
 }
@@ -111,7 +128,7 @@ export async function sellOrder(
  */
 export async function getPositions(
   eventId: string,
-  product?: string
+  product?: string,
 ): Promise<{ positions: Position[] }> {
   const response = await ApiClient.get(`/events/${eventId}/trading/positions`, {
     params: { product },
@@ -125,13 +142,13 @@ export async function getPositions(
 export async function getTransactions(
   eventId: string,
   page?: number,
-  limit?: number
-): Promise<{ transactions: Transaction[]; pagination: any }> {
+  limit?: number,
+): Promise<{ transactions: Transaction[]; pagination: Pagination }> {
   const response = await ApiClient.get(
     `/events/${eventId}/trading/transactions`,
     {
       params: { page, limit },
-    }
+    },
   );
   return response.data;
 }

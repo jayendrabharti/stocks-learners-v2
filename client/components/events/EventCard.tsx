@@ -30,6 +30,8 @@ import { useRouter } from "next/navigation";
 import { usePortfolio } from "@/providers/PortfolioProvider";
 import { cn } from "@/lib/utils";
 
+import { LOW_SPOTS_THRESHOLD } from "@/utils/constants";
+
 interface EventCardProps {
   event: Event;
 }
@@ -44,11 +46,11 @@ export default function EventCard({ event }: EventCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "UPCOMING":
-        return "bg-blue-500";
+        return "bg-blue-500 hover:bg-blue-600";
       case "REGISTRATION_OPEN":
-        return "bg-green-500";
+        return "bg-emerald-500 hover:bg-emerald-600";
       case "ACTIVE":
-        return "bg-orange-500";
+        return "bg-orange-500 hover:bg-orange-600";
       case "ENDED":
         return "bg-gray-500";
       default:
@@ -61,15 +63,19 @@ export default function EventCard({ event }: EventCardProps) {
       case "UPCOMING":
         return "Coming Soon";
       case "REGISTRATION_OPEN":
-        return "Registration Open";
+        return "Open";
       case "ACTIVE":
-        return "Live Now";
+        return "Live";
       case "ENDED":
         return "Ended";
       default:
         return status;
     }
   };
+
+  const isRegistered = event.userRegistration?.status === "CONFIRMED";
+  const canRegister =
+    event.status === "REGISTRATION_OPEN" && !event.isFull && !isRegistered;
 
   const handleAction = () => {
     if (!isAuthenticated) {
@@ -179,43 +185,65 @@ export default function EventCard({ event }: EventCardProps) {
 
           {/* Spots Remaining */}
           {event.maxParticipants && (
-            <div className="pt-2 text-sm">
+            <div className="pt-2">
               {event.isFull ? (
-                <Badge variant="destructive" className="w-full justify-center">
-                  Event Full
+                <Badge
+                  variant="destructive"
+                  className="w-full justify-center py-2"
+                >
+                  ⛔ Event Full
                 </Badge>
-              ) : event.spotsLeft && event.spotsLeft <= 10 ? (
-                <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                  <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-600"></span>
-                  <p className="text-sm font-medium">
-                    Only {event.spotsLeft} spots remaining!
+              ) : event.spotsLeft && event.spotsLeft <= LOW_SPOTS_THRESHOLD ? (
+                <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-800 dark:bg-amber-950/30">
+                  <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-600 dark:bg-amber-400"></span>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                    Only {event.spotsLeft}{" "}
+                    {event.spotsLeft === 1 ? "spot" : "spots"} left!
                   </p>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center">
-                  {event.spotsLeft} spots available
-                </p>
-              )}
+              ) : event.spotsLeft ? (
+                <div className="bg-muted/50 flex items-center justify-between rounded-md border px-3 py-2">
+                  <p className="text-sm font-medium">Spots Available</p>
+                  <Badge variant="secondary">{event.spotsLeft}</Badge>
+                </div>
+              ) : null}
             </div>
           )}
         </CardContent>
 
-        <CardFooter>
+        <CardFooter className="flex-col gap-2 pt-4">
+          {isRegistered && (
+            <div className="mb-2 w-full rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center dark:border-emerald-800 dark:bg-emerald-950/30">
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                ✓ You're registered for this event
+              </p>
+            </div>
+          )}
+
           <Button
             className={cn(
               "h-11 w-full font-semibold transition-all",
-              event.userRegistration?.status === "CONFIRMED"
+              isRegistered
                 ? "bg-emerald-600 hover:bg-emerald-700"
-                : "",
+                : canRegister
+                  ? "bg-primary hover:bg-primary/90"
+                  : "",
             )}
-            disabled={event.isFull && !event.userRegistration}
+            variant={isRegistered || canRegister ? "default" : "outline"}
+            disabled={event.isFull && !isRegistered}
             onClick={handleAction}
           >
-            {event.userRegistration?.status === "CONFIRMED"
+            {isRegistered
               ? "Go to Event Portfolio"
-              : event.status === "REGISTRATION_OPEN" && !event.isFull
-                ? "Register Now"
-                : "View Details"}
+              : canRegister
+                ? event.registrationFee === 0
+                  ? "Register for Free"
+                  : "Register Now"
+                : event.status === "UPCOMING"
+                  ? "View Details"
+                  : event.status === "ACTIVE"
+                    ? "View Leaderboard"
+                    : "View Results"}
           </Button>
         </CardFooter>
       </Card>

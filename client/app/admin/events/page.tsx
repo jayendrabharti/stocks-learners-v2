@@ -3,6 +3,7 @@
 import ApiClient from "@/utils/ApiClient";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -73,7 +74,7 @@ export default function AdminEventsPage() {
       }
     } catch (error) {
       console.error("Error deleting event:", error);
-      alert("Failed to delete event");
+      toast.error("Failed to delete event");
     }
   };
 
@@ -82,7 +83,7 @@ export default function AdminEventsPage() {
       case "UPCOMING":
         return <Badge className="bg-blue-500">Upcoming</Badge>;
       case "REGISTRATION_OPEN":
-        return <Badge className="bg-green-500">Registration Open</Badge>;
+        return <Badge className="bg-emerald-600">Registration Open</Badge>;
       case "ACTIVE":
         return <Badge className="bg-orange-500">Live</Badge>;
       case "ENDED":

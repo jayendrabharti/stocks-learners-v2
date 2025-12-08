@@ -5,6 +5,17 @@
 
 import ApiClient from "@/utils/ApiClient";
 
+export interface Prize {
+  [rank: string]: string; // e.g., "1st": "₹10,000", "2nd": "₹5,000"
+}
+
+export interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -20,7 +31,7 @@ export interface Event {
   maxParticipants: number | null;
   bannerImage: string | null;
   rules: string | null;
-  prizes: any;
+  prizes: Prize | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   createdBy: string;
@@ -66,7 +77,7 @@ export async function getActiveEvents(params?: {
   status?: string;
   page?: number;
   limit?: number;
-}): Promise<{ events: Event[]; pagination: any }> {
+}): Promise<{ events: Event[]; pagination: Pagination }> {
   const response = await ApiClient.get("/events", { params });
   return response.data;
 }
@@ -74,9 +85,7 @@ export async function getActiveEvents(params?: {
 /**
  * Get event details
  */
-export async function getEventDetails(
-  eventId: string
-): Promise<Event> {
+export async function getEventDetails(eventId: string): Promise<Event> {
   const response = await ApiClient.get(`/events/${eventId}`);
   return response.data;
 }
@@ -107,11 +116,15 @@ export async function getUserRegistrations(): Promise<{
  */
 export async function getEventLeaderboard(
   eventId: string,
-  limit?: number
+  limit?: number,
 ): Promise<{
   leaderboard: LeaderboardEntry[];
   total: number;
-  userRank: { rank: number; totalPnL: number; totalPnLPercentage: number } | null;
+  userRank: {
+    rank: number;
+    totalPnL: number;
+    totalPnLPercentage: number;
+  } | null;
 }> {
   const response = await ApiClient.get(`/events/${eventId}/leaderboard`, {
     params: { limit },

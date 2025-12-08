@@ -11,6 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ChevronDown, Trophy, Wallet } from "lucide-react";
 import eventsApi from "@/services/eventsApi";
 import { Badge } from "@/components/ui/badge";
@@ -34,14 +40,12 @@ export default function AccountSwitcher({
   const loadRegistrations = async () => {
     try {
       const response = await eventsApi.getUserRegistrations();
-      console.log("All registrations:", response.registrations);
 
       // Show confirmed and pending registrations
       const activeRegistrations = response.registrations.filter(
         (reg: any) => reg.status === "CONFIRMED" || reg.status === "PENDING",
       );
 
-      console.log("Filtered registrations:", activeRegistrations);
       setRegistrations(activeRegistrations);
     } catch (error) {
       console.error("Failed to load registrations:", error);
@@ -67,13 +71,27 @@ export default function AccountSwitcher({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {compact ? (
-          <Button variant="outline" size="icon" className="shrink-0">
-            {activeContext.type === "MAIN" ? (
-              <Wallet className="h-4 w-4" />
-            ) : (
-              <Trophy className="h-4 w-4" />
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  aria-label="Switch trading account"
+                >
+                  {activeContext.type === "MAIN" ? (
+                    <Wallet className="h-4 w-4" />
+                  ) : (
+                    <Trophy className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Switch account</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ) : (
           <Button
             variant="outline"

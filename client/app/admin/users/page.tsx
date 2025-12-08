@@ -222,9 +222,20 @@ export default function AdminUsersPage() {
           <Loader2 className="h-8 w-8 animate-spin" />
         </Card>
       ) : users.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Search className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-          <p className="text-muted-foreground">No users found</p>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="bg-muted mb-4 rounded-full p-4">
+              <User className="text-muted-foreground h-12 w-12" />
+            </div>
+            <h3 className="mb-2 text-xl font-semibold">
+              {debouncedSearch ? "No users found" : "No users yet"}
+            </h3>
+            <p className="text-muted-foreground max-w-sm text-center">
+              {debouncedSearch
+                ? "Try adjusting your search or filter criteria"
+                : "Users will appear here once they sign up"}
+            </p>
+          </CardContent>
         </Card>
       ) : (
         <Card className="overflow-hidden">
