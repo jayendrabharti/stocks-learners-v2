@@ -64,6 +64,8 @@ export interface Position {
     type: string;
     exchange: string;
     segment: string;
+    exchangeToken: string;
+    searchId?: string | null;
   };
   product: ProductType;
   qty: number;
