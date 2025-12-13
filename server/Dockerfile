@@ -26,9 +26,6 @@ COPY --from=build-deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json prisma.config.ts ./
 COPY src ./src
 
-# Generate Prisma Client before building TypeScript
-RUN npx prisma generate --schema=./src/database/prisma/schema.prisma
-
 # Build TypeScript
 RUN npm run build
 
