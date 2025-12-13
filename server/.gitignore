@@ -8,7 +8,10 @@ build/
 # TypeScript cache
 *.tsbuildinfo
 
-*cache*
+# Cache directories (but not source files with "cache" in the name)
+cache/
+.cache/
+*.cache
 
 # Environment files
 .env*
