@@ -33,7 +33,6 @@ import {
 
 dotenv.config();
 
-// Validate environment variables on startup
 validateRequiredEnvVars();
 validateSecretStrength();
 
