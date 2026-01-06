@@ -1,12 +1,20 @@
 export const getErrorMessage = (
   error: unknown,
-  defaultMessage: string = "Something went wrong",
+  defaultMessage: string = "Something went wrong. Please try again.",
 ) => {
   console.error(error);
   let errorMessage = defaultMessage;
-  if (error instanceof Error && error.message.length < 100) {
+
+  // Try to extract message from axios error response
+  const axiosError = error as any;
+  if (axiosError?.response?.data?.error?.message) {
+    errorMessage = axiosError.response.data.error.message;
+  } else if (axiosError?.response?.data?.message) {
+    errorMessage = axiosError.response.data.message;
+  } else if (error instanceof Error && error.message.length < 100) {
     errorMessage = error.message;
   }
+
   return errorMessage;
 };
 

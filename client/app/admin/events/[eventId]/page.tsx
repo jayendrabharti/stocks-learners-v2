@@ -78,9 +78,14 @@ export default function EditEventPage() {
         rules: data.rules || "",
         prizes: data.prizes ? JSON.stringify(data.prizes, null, 2) : "",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading event:", error);
-      toast.error("Failed to load event");
+      const isNotFound = error?.response?.status === 404;
+      toast.error(isNotFound ? "Event not found" : "Unable to load event", {
+        description: isNotFound
+          ? "This event may have been deleted."
+          : "Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -135,9 +140,13 @@ export default function EditEventPage() {
 
       toast.success("Event updated successfully!");
       router.push("/admin/events");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating event:", error);
-      toast.error("Failed to update event");
+      const message =
+        error?.response?.data?.error?.message || error?.response?.data?.message;
+      toast.error("Unable to update event", {
+        description: message || "Please check your input and try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }

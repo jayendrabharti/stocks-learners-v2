@@ -30,9 +30,21 @@ import ApiClient from "@/utils/ApiClient";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || /^[0-9]{10}$/.test(val),
+      "Phone must be a valid 10-digit number",
+    ),
   avatar: z.string().optional(),
-  dateOfBirth: z.date().optional(),
+  dateOfBirth: z
+    .date()
+    .optional()
+    .refine(
+      (val) => !val || val <= new Date(),
+      "Date of birth cannot be in the future",
+    ),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -104,7 +116,14 @@ export default function ProfileForm({
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your phone number" {...field} />
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      placeholder="Enter your 10-digit phone number"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,6 +161,8 @@ export default function ProfileForm({
                         selected={field.value}
                         captionLayout="dropdown"
                         onSelect={field.onChange}
+                        disabled={(date) => date > new Date()}
+                        toDate={new Date()}
                       />
                     </PopoverContent>
                   </Popover>

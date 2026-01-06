@@ -5,6 +5,7 @@
 
 import prisma from "@/database/client.js";
 import { calculatePortfolioStats } from "@/services/portfolioService.js";
+import { fromDecimal } from "@/utils/currency";
 
 /**
  * Create event account after successful registration
@@ -97,7 +98,7 @@ export async function calculateEventPortfolio(eventAccountId: string) {
 
     // Calculate total realized P&L from ALL positions
     const totalRealizedPnLAllTime = allPositions.reduce(
-      (sum, p) => sum + p.realizedPnl,
+      (sum, p) => sum + fromDecimal(p.realizedPnl),
       0
     );
 
@@ -107,12 +108,32 @@ export async function calculateEventPortfolio(eventAccountId: string) {
       select: { fees: true },
     });
 
-    const totalFeesPaid = allTransactions.reduce((sum, t) => sum + t.fees, 0);
+    const totalFeesPaid = allTransactions.reduce(
+      (sum, t) => sum + fromDecimal(t.fees),
+      0
+    );
+
+    // Convert to portfolio-compatible format
+    const portfolioAccount = {
+      cash: fromDecimal(account.cash),
+      usedMargin: fromDecimal(account.usedMargin),
+    };
+
+    const portfolioPositions = positions.map((p) => ({
+      ...p,
+      avgPrice: fromDecimal(p.avgPrice),
+      realizedPnl: fromDecimal(p.realizedPnl),
+      transactions: p.transactions.map((t) => ({ fees: fromDecimal(t.fees) })),
+      lots: p.lots.map((l) => ({
+        ...l,
+        buyPrice: fromDecimal(l.buyPrice),
+      })),
+    }));
 
     // Use shared portfolio service
     const portfolio = await calculatePortfolioStats({
-      account,
-      openPositions: positions,
+      account: portfolioAccount,
+      openPositions: portfolioPositions,
       allPositionsRealizedPnl: totalRealizedPnLAllTime,
       totalFeesPaid,
     });

@@ -28,18 +28,18 @@ export type AggregateEventTransaction = {
 
 export type EventTransactionAvgAggregateOutputType = {
   qty: number | null
-  price: number | null
-  limitPrice: number | null
-  realizedPnl: number | null
-  fees: number | null
+  price: runtime.Decimal | null
+  limitPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
+  fees: runtime.Decimal | null
 }
 
 export type EventTransactionSumAggregateOutputType = {
   qty: number | null
-  price: number | null
-  limitPrice: number | null
-  realizedPnl: number | null
-  fees: number | null
+  price: runtime.Decimal | null
+  limitPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
+  fees: runtime.Decimal | null
 }
 
 export type EventTransactionMinAggregateOutputType = {
@@ -49,11 +49,11 @@ export type EventTransactionMinAggregateOutputType = {
   side: $Enums.TradeSide | null
   product: $Enums.TradeType | null
   qty: number | null
-  price: number | null
-  limitPrice: number | null
-  realizedPnl: number | null
+  price: runtime.Decimal | null
+  limitPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   positionId: string | null
-  fees: number | null
+  fees: runtime.Decimal | null
   createdAt: Date | null
 }
 
@@ -64,11 +64,11 @@ export type EventTransactionMaxAggregateOutputType = {
   side: $Enums.TradeSide | null
   product: $Enums.TradeType | null
   qty: number | null
-  price: number | null
-  limitPrice: number | null
-  realizedPnl: number | null
+  price: runtime.Decimal | null
+  limitPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   positionId: string | null
-  fees: number | null
+  fees: runtime.Decimal | null
   createdAt: Date | null
 }
 
@@ -244,11 +244,11 @@ export type EventTransactionGroupByOutputType = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice: number | null
-  realizedPnl: number | null
+  price: runtime.Decimal
+  limitPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   positionId: string | null
-  fees: number
+  fees: runtime.Decimal
   createdAt: Date
   _count: EventTransactionCountAggregateOutputType | null
   _avg: EventTransactionAvgAggregateOutputType | null
@@ -282,11 +282,11 @@ export type EventTransactionWhereInput = {
   side?: Prisma.EnumTradeSideFilter<"EventTransaction"> | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFilter<"EventTransaction"> | $Enums.TradeType
   qty?: Prisma.IntFilter<"EventTransaction"> | number
-  price?: Prisma.FloatFilter<"EventTransaction"> | number
-  limitPrice?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
-  realizedPnl?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
+  price?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.StringNullableFilter<"EventTransaction"> | string | null
-  fees?: Prisma.FloatFilter<"EventTransaction"> | number
+  fees?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventTransaction"> | Date | string
   eventAccount?: Prisma.XOR<Prisma.EventAccountScalarRelationFilter, Prisma.EventAccountWhereInput>
   instrument?: Prisma.XOR<Prisma.InstrumentScalarRelationFilter, Prisma.InstrumentWhereInput>
@@ -323,11 +323,11 @@ export type EventTransactionWhereUniqueInput = Prisma.AtLeast<{
   side?: Prisma.EnumTradeSideFilter<"EventTransaction"> | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFilter<"EventTransaction"> | $Enums.TradeType
   qty?: Prisma.IntFilter<"EventTransaction"> | number
-  price?: Prisma.FloatFilter<"EventTransaction"> | number
-  limitPrice?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
-  realizedPnl?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
+  price?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.StringNullableFilter<"EventTransaction"> | string | null
-  fees?: Prisma.FloatFilter<"EventTransaction"> | number
+  fees?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventTransaction"> | Date | string
   eventAccount?: Prisma.XOR<Prisma.EventAccountScalarRelationFilter, Prisma.EventAccountWhereInput>
   instrument?: Prisma.XOR<Prisma.InstrumentScalarRelationFilter, Prisma.InstrumentWhereInput>
@@ -365,11 +365,11 @@ export type EventTransactionScalarWhereWithAggregatesInput = {
   side?: Prisma.EnumTradeSideWithAggregatesFilter<"EventTransaction"> | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeWithAggregatesFilter<"EventTransaction"> | $Enums.TradeType
   qty?: Prisma.IntWithAggregatesFilter<"EventTransaction"> | number
-  price?: Prisma.FloatWithAggregatesFilter<"EventTransaction"> | number
-  limitPrice?: Prisma.FloatNullableWithAggregatesFilter<"EventTransaction"> | number | null
-  realizedPnl?: Prisma.FloatNullableWithAggregatesFilter<"EventTransaction"> | number | null
+  price?: Prisma.DecimalWithAggregatesFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.DecimalNullableWithAggregatesFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.DecimalNullableWithAggregatesFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.StringNullableWithAggregatesFilter<"EventTransaction"> | string | null
-  fees?: Prisma.FloatWithAggregatesFilter<"EventTransaction"> | number
+  fees?: Prisma.DecimalWithAggregatesFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventTransaction"> | Date | string
 }
 
@@ -378,10 +378,10 @@ export type EventTransactionCreateInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   eventAccount: Prisma.EventAccountCreateNestedOneWithoutTransactionsInput
   instrument: Prisma.InstrumentCreateNestedOneWithoutEventTransactionsInput
@@ -396,11 +396,11 @@ export type EventTransactionUncheckedCreateInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   buyLots?: Prisma.EventPositionLotUncheckedCreateNestedManyWithoutBuyTransactionInput
 }
@@ -410,10 +410,10 @@ export type EventTransactionUpdateInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAccount?: Prisma.EventAccountUpdateOneRequiredWithoutTransactionsNestedInput
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutEventTransactionsNestedInput
@@ -428,11 +428,11 @@ export type EventTransactionUncheckedUpdateInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   buyLots?: Prisma.EventPositionLotUncheckedUpdateManyWithoutBuyTransactionNestedInput
 }
@@ -444,11 +444,11 @@ export type EventTransactionCreateManyInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
 }
 
@@ -457,10 +457,10 @@ export type EventTransactionUpdateManyMutationInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -471,11 +471,11 @@ export type EventTransactionUncheckedUpdateManyInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -700,10 +700,10 @@ export type EventTransactionCreateWithoutInstrumentInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   eventAccount: Prisma.EventAccountCreateNestedOneWithoutTransactionsInput
   position?: Prisma.EventPositionCreateNestedOneWithoutTransactionsInput
@@ -716,11 +716,11 @@ export type EventTransactionUncheckedCreateWithoutInstrumentInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   buyLots?: Prisma.EventPositionLotUncheckedCreateNestedManyWithoutBuyTransactionInput
 }
@@ -761,11 +761,11 @@ export type EventTransactionScalarWhereInput = {
   side?: Prisma.EnumTradeSideFilter<"EventTransaction"> | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFilter<"EventTransaction"> | $Enums.TradeType
   qty?: Prisma.IntFilter<"EventTransaction"> | number
-  price?: Prisma.FloatFilter<"EventTransaction"> | number
-  limitPrice?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
-  realizedPnl?: Prisma.FloatNullableFilter<"EventTransaction"> | number | null
+  price?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.DecimalNullableFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.StringNullableFilter<"EventTransaction"> | string | null
-  fees?: Prisma.FloatFilter<"EventTransaction"> | number
+  fees?: Prisma.DecimalFilter<"EventTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventTransaction"> | Date | string
 }
 
@@ -774,10 +774,10 @@ export type EventTransactionCreateWithoutEventAccountInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   instrument: Prisma.InstrumentCreateNestedOneWithoutEventTransactionsInput
   position?: Prisma.EventPositionCreateNestedOneWithoutTransactionsInput
@@ -790,11 +790,11 @@ export type EventTransactionUncheckedCreateWithoutEventAccountInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   buyLots?: Prisma.EventPositionLotUncheckedCreateNestedManyWithoutBuyTransactionInput
 }
@@ -830,10 +830,10 @@ export type EventTransactionCreateWithoutPositionInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   eventAccount: Prisma.EventAccountCreateNestedOneWithoutTransactionsInput
   instrument: Prisma.InstrumentCreateNestedOneWithoutEventTransactionsInput
@@ -847,10 +847,10 @@ export type EventTransactionUncheckedCreateWithoutPositionInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   buyLots?: Prisma.EventPositionLotUncheckedCreateNestedManyWithoutBuyTransactionInput
 }
@@ -886,10 +886,10 @@ export type EventTransactionCreateWithoutBuyLotsInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   eventAccount: Prisma.EventAccountCreateNestedOneWithoutTransactionsInput
   instrument: Prisma.InstrumentCreateNestedOneWithoutEventTransactionsInput
@@ -903,11 +903,11 @@ export type EventTransactionUncheckedCreateWithoutBuyLotsInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
 }
 
@@ -932,10 +932,10 @@ export type EventTransactionUpdateWithoutBuyLotsInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAccount?: Prisma.EventAccountUpdateOneRequiredWithoutTransactionsNestedInput
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutEventTransactionsNestedInput
@@ -949,11 +949,11 @@ export type EventTransactionUncheckedUpdateWithoutBuyLotsInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -963,11 +963,11 @@ export type EventTransactionCreateManyInstrumentInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
 }
 
@@ -976,10 +976,10 @@ export type EventTransactionUpdateWithoutInstrumentInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAccount?: Prisma.EventAccountUpdateOneRequiredWithoutTransactionsNestedInput
   position?: Prisma.EventPositionUpdateOneWithoutTransactionsNestedInput
@@ -992,11 +992,11 @@ export type EventTransactionUncheckedUpdateWithoutInstrumentInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   buyLots?: Prisma.EventPositionLotUncheckedUpdateManyWithoutBuyTransactionNestedInput
 }
@@ -1007,11 +1007,11 @@ export type EventTransactionUncheckedUpdateManyWithoutInstrumentInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1021,11 +1021,11 @@ export type EventTransactionCreateManyEventAccountInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: string | null
-  fees?: number
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
 }
 
@@ -1034,10 +1034,10 @@ export type EventTransactionUpdateWithoutEventAccountInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutEventTransactionsNestedInput
   position?: Prisma.EventPositionUpdateOneWithoutTransactionsNestedInput
@@ -1050,11 +1050,11 @@ export type EventTransactionUncheckedUpdateWithoutEventAccountInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   buyLots?: Prisma.EventPositionLotUncheckedUpdateManyWithoutBuyTransactionNestedInput
 }
@@ -1065,11 +1065,11 @@ export type EventTransactionUncheckedUpdateManyWithoutEventAccountInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1080,10 +1080,10 @@ export type EventTransactionCreateManyPositionInput = {
   side: $Enums.TradeSide
   product: $Enums.TradeType
   qty: number
-  price: number
-  limitPrice?: number | null
-  realizedPnl?: number | null
-  fees?: number
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
 }
 
@@ -1092,10 +1092,10 @@ export type EventTransactionUpdateWithoutPositionInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventAccount?: Prisma.EventAccountUpdateOneRequiredWithoutTransactionsNestedInput
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutEventTransactionsNestedInput
@@ -1109,10 +1109,10 @@ export type EventTransactionUncheckedUpdateWithoutPositionInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   buyLots?: Prisma.EventPositionLotUncheckedUpdateManyWithoutBuyTransactionNestedInput
 }
@@ -1124,10 +1124,10 @@ export type EventTransactionUncheckedUpdateManyWithoutPositionInput = {
   side?: Prisma.EnumTradeSideFieldUpdateOperationsInput | $Enums.TradeSide
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  price?: Prisma.FloatFieldUpdateOperationsInput | number
-  limitPrice?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  realizedPnl?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  fees?: Prisma.FloatFieldUpdateOperationsInput | number
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  limitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  realizedPnl?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1267,11 +1267,11 @@ export type $EventTransactionPayload<ExtArgs extends runtime.Types.Extensions.In
     side: $Enums.TradeSide
     product: $Enums.TradeType
     qty: number
-    price: number
-    limitPrice: number | null
-    realizedPnl: number | null
+    price: runtime.Decimal
+    limitPrice: runtime.Decimal | null
+    realizedPnl: runtime.Decimal | null
     positionId: string | null
-    fees: number
+    fees: runtime.Decimal
     createdAt: Date
   }, ExtArgs["result"]["eventTransaction"]>
   composites: {}
@@ -1706,11 +1706,11 @@ export interface EventTransactionFieldRefs {
   readonly side: Prisma.FieldRef<"EventTransaction", 'TradeSide'>
   readonly product: Prisma.FieldRef<"EventTransaction", 'TradeType'>
   readonly qty: Prisma.FieldRef<"EventTransaction", 'Int'>
-  readonly price: Prisma.FieldRef<"EventTransaction", 'Float'>
-  readonly limitPrice: Prisma.FieldRef<"EventTransaction", 'Float'>
-  readonly realizedPnl: Prisma.FieldRef<"EventTransaction", 'Float'>
+  readonly price: Prisma.FieldRef<"EventTransaction", 'Decimal'>
+  readonly limitPrice: Prisma.FieldRef<"EventTransaction", 'Decimal'>
+  readonly realizedPnl: Prisma.FieldRef<"EventTransaction", 'Decimal'>
   readonly positionId: Prisma.FieldRef<"EventTransaction", 'String'>
-  readonly fees: Prisma.FieldRef<"EventTransaction", 'Float'>
+  readonly fees: Prisma.FieldRef<"EventTransaction", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"EventTransaction", 'DateTime'>
 }
     

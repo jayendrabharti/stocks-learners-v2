@@ -27,14 +27,14 @@ export type AggregateEvent = {
 }
 
 export type EventAvgAggregateOutputType = {
-  registrationFee: number | null
-  initialBalance: number | null
+  registrationFee: runtime.Decimal | null
+  initialBalance: runtime.Decimal | null
   maxParticipants: number | null
 }
 
 export type EventSumAggregateOutputType = {
-  registrationFee: number | null
-  initialBalance: number | null
+  registrationFee: runtime.Decimal | null
+  initialBalance: runtime.Decimal | null
   maxParticipants: number | null
 }
 
@@ -47,8 +47,8 @@ export type EventMinAggregateOutputType = {
   registrationEndAt: Date | null
   eventStartAt: Date | null
   eventEndAt: Date | null
-  registrationFee: number | null
-  initialBalance: number | null
+  registrationFee: runtime.Decimal | null
+  initialBalance: runtime.Decimal | null
   isActive: boolean | null
   maxParticipants: number | null
   bannerImage: string | null
@@ -67,8 +67,8 @@ export type EventMaxAggregateOutputType = {
   registrationEndAt: Date | null
   eventStartAt: Date | null
   eventEndAt: Date | null
-  registrationFee: number | null
-  initialBalance: number | null
+  registrationFee: runtime.Decimal | null
+  initialBalance: runtime.Decimal | null
   isActive: boolean | null
   maxParticipants: number | null
   bannerImage: string | null
@@ -270,8 +270,8 @@ export type EventGroupByOutputType = {
   registrationEndAt: Date
   eventStartAt: Date
   eventEndAt: Date
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal
+  initialBalance: runtime.Decimal
   isActive: boolean
   maxParticipants: number | null
   bannerImage: string | null
@@ -314,8 +314,8 @@ export type EventWhereInput = {
   registrationEndAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   eventStartAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   eventEndAt?: Prisma.DateTimeFilter<"Event"> | Date | string
-  registrationFee?: Prisma.FloatFilter<"Event"> | number
-  initialBalance?: Prisma.FloatFilter<"Event"> | number
+  registrationFee?: Prisma.DecimalFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFilter<"Event"> | boolean
   maxParticipants?: Prisma.IntNullableFilter<"Event"> | number | null
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -361,8 +361,8 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   registrationEndAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   eventStartAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   eventEndAt?: Prisma.DateTimeFilter<"Event"> | Date | string
-  registrationFee?: Prisma.FloatFilter<"Event"> | number
-  initialBalance?: Prisma.FloatFilter<"Event"> | number
+  registrationFee?: Prisma.DecimalFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFilter<"Event"> | boolean
   maxParticipants?: Prisma.IntNullableFilter<"Event"> | number | null
   bannerImage?: Prisma.StringNullableFilter<"Event"> | string | null
@@ -412,8 +412,8 @@ export type EventScalarWhereWithAggregatesInput = {
   registrationEndAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   eventStartAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   eventEndAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
-  registrationFee?: Prisma.FloatWithAggregatesFilter<"Event"> | number
-  initialBalance?: Prisma.FloatWithAggregatesFilter<"Event"> | number
+  registrationFee?: Prisma.DecimalWithAggregatesFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalWithAggregatesFilter<"Event"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Event"> | boolean
   maxParticipants?: Prisma.IntNullableWithAggregatesFilter<"Event"> | number | null
   bannerImage?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -433,8 +433,8 @@ export type EventCreateInput = {
   registrationEndAt: Date | string
   eventStartAt: Date | string
   eventEndAt: Date | string
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   maxParticipants?: number | null
   bannerImage?: string | null
@@ -455,8 +455,8 @@ export type EventUncheckedCreateInput = {
   registrationEndAt: Date | string
   eventStartAt: Date | string
   eventEndAt: Date | string
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   maxParticipants?: number | null
   bannerImage?: string | null
@@ -477,8 +477,8 @@ export type EventUpdateInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -499,8 +499,8 @@ export type EventUncheckedUpdateInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -521,8 +521,8 @@ export type EventCreateManyInput = {
   registrationEndAt: Date | string
   eventStartAt: Date | string
   eventEndAt: Date | string
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   maxParticipants?: number | null
   bannerImage?: string | null
@@ -542,8 +542,8 @@ export type EventUpdateManyMutationInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -563,8 +563,8 @@ export type EventUncheckedUpdateManyInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -684,8 +684,8 @@ export type EventCreateWithoutRegistrationsInput = {
   registrationEndAt: Date | string
   eventStartAt: Date | string
   eventEndAt: Date | string
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   maxParticipants?: number | null
   bannerImage?: string | null
@@ -705,8 +705,8 @@ export type EventUncheckedCreateWithoutRegistrationsInput = {
   registrationEndAt: Date | string
   eventStartAt: Date | string
   eventEndAt: Date | string
-  registrationFee: number
-  initialBalance: number
+  registrationFee: runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   maxParticipants?: number | null
   bannerImage?: string | null
@@ -742,8 +742,8 @@ export type EventUpdateWithoutRegistrationsInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -763,8 +763,8 @@ export type EventUncheckedUpdateWithoutRegistrationsInput = {
   registrationEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventStartAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventEndAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  registrationFee?: Prisma.FloatFieldUpdateOperationsInput | number
-  initialBalance?: Prisma.FloatFieldUpdateOperationsInput | number
+  registrationFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxParticipants?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -914,8 +914,8 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     registrationEndAt: Date
     eventStartAt: Date
     eventEndAt: Date
-    registrationFee: number
-    initialBalance: number
+    registrationFee: runtime.Decimal
+    initialBalance: runtime.Decimal
     isActive: boolean
     maxParticipants: number | null
     bannerImage: string | null
@@ -1356,8 +1356,8 @@ export interface EventFieldRefs {
   readonly registrationEndAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly eventStartAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly eventEndAt: Prisma.FieldRef<"Event", 'DateTime'>
-  readonly registrationFee: Prisma.FieldRef<"Event", 'Float'>
-  readonly initialBalance: Prisma.FieldRef<"Event", 'Float'>
+  readonly registrationFee: Prisma.FieldRef<"Event", 'Decimal'>
+  readonly initialBalance: Prisma.FieldRef<"Event", 'Decimal'>
   readonly isActive: Prisma.FieldRef<"Event", 'Boolean'>
   readonly maxParticipants: Prisma.FieldRef<"Event", 'Int'>
   readonly bannerImage: Prisma.FieldRef<"Event", 'String'>

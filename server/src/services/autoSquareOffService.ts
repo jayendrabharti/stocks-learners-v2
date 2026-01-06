@@ -8,6 +8,7 @@ import { fetchMarketTiming } from "./marketService";
 import { AutoSquareOffStatus, TradeType } from "@/database/generated/enums";
 import { fetchLiveData } from "./liveDataService";
 import { fetchHistoricalData } from "./historicalDataService";
+import { fromDecimal, toDecimal } from "@/utils/currency";
 
 /**
  * Calculate next market close time
@@ -125,7 +126,8 @@ const executeSquareOff = async (
       if (remainingQtyToSell <= 0) break;
 
       const qtyFromThisLot = Math.min(lot.remainingQty, remainingQtyToSell);
-      const pnlFromLot = (closePrice - lot.buyPrice) * qtyFromThisLot;
+      const pnlFromLot =
+        (closePrice - fromDecimal(lot.buyPrice)) * qtyFromThisLot;
       totalRealizedPnl += pnlFromLot;
       remainingQtyToSell -= qtyFromThisLot;
     }
@@ -138,10 +140,10 @@ const executeSquareOff = async (
         side: "SELL",
         product: position.product,
         qty: position.qty,
-        price: closePrice,
-        realizedPnl: totalRealizedPnl,
+        price: toDecimal(closePrice),
+        realizedPnl: toDecimal(totalRealizedPnl),
         positionId: position.id,
-        fees: 0,
+        fees: toDecimal(0),
       },
     });
 
@@ -168,14 +170,19 @@ const executeSquareOff = async (
       data: {
         qty: 0,
         isOpen: false,
-        realizedPnl: position.realizedPnl + totalRealizedPnl,
+        realizedPnl: toDecimal(
+          fromDecimal(position.realizedPnl) + totalRealizedPnl
+        ),
         autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
       },
     });
 
     // Calculate margin to release from original buy prices
     const releasedMargin = position.lots.reduce(
-      (sum, lot) => sum + (lot.buyPrice * lot.remainingQty) / position.instrument.leverage,
+      (sum, lot) =>
+        sum +
+        (fromDecimal(lot.buyPrice) * lot.remainingQty) /
+          position.instrument.leverage,
       0
     );
 
@@ -273,10 +280,7 @@ export const processPendingSquareOffs = async (): Promise<void> => {
           },
         });
 
-        const closePrice = await determineSquareOffPrice(
-          position,
-          now
-        );
+        const closePrice = await determineSquareOffPrice(position, now);
 
         await executeSquareOff(position.id, closePrice);
       } catch (error: any) {
@@ -302,14 +306,14 @@ export const processPendingSquareOffs = async (): Promise<void> => {
           },
         });
 
-        const closePrice = await determineSquareOffPrice(
-          position,
-          now
-        );
+        const closePrice = await determineSquareOffPrice(position, now);
 
         await executeEventSquareOff(position, closePrice);
       } catch (error: any) {
-        console.error(`Error squaring off event position ${position.id}:`, error);
+        console.error(
+          `Error squaring off event position ${position.id}:`,
+          error
+        );
         await prisma.eventPosition.update({
           where: { id: position.id },
           data: {
@@ -336,9 +340,17 @@ async function determineSquareOffPrice(
   const squareOffTime = position.autoSquareOffAt;
   const timeDiff = now.getTime() - (squareOffTime?.getTime() || 0);
 
-  const avgBuyPrice =
-    position.lots.reduce((sum: number, lot: any) => sum + lot.buyPrice, 0) /
-      position.lots.length || 0;
+  // Calculate weighted average buy price (not simple average)
+  const totalValue = position.lots.reduce(
+    (sum: number, lot: any) =>
+      sum + fromDecimal(lot.buyPrice) * lot.remainingQty,
+    0
+  );
+  const totalQty = position.lots.reduce(
+    (sum: number, lot: any) => sum + lot.remainingQty,
+    0
+  );
+  const avgBuyPrice = totalQty > 0 ? totalValue / totalQty : 0;
 
   if (timeDiff > 5 * 60 * 1000) {
     // More than 5 minutes late - use historical data
@@ -377,7 +389,6 @@ async function determineSquareOffPrice(
     return avgBuyPrice;
   }
 }
-
 
 /**
  * Execute square-off for event position
@@ -450,9 +461,7 @@ async function executeEventSquareOff(
     });
   });
 
-  console.log(
-    `Auto square-off completed for event position ${position.id}`
-  );
+  console.log(`Auto square-off completed for event position ${position.id}`);
 }
 
 /**
@@ -485,7 +494,9 @@ export const setAutoSquareOffTime = async (
     }
 
     console.log(
-      `Set auto square-off time for ${isEventPosition ? "event " : ""}position ${positionId} to ${nextCloseTime.toISOString()}`
+      `Set auto square-off time for ${
+        isEventPosition ? "event " : ""
+      }position ${positionId} to ${nextCloseTime.toISOString()}`
     );
   } catch (error) {
     console.error(

@@ -70,11 +70,16 @@ export default function AdminEventsPage() {
       const response = await ApiClient.delete(`/admin/events/${eventId}`);
 
       if (response.status === 200) {
+        toast.success("Event deleted successfully");
         loadEvents();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting event:", error);
-      toast.error("Failed to delete event");
+      const message =
+        error?.response?.data?.error?.message || error?.response?.data?.message;
+      toast.error("Unable to delete event", {
+        description: message || "Please try again later",
+      });
     }
   };
 
@@ -185,7 +190,105 @@ export default function AdminEventsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* Mobile View - Card Layout */}
+            <div className="md:hidden">
+              {events.map((event) => (
+                <div key={event.id} className="border-b p-4 last:border-b-0">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{event.title}</p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {event.slug}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      {getStatusBadge(event.status)}
+                      {!event.isActive && (
+                        <Badge variant="outline" className="text-xs">
+                          Inactive
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-3 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-muted-foreground text-xs">
+                        Event Period
+                      </div>
+                      <div className="font-medium">
+                        {format(new Date(event.eventStartAt), "MMM dd")} -{" "}
+                        {format(new Date(event.eventEndAt), "MMM dd, yyyy")}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-muted-foreground text-xs">
+                        Participants
+                      </div>
+                      <div className="flex items-center justify-end gap-1 font-medium">
+                        <Users className="text-muted-foreground h-3 w-3" />
+                        {event.registrationCount}
+                        {event.maxParticipants && (
+                          <span className="text-muted-foreground">
+                            / {event.maxParticipants}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground text-xs">
+                        Registration Fee
+                      </div>
+                      <div className="font-medium">
+                        {event.registrationFee === 0
+                          ? "Free"
+                          : `₹${event.registrationFee.toLocaleString("en-IN")}`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-muted-foreground text-xs">
+                        Initial Balance
+                      </div>
+                      <div className="font-medium">
+                        ₹{event.initialBalance.toLocaleString("en-IN")}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/admin/events/${event.id}`)}
+                    >
+                      <Edit className="mr-1 h-3 w-3" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        router.push(`/admin/events/${event.id}/registrations`)
+                      }
+                    >
+                      <Users className="mr-1 h-3 w-3" />
+                      {event.registrationCount}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(event.id)}
+                      disabled={event.registrationCount > 0}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View - Table Layout */}
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>

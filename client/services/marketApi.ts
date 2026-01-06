@@ -211,7 +211,7 @@ export const marketApi = {
     if (options?.type) params.append("type", options.type);
 
     const queryString = params.toString();
-    const url = `/market/fno/trends/${instrument}${queryString ? `?${queryString}` : ""}`;
+    const url = `/market/fno/trends/${encodeURIComponent(instrument)}${queryString ? `?${queryString}` : ""}`;
 
     const response = await ApiClient.get<ApiResponse<any>>(url);
     return response.data.data;
@@ -276,7 +276,7 @@ export const marketApi = {
    */
   getIndexDetails: async (searchId: string): Promise<IndexData> => {
     const response = await ApiClient.get<ApiResponse<IndexData>>(
-      `/market/indices/${searchId}`,
+      `/market/indices/${encodeURIComponent(searchId)}`,
     );
     return response.data.data;
   },

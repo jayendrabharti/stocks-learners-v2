@@ -5,10 +5,8 @@
 
 import { Request, Response } from "express";
 import prisma from "@/database/client.js";
-import {
-  createOrder,
-  logPayment,
-} from "@/services/razorpayService.js";
+import { fromDecimal } from "@/utils/currency";
+import { createOrder, logPayment } from "@/services/razorpayService.js";
 import {
   getEventStatus,
   checkRegistrationEligibility,
@@ -36,7 +34,10 @@ export const getActiveEvents = async (req: Request, res: Response) => {
         { registrationEndAt: { gte: now } },
       ];
     } else if (status === "active") {
-      where.AND = [{ eventStartAt: { lte: now } }, { eventEndAt: { gte: now } }];
+      where.AND = [
+        { eventStartAt: { lte: now } },
+        { eventEndAt: { gte: now } },
+      ];
     }
 
     // Pagination
@@ -165,7 +166,7 @@ export const getEventDetails = async (req: Request, res: Response) => {
 
     // Check if eventId is a CUID (25 chars alphanumeric) or a slug
     const isCuid = /^c[a-z0-9]{24}$/.test(eventId);
-    
+
     const whereClause = isCuid ? { id: eventId } : { slug: eventId };
 
     const event = await prisma.event.findUnique({
@@ -184,17 +185,17 @@ export const getEventDetails = async (req: Request, res: Response) => {
     if (!event) {
       return res.status(404).json({
         success: false,
-      error: {
-        code: "EVENT_NOT_FOUND",
-        message: "Event not found",
-      },
+        error: {
+          code: "EVENT_NOT_FOUND",
+          message: "Event not found",
+        },
       });
     }
 
     // Check if user is registered
     let userRegistration = null;
     if (userId) {
-      userRegistration = await prisma.eventRegistration.findUnique({
+      userRegistration = (await prisma.eventRegistration.findUnique({
         where: {
           userId_eventId: {
             userId,
@@ -205,7 +206,7 @@ export const getEventDetails = async (req: Request, res: Response) => {
         include: {
           eventAccount: true,
         },
-      }) as any;
+      })) as any;
     }
 
     return res.status(200).json({
@@ -269,10 +270,10 @@ export const registerForEvent = async (req: Request, res: Response) => {
     if (!event) {
       return res.status(404).json({
         success: false,
-      error: {
-        code: "EVENT_NOT_FOUND",
-        message: "Event not found",
-      },
+        error: {
+          code: "EVENT_NOT_FOUND",
+          message: "Event not found",
+        },
       });
     }
 
@@ -284,10 +285,46 @@ export const registerForEvent = async (req: Request, res: Response) => {
       });
     }
 
-    // Create Razorpay order
+    const registrationFeeAmount = fromDecimal(event.registrationFee);
+
+    // Handle FREE events (registration fee = 0)
+    if (registrationFeeAmount === 0) {
+      // Directly create registration without payment
+      const registration = await prisma.eventRegistration.create({
+        data: {
+          userId,
+          eventId: event.id,
+          amountPaid: 0,
+          paymentStatus: "COMPLETED",
+          status: "CONFIRMED",
+        },
+      });
+
+      // Create event account with initial balance
+      await prisma.eventAccount.create({
+        data: {
+          registrationId: registration.id,
+          cash: event.initialBalance,
+          usedMargin: 0,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Successfully registered for free event",
+        registration: {
+          id: registration.id,
+          status: registration.status,
+        },
+      });
+    }
+
+    // Create Razorpay order for paid events
     const order = await createOrder({
-      amount: event.registrationFee,
-      receipt: `evt_${event.id.slice(-8)}_${userId.slice(-8)}_${Date.now().toString().slice(-6)}`,
+      amount: registrationFeeAmount,
+      receipt: `evt_${event.id.slice(-8)}_${userId.slice(-8)}_${Date.now()
+        .toString()
+        .slice(-6)}`,
       notes: {
         eventId: event.id,
         userId,
@@ -299,7 +336,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
     await logPayment({
       userId,
       razorpayOrderId: order.orderId,
-      amount: event.registrationFee,
+      amount: registrationFeeAmount,
       status: "PENDING",
       purpose: "EVENT_REGISTRATION",
       referenceId: undefined, // No registration ID yet

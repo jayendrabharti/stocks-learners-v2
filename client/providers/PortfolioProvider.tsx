@@ -50,29 +50,33 @@ const PortfolioContext = createContext<PortfolioContextValue | null>(null);
 
 export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const { user } = useSession();
-  
+
   // Load initial context from localStorage
   const getInitialContext = (): ActiveContext => {
-    if (typeof window === 'undefined') return { type: "MAIN" };
-    
+    if (typeof window === "undefined") return { type: "MAIN" };
+
     try {
-      const saved = localStorage.getItem('activePortfolioContext');
+      const saved = localStorage.getItem("activePortfolioContext");
       if (saved) {
         const parsed = JSON.parse(saved);
         // Validate the saved context
-        if (parsed.type === "MAIN" || (parsed.type === "EVENT" && parsed.eventId)) {
+        if (
+          parsed.type === "MAIN" ||
+          (parsed.type === "EVENT" && parsed.eventId)
+        ) {
           return parsed;
         }
       }
     } catch (error) {
       console.error("Error loading saved context:", error);
     }
-    
+
     return { type: "MAIN" };
   };
-  
+
   // Context State with localStorage
-  const [activeContext, setActiveContext] = useState<ActiveContext>(getInitialContext);
+  const [activeContext, setActiveContext] =
+    useState<ActiveContext>(getInitialContext);
 
   // Data State
   const [account, setAccount] = useState<AccountBalance | null>(null);
@@ -87,23 +91,21 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   // Reset data when context changes
   useEffect(() => {
     if (!user) return;
-    
+
     setAccount(null);
     setPortfolio(null);
     setPositions([]);
     setAccountLoading(true);
     setPortfolioLoading(true);
     setPositionsLoading(true);
-    
+
     // Load data for the new context
     const loadData = async () => {
       try {
         if (activeContext.type === "MAIN") {
-          const [accountData, portfolioData, positionsData] = await Promise.all([
-            getAccount(),
-            getPortfolio(),
-            getPositions(),
-          ]);
+          const [accountData, portfolioData, positionsData] = await Promise.all(
+            [getAccount(), getPortfolio(), getPositions()],
+          );
           setAccount(accountData);
           setPortfolio(portfolioData);
           setPositions(positionsData);
@@ -120,15 +122,20 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
           setPortfolio(portfolioData as any);
           setPositions(positionsData.positions as any);
         }
-      } catch (error) {
-        console.error("Failed to load data after context switch:", error);
+      } catch (error: any) {
+        // Only log non-auth errors to avoid noise
+        const isAuthError = error?.response?.status === 401;
+        if (!isAuthError) {
+          console.error("Failed to load data after context switch:", error);
+        }
+        // Data stays in reset state (null/empty) which components can handle gracefully
       } finally {
         setAccountLoading(false);
         setPortfolioLoading(false);
         setPositionsLoading(false);
       }
     };
-    
+
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeContext.type, activeContext.eventId]);
@@ -137,7 +144,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     setActiveContext(context);
     // Persist to localStorage
     try {
-      localStorage.setItem('activePortfolioContext', JSON.stringify(context));
+      localStorage.setItem("activePortfolioContext", JSON.stringify(context));
     } catch (error) {
       console.error("Error saving context to localStorage:", error);
     }
@@ -151,7 +158,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setAccountLoading(true);
-      
+
       if (activeContext.type === "MAIN") {
         const data = await getAccount();
         setAccount(data);
@@ -163,8 +170,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
           availableMargin: data.account.availableMargin,
         });
       }
-    } catch (error) {
-      console.error("Failed to fetch account:", error);
+    } catch (error: any) {
+      // Silent fail for auth errors - components will show login prompt
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Failed to fetch account:", error);
+      }
     } finally {
       setAccountLoading(false);
     }
@@ -186,8 +197,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         const data = await eventTradingApi.getPortfolio(activeContext.eventId);
         setPortfolio(data as any);
       }
-    } catch (error) {
-      console.error("Failed to fetch portfolio:", error);
+    } catch (error: any) {
+      // Silent fail for auth errors - components will show login prompt
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Failed to fetch portfolio:", error);
+      }
     } finally {
       setPortfolioLoading(false);
     }
@@ -209,8 +224,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
         const data = await eventTradingApi.getPositions(activeContext.eventId);
         setPositions(data.positions as any);
       }
-    } catch (error) {
-      console.error("Failed to fetch positions:", error);
+    } catch (error: any) {
+      // Silent fail for auth errors - components will show login prompt
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Failed to fetch positions:", error);
+      }
     } finally {
       setPositionsLoading(false);
     }

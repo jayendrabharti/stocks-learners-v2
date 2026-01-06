@@ -1,38 +1,82 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import ApiClient from "@/utils/ApiClient";
 
 export default function AdminSettingsPage() {
-  const { toast } = useToast();
-  const [exchangeRate, setExchangeRate] = useState("1.0");
+  const [currentRate, setCurrentRate] = useState<number>(1.0);
+  const [exchangeRate, setExchangeRate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+
+  // Fetch current exchange rate on mount
+  useEffect(() => {
+    ApiClient.get("/admin/settings")
+      .then((response) => {
+        const rate = response.data.exchangeRate;
+        setCurrentRate(rate);
+        setExchangeRate(rate.toString());
+      })
+      .catch((err) => {
+        toast.error("Failed to load settings", {
+          description: err.response?.data?.error?.message || "Unknown error",
+        });
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
+  }, []);
 
   const handleUpdateExchangeRate = async () => {
+    const rate = parseFloat(exchangeRate);
+
+    // Validation
+    if (isNaN(rate) || !isFinite(rate)) {
+      toast.error("Invalid exchange rate", {
+        description: "Please enter a valid number",
+      });
+      return;
+    }
+
+    if (rate <= 0) {
+      toast.error("Invalid exchange rate", {
+        description: "Exchange rate must be greater than 0",
+      });
+      return;
+    }
+
+    if (rate > 1000) {
+      toast.error("Invalid exchange rate", {
+        description: "Exchange rate cannot exceed 1000",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/settings/exchange-rate", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exchangeRate: parseFloat(exchangeRate) }),
+      const response = await ApiClient.put("/admin/settings/exchange-rate", {
+        exchangeRate: rate,
       });
 
-      if (!response.ok) throw new Error("Failed to update");
-
-      toast({
-        title: "Success",
-        description: "Exchange rate updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update exchange rate",
-        variant: "destructive",
+      if (response.status === 200) {
+        setCurrentRate(rate);
+        toast.success("Exchange rate updated successfully!");
+      }
+    } catch (err: any) {
+      toast.error("Failed to update exchange rate", {
+        description: err.response?.data?.error?.message || "Unknown error",
       });
     } finally {
       setIsLoading(false);
@@ -40,9 +84,9 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Settings</h1>
+        <h1 className="mb-2 text-4xl font-bold">Settings</h1>
         <p className="text-muted-foreground text-lg">
           Configure application settings
         </p>
@@ -56,41 +100,77 @@ export default function AdminSettingsPage() {
               Exchange Rate Configuration
             </CardTitle>
             <CardDescription>
-              Set the conversion rate from real money to dummy trading money
+              Set the conversion rate from real money to dummy trading money.
+              Current rate: <span className="font-medium">{currentRate}</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="exchangeRate">Exchange Rate</Label>
-              <Input
-                id="exchangeRate"
-                type="number"
-                step="0.1"
-                min="0.1"
-                value={exchangeRate}
-                onChange={(e) => setExchangeRate(e.target.value)}
-                placeholder="1.0"
-              />
-              <p className="text-sm text-muted-foreground">
-                Example: If exchange rate is 10, depositing ₹100 will give ₹1000 dummy money
-              </p>
-            </div>
-
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">Preview</h4>
-              <div className="space-y-1 text-sm">
-                <p>₹100 real money = ₹{(100 * parseFloat(exchangeRate || "1")).toLocaleString()} dummy money</p>
-                <p>₹1,000 real money = ₹{(1000 * parseFloat(exchangeRate || "1")).toLocaleString()} dummy money</p>
-                <p>₹10,000 real money = ₹{(10000 * parseFloat(exchangeRate || "1")).toLocaleString()} dummy money</p>
+            {isFetching ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="exchangeRate">Exchange Rate</Label>
+                  <Input
+                    id="exchangeRate"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="1000"
+                    value={exchangeRate}
+                    onChange={(e) => setExchangeRate(e.target.value)}
+                    placeholder="1.0"
+                  />
+                  <p className="text-muted-foreground text-sm">
+                    Example: If exchange rate is 10, depositing ₹100 will give
+                    ₹1000 dummy money
+                  </p>
+                </div>
 
-            <Button
-              onClick={handleUpdateExchangeRate}
-              disabled={isLoading || !exchangeRate || parseFloat(exchangeRate) <= 0}
-            >
-              {isLoading ? "Updating..." : "Update Exchange Rate"}
-            </Button>
+                <div className="bg-muted rounded-lg p-4">
+                  <h4 className="mb-2 font-medium">Preview</h4>
+                  <div className="space-y-1 text-sm">
+                    <p>
+                      ₹100 real money = ₹
+                      {(100 * (parseFloat(exchangeRate) || 0)).toLocaleString()}{" "}
+                      dummy money
+                    </p>
+                    <p>
+                      ₹1,000 real money = ₹
+                      {(
+                        1000 * (parseFloat(exchangeRate) || 0)
+                      ).toLocaleString()}{" "}
+                      dummy money
+                    </p>
+                    <p>
+                      ₹10,000 real money = ₹
+                      {(
+                        10000 * (parseFloat(exchangeRate) || 0)
+                      ).toLocaleString()}{" "}
+                      dummy money
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleUpdateExchangeRate}
+                  disabled={
+                    isLoading || !exchangeRate || parseFloat(exchangeRate) <= 0
+                  }
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Exchange Rate"
+                  )}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

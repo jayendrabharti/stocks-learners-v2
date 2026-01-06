@@ -27,20 +27,20 @@ export type AggregateEventAccount = {
 }
 
 export type EventAccountAvgAggregateOutputType = {
-  cash: number | null
-  usedMargin: number | null
+  cash: runtime.Decimal | null
+  usedMargin: runtime.Decimal | null
 }
 
 export type EventAccountSumAggregateOutputType = {
-  cash: number | null
-  usedMargin: number | null
+  cash: runtime.Decimal | null
+  usedMargin: runtime.Decimal | null
 }
 
 export type EventAccountMinAggregateOutputType = {
   id: string | null
   registrationId: string | null
-  cash: number | null
-  usedMargin: number | null
+  cash: runtime.Decimal | null
+  usedMargin: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -48,8 +48,8 @@ export type EventAccountMinAggregateOutputType = {
 export type EventAccountMaxAggregateOutputType = {
   id: string | null
   registrationId: string | null
-  cash: number | null
-  usedMargin: number | null
+  cash: runtime.Decimal | null
+  usedMargin: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -192,8 +192,8 @@ export type EventAccountGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type EventAccountGroupByOutputType = {
   id: string
   registrationId: string
-  cash: number
-  usedMargin: number
+  cash: runtime.Decimal
+  usedMargin: runtime.Decimal
   createdAt: Date
   updatedAt: Date
   _count: EventAccountCountAggregateOutputType | null
@@ -224,8 +224,8 @@ export type EventAccountWhereInput = {
   NOT?: Prisma.EventAccountWhereInput | Prisma.EventAccountWhereInput[]
   id?: Prisma.StringFilter<"EventAccount"> | string
   registrationId?: Prisma.StringFilter<"EventAccount"> | string
-  cash?: Prisma.FloatFilter<"EventAccount"> | number
-  usedMargin?: Prisma.FloatFilter<"EventAccount"> | number
+  cash?: Prisma.DecimalFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventAccount"> | Date | string
   registration?: Prisma.XOR<Prisma.EventRegistrationScalarRelationFilter, Prisma.EventRegistrationWhereInput>
@@ -251,8 +251,8 @@ export type EventAccountWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.EventAccountWhereInput | Prisma.EventAccountWhereInput[]
   OR?: Prisma.EventAccountWhereInput[]
   NOT?: Prisma.EventAccountWhereInput | Prisma.EventAccountWhereInput[]
-  cash?: Prisma.FloatFilter<"EventAccount"> | number
-  usedMargin?: Prisma.FloatFilter<"EventAccount"> | number
+  cash?: Prisma.DecimalFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventAccount"> | Date | string
   registration?: Prisma.XOR<Prisma.EventRegistrationScalarRelationFilter, Prisma.EventRegistrationWhereInput>
@@ -280,16 +280,16 @@ export type EventAccountScalarWhereWithAggregatesInput = {
   NOT?: Prisma.EventAccountScalarWhereWithAggregatesInput | Prisma.EventAccountScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"EventAccount"> | string
   registrationId?: Prisma.StringWithAggregatesFilter<"EventAccount"> | string
-  cash?: Prisma.FloatWithAggregatesFilter<"EventAccount"> | number
-  usedMargin?: Prisma.FloatWithAggregatesFilter<"EventAccount"> | number
+  cash?: Prisma.DecimalWithAggregatesFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalWithAggregatesFilter<"EventAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventAccount"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EventAccount"> | Date | string
 }
 
 export type EventAccountCreateInput = {
   id?: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   registration: Prisma.EventRegistrationCreateNestedOneWithoutEventAccountInput
@@ -300,8 +300,8 @@ export type EventAccountCreateInput = {
 export type EventAccountUncheckedCreateInput = {
   id?: string
   registrationId: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutEventAccountInput
@@ -310,8 +310,8 @@ export type EventAccountUncheckedCreateInput = {
 
 export type EventAccountUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   registration?: Prisma.EventRegistrationUpdateOneRequiredWithoutEventAccountNestedInput
@@ -322,8 +322,8 @@ export type EventAccountUpdateInput = {
 export type EventAccountUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   registrationId?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.EventPositionUncheckedUpdateManyWithoutEventAccountNestedInput
@@ -333,16 +333,16 @@ export type EventAccountUncheckedUpdateInput = {
 export type EventAccountCreateManyInput = {
   id?: string
   registrationId: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type EventAccountUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -350,8 +350,8 @@ export type EventAccountUpdateManyMutationInput = {
 export type EventAccountUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   registrationId?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -465,8 +465,8 @@ export type EventAccountUpdateOneRequiredWithoutTransactionsNestedInput = {
 
 export type EventAccountCreateWithoutRegistrationInput = {
   id?: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.EventPositionCreateNestedManyWithoutEventAccountInput
@@ -475,8 +475,8 @@ export type EventAccountCreateWithoutRegistrationInput = {
 
 export type EventAccountUncheckedCreateWithoutRegistrationInput = {
   id?: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutEventAccountInput
@@ -501,8 +501,8 @@ export type EventAccountUpdateToOneWithWhereWithoutRegistrationInput = {
 
 export type EventAccountUpdateWithoutRegistrationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.EventPositionUpdateManyWithoutEventAccountNestedInput
@@ -511,8 +511,8 @@ export type EventAccountUpdateWithoutRegistrationInput = {
 
 export type EventAccountUncheckedUpdateWithoutRegistrationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.EventPositionUncheckedUpdateManyWithoutEventAccountNestedInput
@@ -521,8 +521,8 @@ export type EventAccountUncheckedUpdateWithoutRegistrationInput = {
 
 export type EventAccountCreateWithoutPositionsInput = {
   id?: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   registration: Prisma.EventRegistrationCreateNestedOneWithoutEventAccountInput
@@ -532,8 +532,8 @@ export type EventAccountCreateWithoutPositionsInput = {
 export type EventAccountUncheckedCreateWithoutPositionsInput = {
   id?: string
   registrationId: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.EventTransactionUncheckedCreateNestedManyWithoutEventAccountInput
@@ -557,8 +557,8 @@ export type EventAccountUpdateToOneWithWhereWithoutPositionsInput = {
 
 export type EventAccountUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   registration?: Prisma.EventRegistrationUpdateOneRequiredWithoutEventAccountNestedInput
@@ -568,8 +568,8 @@ export type EventAccountUpdateWithoutPositionsInput = {
 export type EventAccountUncheckedUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   registrationId?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.EventTransactionUncheckedUpdateManyWithoutEventAccountNestedInput
@@ -577,8 +577,8 @@ export type EventAccountUncheckedUpdateWithoutPositionsInput = {
 
 export type EventAccountCreateWithoutTransactionsInput = {
   id?: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   registration: Prisma.EventRegistrationCreateNestedOneWithoutEventAccountInput
@@ -588,8 +588,8 @@ export type EventAccountCreateWithoutTransactionsInput = {
 export type EventAccountUncheckedCreateWithoutTransactionsInput = {
   id?: string
   registrationId: string
-  cash?: number
-  usedMargin?: number
+  cash?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.EventPositionUncheckedCreateNestedManyWithoutEventAccountInput
@@ -613,8 +613,8 @@ export type EventAccountUpdateToOneWithWhereWithoutTransactionsInput = {
 
 export type EventAccountUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   registration?: Prisma.EventRegistrationUpdateOneRequiredWithoutEventAccountNestedInput
@@ -624,8 +624,8 @@ export type EventAccountUpdateWithoutTransactionsInput = {
 export type EventAccountUncheckedUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   registrationId?: Prisma.StringFieldUpdateOperationsInput | string
-  cash?: Prisma.FloatFieldUpdateOperationsInput | number
-  usedMargin?: Prisma.FloatFieldUpdateOperationsInput | number
+  cash?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  usedMargin?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.EventPositionUncheckedUpdateManyWithoutEventAccountNestedInput
@@ -737,8 +737,8 @@ export type $EventAccountPayload<ExtArgs extends runtime.Types.Extensions.Intern
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     registrationId: string
-    cash: number
-    usedMargin: number
+    cash: runtime.Decimal
+    usedMargin: runtime.Decimal
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["eventAccount"]>
@@ -1169,8 +1169,8 @@ export interface Prisma__EventAccountClient<T, Null = never, ExtArgs extends run
 export interface EventAccountFieldRefs {
   readonly id: Prisma.FieldRef<"EventAccount", 'String'>
   readonly registrationId: Prisma.FieldRef<"EventAccount", 'String'>
-  readonly cash: Prisma.FieldRef<"EventAccount", 'Float'>
-  readonly usedMargin: Prisma.FieldRef<"EventAccount", 'Float'>
+  readonly cash: Prisma.FieldRef<"EventAccount", 'Decimal'>
+  readonly usedMargin: Prisma.FieldRef<"EventAccount", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"EventAccount", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EventAccount", 'DateTime'>
 }

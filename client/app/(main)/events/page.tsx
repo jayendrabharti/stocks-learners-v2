@@ -5,13 +5,15 @@ import eventsApi, { Event } from "@/services/eventsApi";
 import EventCard from "@/components/events/EventCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Trophy } from "lucide-react";
+import { Search, Trophy, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EventsPage() {
   const [localEvents, setLocalEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -19,6 +21,7 @@ export default function EventsPage() {
 
   const loadEvents = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const params: { status?: string; myEvents?: boolean } = {};
       // Map tab values to API status values
@@ -35,7 +38,15 @@ export default function EventsPage() {
       // "all" tab sends no status filter
       const response = await eventsApi.getActiveEvents(params);
       setLocalEvents(response.events);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to load events";
+      setError(errorMessage);
+      toast.error("Failed to load events", {
+        description: errorMessage,
+      });
       console.error("Error loading events:", error);
     } finally {
       setIsLoading(false);
@@ -97,6 +108,22 @@ export default function EventsPage() {
                   className="bg-muted h-96 animate-pulse rounded-lg"
                 />
               ))}
+            </div>
+          ) : error ? (
+            <div className="py-16 text-center">
+              <div className="bg-destructive/10 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full">
+                <AlertCircle className="text-destructive h-10 w-10" />
+              </div>
+              <h3 className="mb-2 text-xl font-semibold">
+                Failed to load events
+              </h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <button
+                onClick={loadEvents}
+                className="text-primary hover:underline"
+              >
+                Try again
+              </button>
             </div>
           ) : filteredEvents.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

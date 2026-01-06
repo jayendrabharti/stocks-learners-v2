@@ -27,11 +27,11 @@ export type AggregateEventRegistration = {
 }
 
 export type EventRegistrationAvgAggregateOutputType = {
-  amountPaid: number | null
+  amountPaid: runtime.Decimal | null
 }
 
 export type EventRegistrationSumAggregateOutputType = {
-  amountPaid: number | null
+  amountPaid: runtime.Decimal | null
 }
 
 export type EventRegistrationMinAggregateOutputType = {
@@ -41,7 +41,7 @@ export type EventRegistrationMinAggregateOutputType = {
   paymentId: string | null
   orderId: string | null
   paymentStatus: $Enums.PaymentStatus | null
-  amountPaid: number | null
+  amountPaid: runtime.Decimal | null
   status: $Enums.RegistrationStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -54,7 +54,7 @@ export type EventRegistrationMaxAggregateOutputType = {
   paymentId: string | null
   orderId: string | null
   paymentStatus: $Enums.PaymentStatus | null
-  amountPaid: number | null
+  amountPaid: runtime.Decimal | null
   status: $Enums.RegistrationStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -216,7 +216,7 @@ export type EventRegistrationGroupByOutputType = {
   paymentId: string | null
   orderId: string | null
   paymentStatus: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal
   status: $Enums.RegistrationStatus
   createdAt: Date
   updatedAt: Date
@@ -252,7 +252,7 @@ export type EventRegistrationWhereInput = {
   paymentId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   orderId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"EventRegistration"> | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFilter<"EventRegistration"> | number
+  amountPaid?: Prisma.DecimalFilter<"EventRegistration"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFilter<"EventRegistration"> | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
@@ -288,7 +288,7 @@ export type EventRegistrationWhereUniqueInput = Prisma.AtLeast<{
   paymentId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   orderId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"EventRegistration"> | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFilter<"EventRegistration"> | number
+  amountPaid?: Prisma.DecimalFilter<"EventRegistration"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFilter<"EventRegistration"> | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
@@ -325,7 +325,7 @@ export type EventRegistrationScalarWhereWithAggregatesInput = {
   paymentId?: Prisma.StringNullableWithAggregatesFilter<"EventRegistration"> | string | null
   orderId?: Prisma.StringNullableWithAggregatesFilter<"EventRegistration"> | string | null
   paymentStatus?: Prisma.EnumPaymentStatusWithAggregatesFilter<"EventRegistration"> | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatWithAggregatesFilter<"EventRegistration"> | number
+  amountPaid?: Prisma.DecimalWithAggregatesFilter<"EventRegistration"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusWithAggregatesFilter<"EventRegistration"> | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EventRegistration"> | Date | string
@@ -336,7 +336,7 @@ export type EventRegistrationCreateInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -352,7 +352,7 @@ export type EventRegistrationUncheckedCreateInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -364,7 +364,7 @@ export type EventRegistrationUpdateInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -380,7 +380,7 @@ export type EventRegistrationUncheckedUpdateInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,7 +394,7 @@ export type EventRegistrationCreateManyInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -405,7 +405,7 @@ export type EventRegistrationUpdateManyMutationInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -418,7 +418,7 @@ export type EventRegistrationUncheckedUpdateManyInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -598,7 +598,7 @@ export type EventRegistrationCreateWithoutUserInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -612,7 +612,7 @@ export type EventRegistrationUncheckedCreateWithoutUserInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -655,7 +655,7 @@ export type EventRegistrationScalarWhereInput = {
   paymentId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   orderId?: Prisma.StringNullableFilter<"EventRegistration"> | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFilter<"EventRegistration"> | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFilter<"EventRegistration"> | number
+  amountPaid?: Prisma.DecimalFilter<"EventRegistration"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFilter<"EventRegistration"> | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventRegistration"> | Date | string
@@ -666,7 +666,7 @@ export type EventRegistrationCreateWithoutEventInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -680,7 +680,7 @@ export type EventRegistrationUncheckedCreateWithoutEventInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -718,7 +718,7 @@ export type EventRegistrationCreateWithoutEventAccountInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -733,7 +733,7 @@ export type EventRegistrationUncheckedCreateWithoutEventAccountInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -760,7 +760,7 @@ export type EventRegistrationUpdateWithoutEventAccountInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -775,7 +775,7 @@ export type EventRegistrationUncheckedUpdateWithoutEventAccountInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -787,7 +787,7 @@ export type EventRegistrationCreateManyUserInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -798,7 +798,7 @@ export type EventRegistrationUpdateWithoutUserInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -812,7 +812,7 @@ export type EventRegistrationUncheckedUpdateWithoutUserInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -825,7 +825,7 @@ export type EventRegistrationUncheckedUpdateManyWithoutUserInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -837,7 +837,7 @@ export type EventRegistrationCreateManyEventInput = {
   paymentId?: string | null
   orderId?: string | null
   paymentStatus?: $Enums.PaymentStatus
-  amountPaid: number
+  amountPaid: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: $Enums.RegistrationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -848,7 +848,7 @@ export type EventRegistrationUpdateWithoutEventInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -862,7 +862,7 @@ export type EventRegistrationUncheckedUpdateWithoutEventInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -875,7 +875,7 @@ export type EventRegistrationUncheckedUpdateManyWithoutEventInput = {
   paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentStatus?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
-  amountPaid?: Prisma.FloatFieldUpdateOperationsInput | number
+  amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.EnumRegistrationStatusFieldUpdateOperationsInput | $Enums.RegistrationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -971,7 +971,7 @@ export type $EventRegistrationPayload<ExtArgs extends runtime.Types.Extensions.I
     paymentId: string | null
     orderId: string | null
     paymentStatus: $Enums.PaymentStatus
-    amountPaid: number
+    amountPaid: runtime.Decimal
     status: $Enums.RegistrationStatus
     createdAt: Date
     updatedAt: Date
@@ -1407,7 +1407,7 @@ export interface EventRegistrationFieldRefs {
   readonly paymentId: Prisma.FieldRef<"EventRegistration", 'String'>
   readonly orderId: Prisma.FieldRef<"EventRegistration", 'String'>
   readonly paymentStatus: Prisma.FieldRef<"EventRegistration", 'PaymentStatus'>
-  readonly amountPaid: Prisma.FieldRef<"EventRegistration", 'Float'>
+  readonly amountPaid: Prisma.FieldRef<"EventRegistration", 'Decimal'>
   readonly status: Prisma.FieldRef<"EventRegistration", 'RegistrationStatus'>
   readonly createdAt: Prisma.FieldRef<"EventRegistration", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EventRegistration", 'DateTime'>

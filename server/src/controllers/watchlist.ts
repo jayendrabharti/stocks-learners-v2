@@ -5,11 +5,11 @@ import { Request, Response } from "express";
 export const getAllWatchlistItems = async (req: Request, res: Response) => {
   try {
     if (!req.user?.id) {
-      return res.status(500).json({
+      return res.status(401).json({
         success: false,
         error: {
           code: "UNAUTHORIZED",
-          message: "User id not found",
+          message: "Please log in to view your watchlist",
         },
       });
     }

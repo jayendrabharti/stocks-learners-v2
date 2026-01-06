@@ -5,6 +5,8 @@
 
 import type { TradeType } from "@/database/generated/enums.js";
 import prisma from "@/database/client.js";
+import { Prisma } from "@/database/generated/client";
+import { fromDecimal, roundCurrency } from "@/utils/currency";
 
 export interface EventBuyOrderInput {
   eventAccountId: string;
@@ -51,11 +53,21 @@ export async function executeEventBuy(
       throw new Error("Event account not found");
     }
 
+    // Validate event timeframe
+    const now = new Date();
+    const event = eventAccount.registration.event;
 
+    if (now < event.eventStartAt) {
+      throw new Error("Event trading has not started yet");
+    }
 
-    // Use the main executeBuy logic but with event-specific context
-    // Note: The main logic needs to be adapted to work with event accounts
-    // For now, we'll implement event-specific logic here
+    if (now > event.eventEndAt) {
+      throw new Error("Event trading has ended");
+    }
+
+    if (!event.isActive) {
+      throw new Error("Event is not active");
+    }
 
     const result = await executeEventBuyInternal({
       eventAccountId,
@@ -87,10 +99,9 @@ async function executeEventBuyInternal(
   const { fetchInstrumentById } = await import("@/utils/instruments/index.js");
   const { getLivePrice } = await import("../livePrice.js");
   const { validateOrder } = await import("../validateOrder.js");
-  const {
-    recalculatePositionOnBuy,
-    createInitialPositionData,
-  } = await import("../updatePosition.js");
+  const { recalculatePositionOnBuy, createInitialPositionData } = await import(
+    "../updatePosition.js"
+  );
   const { setAutoSquareOffTime } = await import(
     "@/services/autoSquareOffService.js"
   );
@@ -110,22 +121,38 @@ async function executeEventBuyInternal(
     instrument.type,
     instrument.exchangeToken
   );
-  const executedPrice = ltp;
 
-  // Step 3: Validate order
-  const validation = validateOrder(instrument, "BUY", qty, executedPrice, product);
-  if (!validation.valid) {
+  // Validate price is positive (catches API failures/bad data)
+  if (!ltp || ltp <= 0 || !isFinite(ltp)) {
     throw new Error(
-      `Order validation failed: ${validation.errors.map((e) => e.message).join(", ")}`
+      `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`
     );
   }
 
-  // Step 4: Calculate fees
-  const orderValue = executedPrice * qty;
+  const executedPrice = ltp;
+
+  // Step 3: Validate order
+  const validation = validateOrder(
+    instrument,
+    "BUY",
+    qty,
+    executedPrice,
+    product
+  );
+  if (!validation.valid) {
+    throw new Error(
+      `Order validation failed: ${validation.errors
+        .map((e) => e.message)
+        .join(", ")}`
+    );
+  }
+
+  // Step 4: Calculate fees with proper rounding
+  const orderValue = roundCurrency(executedPrice * qty);
   const feeRate = product === "MIS" ? 0.0005 : 0.001;
   const additionalFee = instrument.segment === "FNO" ? 20 : 0;
-  const fees = orderValue * feeRate + additionalFee;
-  const totalCost = orderValue + fees;
+  const fees = roundCurrency(orderValue * feeRate + additionalFee);
+  const totalCost = roundCurrency(orderValue + fees);
 
   // Step 5: Check event account balance
   const eventAccount = await prisma.eventAccount.findUnique({
@@ -136,131 +163,158 @@ async function executeEventBuyInternal(
     throw new Error("Event account not found");
   }
 
-  // For MIS, validate margin
-  if (product === "MIS") {
-    const requiredMargin = (executedPrice * qty) / instrument.leverage;
-    const totalRequired = requiredMargin + fees;
-
-    if (eventAccount.cash < totalRequired) {
-      throw new Error(
-        `Insufficient funds. Required: ₹${totalRequired.toFixed(2)}, Available: ₹${eventAccount.cash.toFixed(2)}`
-      );
-    }
-  } else {
-    // For CNC, check full amount
-    if (eventAccount.cash < totalCost) {
-      throw new Error(
-        `Insufficient funds. Required: ${totalCost.toFixed(2)}, Available: ${eventAccount.cash.toFixed(2)}`
-      );
-    }
+  // Validate leverage is positive
+  if (product === "MIS" && instrument.leverage <= 0) {
+    throw new Error("Invalid instrument leverage configuration");
   }
 
-  // Step 6: Execute in transaction
-  const result = await prisma.$transaction(async (tx) => {
-    // Find or create event position
-    let position = await tx.eventPosition.findFirst({
-      where: {
-        eventAccountId,
-        instrumentId,
-        product,
-        isOpen: true,
-      },
-      include: {
-        lots: true,
-      },
-    });
+  // Step 5 & 6: Execute in Serializable transaction with atomic balance check
+  const result = await prisma.$transaction(
+    async (tx) => {
+      // Re-fetch account inside transaction for atomic balance check
+      const eventAccount = await tx.eventAccount.findUnique({
+        where: { id: eventAccountId },
+      });
 
-    let isNewPosition = false;
+      if (!eventAccount) {
+        throw new Error("Event account not found");
+      }
 
-    if (!position) {
-      const initialData = createInitialPositionData(qty, executedPrice);
-      position = await tx.eventPosition.create({
-        data: {
+      const accountCash = fromDecimal(eventAccount.cash);
+
+      // Validate sufficient funds inside transaction
+      if (product === "MIS") {
+        const requiredMargin = roundCurrency(
+          (executedPrice * qty) / instrument.leverage
+        );
+        const totalRequired = roundCurrency(requiredMargin + fees);
+
+        if (accountCash < totalRequired) {
+          throw new Error(
+            `Insufficient funds. Required: ₹${totalRequired.toFixed(
+              2
+            )}, Available: ₹${accountCash.toFixed(2)}`
+          );
+        }
+      } else {
+        if (accountCash < totalCost) {
+          throw new Error(
+            `Insufficient funds. Required: ${totalCost.toFixed(
+              2
+            )}, Available: ${accountCash.toFixed(2)}`
+          );
+        }
+      }
+
+      // Find or create event position
+      let position = await tx.eventPosition.findFirst({
+        where: {
           eventAccountId,
           instrumentId,
           product,
-          ...initialData,
+          isOpen: true,
         },
         include: {
           lots: true,
         },
       });
-      isNewPosition = true;
-    }
 
-    // Create transaction record
-    const transaction = await tx.eventTransaction.create({
-      data: {
-        eventAccountId,
-        instrumentId,
+      let isNewPosition = false;
+
+      if (!position) {
+        const initialData = createInitialPositionData(qty, executedPrice);
+        position = await tx.eventPosition.create({
+          data: {
+            eventAccountId,
+            instrumentId,
+            product,
+            ...initialData,
+          },
+          include: {
+            lots: true,
+          },
+        });
+        isNewPosition = true;
+      }
+
+      // Create transaction record
+      const transaction = await tx.eventTransaction.create({
+        data: {
+          eventAccountId,
+          instrumentId,
+          positionId: position.id,
+          side: "BUY",
+          product,
+          qty,
+          price: executedPrice,
+          limitPrice: limitPrice || null,
+          fees,
+        },
+      });
+
+      // Create position lot
+      await tx.eventPositionLot.create({
+        data: {
+          positionId: position.id,
+          buyTransactionId: transaction.id,
+          totalQty: qty,
+          remainingQty: qty,
+          buyPrice: executedPrice,
+        },
+      });
+
+      // Update position if not new
+      if (!isNewPosition) {
+        const updatedPosition = recalculatePositionOnBuy(
+          position.qty,
+          fromDecimal(position.avgPrice),
+          qty,
+          executedPrice
+        );
+
+        await tx.eventPosition.update({
+          where: { id: position.id },
+          data: {
+            qty: updatedPosition.qty,
+            avgPrice: updatedPosition.avgPrice,
+            updatedAt: new Date(),
+          },
+        });
+      }
+
+      // Update event account
+      if (product === "MIS") {
+        const requiredMargin = (executedPrice * qty) / instrument.leverage;
+        const totalDeduction = requiredMargin + fees;
+
+        await tx.eventAccount.update({
+          where: { id: eventAccountId },
+          data: {
+            cash: { decrement: totalDeduction },
+            usedMargin: { increment: requiredMargin },
+            updatedAt: new Date(),
+          },
+        });
+      } else {
+        await tx.eventAccount.update({
+          where: { id: eventAccountId },
+          data: {
+            cash: { decrement: totalCost },
+            updatedAt: new Date(),
+          },
+        });
+      }
+
+      return {
+        transactionId: transaction.id,
         positionId: position.id,
-        side: "BUY",
-        product,
-        qty,
-        price: executedPrice,
-        limitPrice: limitPrice || null,
-        fees,
-      },
-    });
-
-    // Create position lot
-    await tx.eventPositionLot.create({
-      data: {
-        positionId: position.id,
-        buyTransactionId: transaction.id,
-        totalQty: qty,
-        remainingQty: qty,
-        buyPrice: executedPrice,
-      },
-    });
-
-    // Update position if not new
-    if (!isNewPosition) {
-      const updatedPosition = recalculatePositionOnBuy(
-        position.qty,
-        position.avgPrice,
-        qty,
-        executedPrice
-      );
-
-      await tx.eventPosition.update({
-        where: { id: position.id },
-        data: {
-          qty: updatedPosition.qty,
-          avgPrice: updatedPosition.avgPrice,
-          updatedAt: new Date(),
-        },
-      });
+      };
+    },
+    {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      timeout: 30000,
     }
-
-    // Update event account
-    if (product === "MIS") {
-      const requiredMargin = (executedPrice * qty) / instrument.leverage;
-      const totalDeduction = requiredMargin + fees;
-
-      await tx.eventAccount.update({
-        where: { id: eventAccountId },
-        data: {
-          cash: { decrement: totalDeduction },
-          usedMargin: { increment: requiredMargin },
-          updatedAt: new Date(),
-        },
-      });
-    } else {
-      await tx.eventAccount.update({
-        where: { id: eventAccountId },
-        data: {
-          cash: { decrement: totalCost },
-          updatedAt: new Date(),
-        },
-      });
-    }
-
-    return {
-      transactionId: transaction.id,
-      positionId: position.id,
-    };
-  });
+  );
 
   // Set auto square-off for MIS
   if (product === "MIS") {

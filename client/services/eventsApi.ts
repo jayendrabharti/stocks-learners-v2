@@ -86,7 +86,9 @@ export async function getActiveEvents(params?: {
  * Get event details
  */
 export async function getEventDetails(eventId: string): Promise<Event> {
-  const response = await ApiClient.get(`/events/${eventId}`);
+  const response = await ApiClient.get(
+    `/events/${encodeURIComponent(eventId)}`,
+  );
   return response.data;
 }
 
@@ -97,7 +99,9 @@ export async function registerForEvent(eventId: string): Promise<{
   registration: { id: string; status: string };
   payment: { orderId: string; amount: number; currency: string };
 }> {
-  const response = await ApiClient.post(`/events/${eventId}/register`);
+  const response = await ApiClient.post(
+    `/events/${encodeURIComponent(eventId)}/register`,
+  );
   return response.data;
 }
 
@@ -126,9 +130,12 @@ export async function getEventLeaderboard(
     totalPnLPercentage: number;
   } | null;
 }> {
-  const response = await ApiClient.get(`/events/${eventId}/leaderboard`, {
-    params: { limit },
-  });
+  const response = await ApiClient.get(
+    `/events/${encodeURIComponent(eventId)}/leaderboard`,
+    {
+      params: { limit },
+    },
+  );
   return response.data;
 }
 

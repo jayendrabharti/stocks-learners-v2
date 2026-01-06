@@ -23,11 +23,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TrendingUp, TrendingDown, Loader2, Wallet } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Loader2,
+  Wallet,
+  LogIn,
+  Package,
+} from "lucide-react";
 import { toast } from "sonner";
 import { usePortfolio } from "@/providers/PortfolioProvider";
+import { useSession } from "@/providers/SessionProvider";
 import { ErrorAlertDialog } from "@/components/ui/error-alert-dialog";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface BuySellSectionProps {
   exchangeToken: string;
@@ -37,6 +46,7 @@ interface BuySellSectionProps {
   lotSize: number;
   exchange: string;
   segment: string;
+  leverage?: number; // Dynamic leverage from instrument (default 5x for MIS)
 }
 
 type ProductType = "CNC" | "MIS";
@@ -49,7 +59,9 @@ export function BuySellSection({
   lotSize,
   exchange,
   segment,
+  leverage = 5, // Default 5x leverage for MIS if not provided
 }: BuySellSectionProps) {
+  const { isAuthenticated, status } = useSession();
   const {
     account,
     accountLoading,
@@ -177,8 +189,13 @@ export function BuySellSection({
     }
   };
 
-  const orderValue = currentPrice * parseInt(qty || "0");
-  const requiredMargin = product === "MIS" ? orderValue / 5 : orderValue;
+  const parsedQty = parseInt(qty || "0", 10);
+  const safeQty = isNaN(parsedQty) ? 0 : parsedQty;
+  const orderValue = currentPrice * safeQty;
+  // Use dynamic leverage from instrument instead of hardcoded 5x
+  const effectiveLeverage = leverage > 0 ? leverage : 5;
+  const requiredMargin =
+    product === "MIS" ? orderValue / effectiveLeverage : orderValue;
 
   // Check if user has sufficient funds for BUY
   const hasSufficientFunds =
@@ -187,16 +204,20 @@ export function BuySellSection({
         account.availableMargin
       : true; // Default to true if loading to avoid flickering
 
-  // Check if user has position for SELL
-  const hasPosition =
-    !positionsLoading && positions.length > 0
-      ? positions.some(
-          (pos) =>
-            pos.instrument?.exchangeToken === exchangeToken &&
-            pos.product === product &&
-            pos.qty > 0,
-        )
-      : false;
+  // Get the current position for this instrument and product type
+  const currentPosition = positions.find(
+    (pos) =>
+      pos.instrument?.exchangeToken === exchangeToken &&
+      pos.product === product &&
+      pos.qty > 0,
+  );
+
+  // Check if user has position for SELL (and get the quantity)
+  const hasPosition = !positionsLoading && currentPosition !== undefined;
+  const positionQty = currentPosition?.qty || 0;
+
+  // Check if sell quantity is valid (not more than owned)
+  const sellQtyValid = parseInt(qty || "0") <= positionQty;
 
   return (
     <>
@@ -238,6 +259,7 @@ export function BuySellSection({
                 orderValue={orderValue}
                 requiredAmount={orderValue}
                 product="CNC"
+                leverage={1}
               />
             </TabsContent>
             <TabsContent value="MIS" className="mt-4 space-y-4">
@@ -249,12 +271,37 @@ export function BuySellSection({
                 orderValue={orderValue}
                 requiredAmount={requiredMargin}
                 product="MIS"
+                leverage={effectiveLeverage}
               />
             </TabsContent>
           </Tabs>
 
+          {/* Login Required Warning */}
+          {status !== "loading" && !isAuthenticated && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm dark:border-blue-800 dark:bg-blue-950/30">
+              <div className="flex items-start gap-2">
+                <LogIn className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-500" />
+                <div className="flex-1">
+                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                    Login Required
+                  </p>
+                  <p className="mt-1 text-blue-700 dark:text-blue-300">
+                    Please log in to start trading and manage your portfolio.
+                  </p>
+                  <Link
+                    href="/login"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    <LogIn className="h-3.5 w-3.5" />
+                    Log in now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Insufficient Funds Warning */}
-          {!accountLoading && !hasSufficientFunds && (
+          {isAuthenticated && !accountLoading && !hasSufficientFunds && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950/30">
               <div className="flex items-start gap-2">
                 <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500" />
@@ -280,12 +327,62 @@ export function BuySellSection({
             </div>
           )}
 
+          {/* No Position Warning */}
+          {isAuthenticated && !positionsLoading && !hasPosition && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900/30">
+              <div className="flex items-start gap-2">
+                <Package className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
+                <div>
+                  <p className="font-medium text-slate-700 dark:text-slate-200">
+                    No {product} Position
+                  </p>
+                  <p className="mt-1 text-slate-600 dark:text-slate-400">
+                    You don&apos;t have any {product} holdings for{" "}
+                    {tradingSymbol} to sell. Buy first to create a position.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sell Quantity Exceeds Position Warning */}
+          {isAuthenticated &&
+            !positionsLoading &&
+            hasPosition &&
+            !sellQtyValid && (
+              <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm dark:border-orange-800 dark:bg-orange-950/30">
+                <div className="flex items-start gap-2">
+                  <TrendingDown className="mt-0.5 h-4 w-4 shrink-0 text-orange-600 dark:text-orange-500" />
+                  <div>
+                    <p className="font-medium text-orange-900 dark:text-orange-100">
+                      Sell Quantity Too High
+                    </p>
+                    <p className="mt-1 text-orange-700 dark:text-orange-300">
+                      You can only sell up to {positionQty} units of{" "}
+                      {tradingSymbol} ({product}). Requested: {qty || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
           <div className="grid grid-cols-2 gap-3 pt-4">
             <Button
               onClick={() => handleOrderClick("BUY")}
               className="h-11 bg-emerald-600 font-semibold text-white transition-all hover:bg-emerald-700 disabled:bg-emerald-600/50 disabled:text-white/70"
-              disabled={loading || !exchangeToken || !hasSufficientFunds}
-              title={!hasSufficientFunds ? "Insufficient funds" : undefined}
+              disabled={
+                loading ||
+                !exchangeToken ||
+                !hasSufficientFunds ||
+                !isAuthenticated
+              }
+              title={
+                !hasSufficientFunds
+                  ? "Insufficient funds"
+                  : !isAuthenticated
+                    ? "Login required"
+                    : undefined
+              }
             >
               {loading && orderSide === "BUY" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -297,9 +394,21 @@ export function BuySellSection({
             <Button
               onClick={() => handleOrderClick("SELL")}
               className="h-11 bg-rose-600 font-semibold text-white transition-all hover:bg-rose-700 disabled:bg-rose-600/50 disabled:text-white/70"
-              disabled={loading || !exchangeToken || !hasPosition}
+              disabled={
+                loading ||
+                !exchangeToken ||
+                !hasPosition ||
+                !sellQtyValid ||
+                !isAuthenticated
+              }
               title={
-                !hasPosition ? `No ${product} position to sell` : undefined
+                !hasPosition
+                  ? `No ${product} position to sell`
+                  : !sellQtyValid
+                    ? `Max sellable: ${positionQty}`
+                    : !isAuthenticated
+                      ? "Login required"
+                      : undefined
               }
             >
               {loading && orderSide === "SELL" ? (
@@ -366,7 +475,7 @@ export function BuySellSection({
             {product === "MIS" && (
               <div className="bg-muted/50 flex items-center justify-between rounded-md px-3 py-2">
                 <span className="text-muted-foreground text-sm">
-                  Required Margin (20%):
+                  Required Margin ({(100 / effectiveLeverage).toFixed(0)}%):
                 </span>
                 <span className="font-semibold">
                   ₹
@@ -426,6 +535,7 @@ function OrderInputs({
   orderValue,
   requiredAmount,
   product,
+  leverage = 5,
 }: {
   qty: string;
   setQty: (v: string) => void;
@@ -434,12 +544,15 @@ function OrderInputs({
   orderValue: number;
   requiredAmount: number;
   product: ProductType;
+  leverage?: number;
 }) {
   const { account, accountLoading } = usePortfolio();
   const hasSufficientFunds =
     !accountLoading && account
       ? requiredAmount <= account.availableMargin
       : true;
+
+  const marginPercentage = leverage > 0 ? Math.round((1 / leverage) * 100) : 20;
 
   return (
     <>
@@ -483,7 +596,8 @@ function OrderInputs({
         </div>
         {product === "MIS" && (
           <p className="text-muted-foreground text-xs">
-            5x leverage applied (only 20% margin required)
+            {leverage}x leverage applied (only {marginPercentage}% margin
+            required)
           </p>
         )}
         {!hasSufficientFunds && account && (

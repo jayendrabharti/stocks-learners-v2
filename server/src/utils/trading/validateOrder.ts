@@ -53,14 +53,21 @@ export function validateOrder(
     });
   }
 
-  // Validate lot size for F&O instruments
-  if (instrument.segment === "FNO") {
-    if (qty % instrument.lotSize !== 0) {
-      errors.push({
-        field: "qty",
-        message: `Quantity must be in multiples of lot size (${instrument.lotSize})`,
-      });
-    }
+  // Validate lot size for all instruments (not just FNO)
+  // Most instruments have lotSize=1, but F&O and some others require multiples
+  if (instrument.lotSize > 1 && qty % instrument.lotSize !== 0) {
+    errors.push({
+      field: "qty",
+      message: `Quantity must be in multiples of lot size (${instrument.lotSize})`,
+    });
+  }
+
+  // Validate minimum quantity based on lot size
+  if (qty < instrument.lotSize) {
+    errors.push({
+      field: "qty",
+      message: `Minimum quantity is ${instrument.lotSize} (1 lot)`,
+    });
   }
 
   // Validate freeze quantity

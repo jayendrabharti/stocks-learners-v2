@@ -2,7 +2,10 @@ import { getLivePrice } from "@/utils/trading/livePrice";
 import { calculateTotalUnrealizedPnL } from "@/utils/trading/calculatePnL";
 
 // Import cache utilities
-import { livePriceCache, generatePriceCacheKey } from "@/utils/trading/priceCache";
+import {
+  livePriceCache,
+  generatePriceCacheKey,
+} from "@/utils/trading/priceCache";
 
 // Helper to fetch price with caching
 async function getLivePriceWithCache(
@@ -11,20 +14,30 @@ async function getLivePriceWithCache(
   type: any,
   exchangeToken: string
 ): Promise<number> {
-  const cacheKey = generatePriceCacheKey(tradingSymbol, exchange, type, exchangeToken);
-  
+  const cacheKey = generatePriceCacheKey(
+    tradingSymbol,
+    exchange,
+    type,
+    exchangeToken
+  );
+
   // Check cache first
   const cachedPrice = livePriceCache.get(cacheKey);
   if (cachedPrice !== null) {
     return cachedPrice;
   }
-  
+
   // Fetch from API
-  const price = await getLivePrice(tradingSymbol, exchange, type, exchangeToken);
-  
+  const price = await getLivePrice(
+    tradingSymbol,
+    exchange,
+    type,
+    exchangeToken
+  );
+
   // Store in cache
   livePriceCache.set(cacheKey, price);
-  
+
   return price;
 }
 
@@ -68,7 +81,8 @@ export interface PortfolioInput {
 }
 
 export const calculatePortfolioStats = async (input: PortfolioInput) => {
-  const { account, openPositions, allPositionsRealizedPnl, totalFeesPaid } = input;
+  const { account, openPositions, allPositionsRealizedPnl, totalFeesPaid } =
+    input;
 
   let totalInvestedValue = 0;
   let totalCurrentValue = 0;
@@ -88,7 +102,7 @@ export const calculatePortfolioStats = async (input: PortfolioInput) => {
   }> = [];
 
   // OPTIMIZATION: Fetch all prices in parallel instead of sequential N+1 query
-  const pricePromises = openPositions.map(position =>
+  const pricePromises = openPositions.map((position) =>
     getLivePriceWithCache(
       position.instrument.tradingSymbol,
       position.instrument.exchange,
@@ -110,13 +124,17 @@ export const calculatePortfolioStats = async (input: PortfolioInput) => {
 
     try {
       // Get price from result or fallback to avgPrice
-      const ltp = priceResult.status === 'fulfilled' 
-        ? priceResult.value 
-        : position.avgPrice; // Fallback to avg price if fetch failed
+      const ltp =
+        priceResult.status === "fulfilled"
+          ? priceResult.value
+          : position.avgPrice; // Fallback to avg price if fetch failed
 
       const investedValue = position.avgPrice * position.qty;
       const currentValue = ltp * position.qty;
-      const unrealizedPnL = calculateTotalUnrealizedPnL(position.lots as any, ltp);
+      const unrealizedPnL = calculateTotalUnrealizedPnL(
+        position.lots as any,
+        ltp
+      );
       const totalPnL = position.realizedPnl + unrealizedPnL;
 
       // Store for statistics calculation
@@ -158,8 +176,7 @@ export const calculatePortfolioStats = async (input: PortfolioInput) => {
         realizedPnL: position.realizedPnl,
         unrealizedPnL,
         totalPnL,
-        pnlPercentage:
-          investedValue > 0 ? (totalPnL / investedValue) * 100 : 0,
+        pnlPercentage: investedValue > 0 ? (totalPnL / investedValue) * 100 : 0,
         dayChange: 0, // Placeholder
         dayChangePercentage: 0,
         lots: position.lots.map((lot) => ({
@@ -189,7 +206,12 @@ export const calculatePortfolioStats = async (input: PortfolioInput) => {
 
   // Available margin = cash (cash already has margins deducted in trading operations)
   const availableMargin = account.cash;
-  const totalPortfolioValue = account.cash + account.usedMargin + totalCurrentValue;
+  // Portfolio value = cash + holdings market value
+  // Note: usedMargin is NOT added because it's already reflected in the holdings' currentValue
+  // For CNC: cash is reduced by full purchase value, currentValue reflects holding value
+  // For MIS: cash is reduced by margin, usedMargin tracks margin, currentValue is full position value
+  // To get accurate portfolio: cash (what's left) + currentValue (market value of holdings)
+  const totalPortfolioValue = account.cash + totalCurrentValue;
 
   return {
     account: {

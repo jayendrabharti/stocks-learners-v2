@@ -278,18 +278,28 @@ export function useInstrumentData(config: InstrumentPageConfig) {
 
   const toggleWatchlist = async () => {
     if (!isAuthenticated) {
-      toast.error("Please log in to manage your watchlist");
+      toast.error("Please log in to manage your watchlist", {
+        action: {
+          label: "Login",
+          onClick: () =>
+            (window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`),
+        },
+      });
       return;
     }
 
-    watchlist
-      ? await removeWatchlistItem(watchlistItem.id)
-      : await addWatchlistItem({
-          instrumentType: type,
-          searchId: searchId,
-          tradingSymbol:
-            segment === "FNO" ? (tradingSymbol as string) : undefined,
-        });
+    try {
+      watchlist
+        ? await removeWatchlistItem(watchlistItem.id)
+        : await addWatchlistItem({
+            instrumentType: type,
+            searchId: searchId,
+            tradingSymbol:
+              segment === "FNO" ? (tradingSymbol as string) : undefined,
+          });
+    } catch (error) {
+      // Error already handled by provider
+    }
   };
 
   const formatTimeStamp = (

@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
 
       {/* Search Bar */}
       <Card className="mb-6 p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
@@ -176,25 +176,32 @@ export default function AdminUsersPage() {
               className="pl-10"
             />
           </div>
-          <Select
-            value={adminFilter}
-            onValueChange={(value) => {
-              setAdminFilter(value);
-              setPagination((prev) => ({ ...prev, page: 1 }));
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Users</SelectItem>
-              <SelectItem value="true">Admins Only</SelectItem>
-              <SelectItem value="false">Regular Users</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={fetchUsers} variant="outline">
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Select
+              value={adminFilter}
+              onValueChange={(value) => {
+                setAdminFilter(value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="true">Admins Only</SelectItem>
+                <SelectItem value="false">Regular Users</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={fetchUsers}
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+            >
+              <Loader2 className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -239,7 +246,55 @@ export default function AdminUsersPage() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile View - Card Layout */}
+          <div className="md:hidden">
+            {users.map((user) => (
+              <div key={user.id} className="border-b p-4 last:border-b-0">
+                <div className="flex items-start gap-3">
+                  <Avatar className="shrink-0">
+                    <AvatarImage
+                      src={user.avatar || undefined}
+                      alt={user.name || user.email}
+                    />
+                    <AvatarFallback>
+                      {getInitials(user.name, user.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="truncate font-medium">
+                        {user.name || "No Name"}
+                      </div>
+                      <Badge
+                        variant={user.isAdmin ? "default" : "secondary"}
+                        className="shrink-0"
+                      >
+                        {user.isAdmin ? "Admin" : "User"}
+                      </Badge>
+                    </div>
+                    <div className="text-muted-foreground mt-0.5 truncate text-sm">
+                      {user.email}
+                    </div>
+                    <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                      {user.phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {user.phone}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Joined {formatDate(user.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View - Table Layout */}
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -337,13 +392,13 @@ export default function AdminUsersPage() {
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="border-border flex items-center justify-between border-t p-4">
-              <div className="text-muted-foreground text-sm">
+            <div className="border-border flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-muted-foreground text-center text-sm sm:text-left">
                 Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
                 of {pagination.total} users
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -351,15 +406,18 @@ export default function AdminUsersPage() {
                   disabled={pagination.page === 1 || loading}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
                 </Button>
+                <span className="text-muted-foreground px-2 text-sm">
+                  {pagination.page} / {pagination.totalPages}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages || loading}
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

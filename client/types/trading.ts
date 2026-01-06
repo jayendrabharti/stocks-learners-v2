@@ -20,6 +20,7 @@ type Instrument = {
   buy_allowed: boolean;
   sell_allowed: boolean;
   search_id: string | null;
+  leverage?: number; // MIS leverage multiplier (default 5 if not set)
 };
 
 type Exchange = "NSE" | "BSE";

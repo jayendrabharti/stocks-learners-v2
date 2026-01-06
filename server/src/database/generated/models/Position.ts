@@ -28,15 +28,15 @@ export type AggregatePosition = {
 
 export type PositionAvgAggregateOutputType = {
   qty: number | null
-  avgPrice: number | null
-  realizedPnl: number | null
+  avgPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   squareOffAttempts: number | null
 }
 
 export type PositionSumAggregateOutputType = {
   qty: number | null
-  avgPrice: number | null
-  realizedPnl: number | null
+  avgPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   squareOffAttempts: number | null
 }
 
@@ -45,8 +45,8 @@ export type PositionMinAggregateOutputType = {
   userId: string | null
   instrumentId: string | null
   qty: number | null
-  avgPrice: number | null
-  realizedPnl: number | null
+  avgPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   product: $Enums.TradeType | null
   isOpen: boolean | null
   autoSquareOffAt: Date | null
@@ -62,8 +62,8 @@ export type PositionMaxAggregateOutputType = {
   userId: string | null
   instrumentId: string | null
   qty: number | null
-  avgPrice: number | null
-  realizedPnl: number | null
+  avgPrice: runtime.Decimal | null
+  realizedPnl: runtime.Decimal | null
   product: $Enums.TradeType | null
   isOpen: boolean | null
   autoSquareOffAt: Date | null
@@ -250,8 +250,8 @@ export type PositionGroupByOutputType = {
   userId: string
   instrumentId: string
   qty: number
-  avgPrice: number
-  realizedPnl: number
+  avgPrice: runtime.Decimal
+  realizedPnl: runtime.Decimal
   product: $Enums.TradeType
   isOpen: boolean
   autoSquareOffAt: Date | null
@@ -290,8 +290,8 @@ export type PositionWhereInput = {
   userId?: Prisma.StringFilter<"Position"> | string
   instrumentId?: Prisma.StringFilter<"Position"> | string
   qty?: Prisma.IntFilter<"Position"> | number
-  avgPrice?: Prisma.FloatFilter<"Position"> | number
-  realizedPnl?: Prisma.FloatFilter<"Position"> | number
+  avgPrice?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFilter<"Position"> | $Enums.TradeType
   isOpen?: Prisma.BoolFilter<"Position"> | boolean
   autoSquareOffAt?: Prisma.DateTimeNullableFilter<"Position"> | Date | string | null
@@ -336,8 +336,8 @@ export type PositionWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"Position"> | string
   instrumentId?: Prisma.StringFilter<"Position"> | string
   qty?: Prisma.IntFilter<"Position"> | number
-  avgPrice?: Prisma.FloatFilter<"Position"> | number
-  realizedPnl?: Prisma.FloatFilter<"Position"> | number
+  avgPrice?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFilter<"Position"> | $Enums.TradeType
   isOpen?: Prisma.BoolFilter<"Position"> | boolean
   autoSquareOffAt?: Prisma.DateTimeNullableFilter<"Position"> | Date | string | null
@@ -382,8 +382,8 @@ export type PositionScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"Position"> | string
   instrumentId?: Prisma.StringWithAggregatesFilter<"Position"> | string
   qty?: Prisma.IntWithAggregatesFilter<"Position"> | number
-  avgPrice?: Prisma.FloatWithAggregatesFilter<"Position"> | number
-  realizedPnl?: Prisma.FloatWithAggregatesFilter<"Position"> | number
+  avgPrice?: Prisma.DecimalWithAggregatesFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalWithAggregatesFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeWithAggregatesFilter<"Position"> | $Enums.TradeType
   isOpen?: Prisma.BoolWithAggregatesFilter<"Position"> | boolean
   autoSquareOffAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Position"> | Date | string | null
@@ -397,8 +397,8 @@ export type PositionScalarWhereWithAggregatesInput = {
 export type PositionCreateInput = {
   id?: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -418,8 +418,8 @@ export type PositionUncheckedCreateInput = {
   userId: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -435,8 +435,8 @@ export type PositionUncheckedCreateInput = {
 export type PositionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -456,8 +456,8 @@ export type PositionUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -475,8 +475,8 @@ export type PositionCreateManyInput = {
   userId: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -490,8 +490,8 @@ export type PositionCreateManyInput = {
 export type PositionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -507,8 +507,8 @@ export type PositionUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -731,8 +731,8 @@ export type PositionUpdateOneRequiredWithoutLotsNestedInput = {
 export type PositionCreateWithoutUserInput = {
   id?: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -750,8 +750,8 @@ export type PositionUncheckedCreateWithoutUserInput = {
   id?: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -798,8 +798,8 @@ export type PositionScalarWhereInput = {
   userId?: Prisma.StringFilter<"Position"> | string
   instrumentId?: Prisma.StringFilter<"Position"> | string
   qty?: Prisma.IntFilter<"Position"> | number
-  avgPrice?: Prisma.FloatFilter<"Position"> | number
-  realizedPnl?: Prisma.FloatFilter<"Position"> | number
+  avgPrice?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFilter<"Position"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFilter<"Position"> | $Enums.TradeType
   isOpen?: Prisma.BoolFilter<"Position"> | boolean
   autoSquareOffAt?: Prisma.DateTimeNullableFilter<"Position"> | Date | string | null
@@ -813,8 +813,8 @@ export type PositionScalarWhereInput = {
 export type PositionCreateWithoutInstrumentInput = {
   id?: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -832,8 +832,8 @@ export type PositionUncheckedCreateWithoutInstrumentInput = {
   id?: string
   userId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -875,8 +875,8 @@ export type PositionUpdateManyWithWhereWithoutInstrumentInput = {
 export type PositionCreateWithoutTransactionsInput = {
   id?: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -895,8 +895,8 @@ export type PositionUncheckedCreateWithoutTransactionsInput = {
   userId: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -927,8 +927,8 @@ export type PositionUpdateToOneWithWhereWithoutTransactionsInput = {
 export type PositionUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -947,8 +947,8 @@ export type PositionUncheckedUpdateWithoutTransactionsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -963,8 +963,8 @@ export type PositionUncheckedUpdateWithoutTransactionsInput = {
 export type PositionCreateWithoutLotsInput = {
   id?: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -983,8 +983,8 @@ export type PositionUncheckedCreateWithoutLotsInput = {
   userId: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -1015,8 +1015,8 @@ export type PositionUpdateToOneWithWhereWithoutLotsInput = {
 export type PositionUpdateWithoutLotsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1035,8 +1035,8 @@ export type PositionUncheckedUpdateWithoutLotsInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1052,8 +1052,8 @@ export type PositionCreateManyUserInput = {
   id?: string
   instrumentId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -1067,8 +1067,8 @@ export type PositionCreateManyUserInput = {
 export type PositionUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1086,8 +1086,8 @@ export type PositionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1104,8 +1104,8 @@ export type PositionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1120,8 +1120,8 @@ export type PositionCreateManyInstrumentInput = {
   id?: string
   userId: string
   qty?: number
-  avgPrice?: number
-  realizedPnl?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
   product: $Enums.TradeType
   isOpen?: boolean
   autoSquareOffAt?: Date | string | null
@@ -1135,8 +1135,8 @@ export type PositionCreateManyInstrumentInput = {
 export type PositionUpdateWithoutInstrumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1154,8 +1154,8 @@ export type PositionUncheckedUpdateWithoutInstrumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1172,8 +1172,8 @@ export type PositionUncheckedUpdateManyWithoutInstrumentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   qty?: Prisma.IntFieldUpdateOperationsInput | number
-  avgPrice?: Prisma.FloatFieldUpdateOperationsInput | number
-  realizedPnl?: Prisma.FloatFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
   isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
   autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1331,8 +1331,8 @@ export type $PositionPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     userId: string
     instrumentId: string
     qty: number
-    avgPrice: number
-    realizedPnl: number
+    avgPrice: runtime.Decimal
+    realizedPnl: runtime.Decimal
     product: $Enums.TradeType
     isOpen: boolean
     autoSquareOffAt: Date | null
@@ -1772,8 +1772,8 @@ export interface PositionFieldRefs {
   readonly userId: Prisma.FieldRef<"Position", 'String'>
   readonly instrumentId: Prisma.FieldRef<"Position", 'String'>
   readonly qty: Prisma.FieldRef<"Position", 'Int'>
-  readonly avgPrice: Prisma.FieldRef<"Position", 'Float'>
-  readonly realizedPnl: Prisma.FieldRef<"Position", 'Float'>
+  readonly avgPrice: Prisma.FieldRef<"Position", 'Decimal'>
+  readonly realizedPnl: Prisma.FieldRef<"Position", 'Decimal'>
   readonly product: Prisma.FieldRef<"Position", 'TradeType'>
   readonly isOpen: Prisma.FieldRef<"Position", 'Boolean'>
   readonly autoSquareOffAt: Prisma.FieldRef<"Position", 'DateTime'>

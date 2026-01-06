@@ -27,11 +27,15 @@ export type AggregatePayment = {
 }
 
 export type PaymentAvgAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
+  depositedAmount: runtime.Decimal | null
+  exchangeRate: runtime.Decimal | null
 }
 
 export type PaymentSumAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
+  depositedAmount: runtime.Decimal | null
+  exchangeRate: runtime.Decimal | null
 }
 
 export type PaymentMinAggregateOutputType = {
@@ -40,7 +44,10 @@ export type PaymentMinAggregateOutputType = {
   razorpayOrderId: string | null
   razorpayPaymentId: string | null
   razorpaySignature: string | null
-  amount: number | null
+  idempotencyKey: string | null
+  amount: runtime.Decimal | null
+  depositedAmount: runtime.Decimal | null
+  exchangeRate: runtime.Decimal | null
   currency: string | null
   status: $Enums.PaymentStatus | null
   purpose: string | null
@@ -55,7 +62,10 @@ export type PaymentMaxAggregateOutputType = {
   razorpayOrderId: string | null
   razorpayPaymentId: string | null
   razorpaySignature: string | null
-  amount: number | null
+  idempotencyKey: string | null
+  amount: runtime.Decimal | null
+  depositedAmount: runtime.Decimal | null
+  exchangeRate: runtime.Decimal | null
   currency: string | null
   status: $Enums.PaymentStatus | null
   purpose: string | null
@@ -70,7 +80,10 @@ export type PaymentCountAggregateOutputType = {
   razorpayOrderId: number
   razorpayPaymentId: number
   razorpaySignature: number
+  idempotencyKey: number
   amount: number
+  depositedAmount: number
+  exchangeRate: number
   currency: number
   status: number
   purpose: number
@@ -84,10 +97,14 @@ export type PaymentCountAggregateOutputType = {
 
 export type PaymentAvgAggregateInputType = {
   amount?: true
+  depositedAmount?: true
+  exchangeRate?: true
 }
 
 export type PaymentSumAggregateInputType = {
   amount?: true
+  depositedAmount?: true
+  exchangeRate?: true
 }
 
 export type PaymentMinAggregateInputType = {
@@ -96,7 +113,10 @@ export type PaymentMinAggregateInputType = {
   razorpayOrderId?: true
   razorpayPaymentId?: true
   razorpaySignature?: true
+  idempotencyKey?: true
   amount?: true
+  depositedAmount?: true
+  exchangeRate?: true
   currency?: true
   status?: true
   purpose?: true
@@ -111,7 +131,10 @@ export type PaymentMaxAggregateInputType = {
   razorpayOrderId?: true
   razorpayPaymentId?: true
   razorpaySignature?: true
+  idempotencyKey?: true
   amount?: true
+  depositedAmount?: true
+  exchangeRate?: true
   currency?: true
   status?: true
   purpose?: true
@@ -126,7 +149,10 @@ export type PaymentCountAggregateInputType = {
   razorpayOrderId?: true
   razorpayPaymentId?: true
   razorpaySignature?: true
+  idempotencyKey?: true
   amount?: true
+  depositedAmount?: true
+  exchangeRate?: true
   currency?: true
   status?: true
   purpose?: true
@@ -229,7 +255,10 @@ export type PaymentGroupByOutputType = {
   razorpayOrderId: string
   razorpayPaymentId: string | null
   razorpaySignature: string | null
-  amount: number
+  idempotencyKey: string | null
+  amount: runtime.Decimal
+  depositedAmount: runtime.Decimal | null
+  exchangeRate: runtime.Decimal | null
   currency: string
   status: $Enums.PaymentStatus
   purpose: string
@@ -268,7 +297,10 @@ export type PaymentWhereInput = {
   razorpayOrderId?: Prisma.StringFilter<"Payment"> | string
   razorpayPaymentId?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpaySignature?: Prisma.StringNullableFilter<"Payment"> | string | null
-  amount?: Prisma.FloatFilter<"Payment"> | number
+  idempotencyKey?: Prisma.StringNullableFilter<"Payment"> | string | null
+  amount?: Prisma.DecimalFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFilter<"Payment"> | string
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   purpose?: Prisma.StringFilter<"Payment"> | string
@@ -285,7 +317,10 @@ export type PaymentOrderByWithRelationInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrderInput | Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
@@ -300,12 +335,15 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   razorpayOrderId?: string
   razorpayPaymentId?: string
+  idempotencyKey?: string
   AND?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   OR?: Prisma.PaymentWhereInput[]
   NOT?: Prisma.PaymentWhereInput | Prisma.PaymentWhereInput[]
   userId?: Prisma.StringFilter<"Payment"> | string
   razorpaySignature?: Prisma.StringNullableFilter<"Payment"> | string | null
-  amount?: Prisma.FloatFilter<"Payment"> | number
+  amount?: Prisma.DecimalFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFilter<"Payment"> | string
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   purpose?: Prisma.StringFilter<"Payment"> | string
@@ -314,7 +352,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "razorpayOrderId" | "razorpayPaymentId">
+}, "id" | "razorpayOrderId" | "razorpayPaymentId" | "idempotencyKey">
 
 export type PaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -322,7 +360,10 @@ export type PaymentOrderByWithAggregationInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrderInput | Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
@@ -346,7 +387,10 @@ export type PaymentScalarWhereWithAggregatesInput = {
   razorpayOrderId?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   razorpayPaymentId?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   razorpaySignature?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
-  amount?: Prisma.FloatWithAggregatesFilter<"Payment"> | number
+  idempotencyKey?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
+  amount?: Prisma.DecimalWithAggregatesFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.DecimalNullableWithAggregatesFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.DecimalNullableWithAggregatesFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringWithAggregatesFilter<"Payment"> | string
   status?: Prisma.EnumPaymentStatusWithAggregatesFilter<"Payment"> | $Enums.PaymentStatus
   purpose?: Prisma.StringWithAggregatesFilter<"Payment"> | string
@@ -361,7 +405,10 @@ export type PaymentCreateInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -378,7 +425,10 @@ export type PaymentUncheckedCreateInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -393,7 +443,10 @@ export type PaymentUpdateInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -410,7 +463,10 @@ export type PaymentUncheckedUpdateInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -426,7 +482,10 @@ export type PaymentCreateManyInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -441,7 +500,10 @@ export type PaymentUpdateManyMutationInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -457,7 +519,10 @@ export type PaymentUncheckedUpdateManyInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -483,7 +548,10 @@ export type PaymentCountOrderByAggregateInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
@@ -495,6 +563,8 @@ export type PaymentCountOrderByAggregateInput = {
 
 export type PaymentAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrder
 }
 
 export type PaymentMaxOrderByAggregateInput = {
@@ -503,7 +573,10 @@ export type PaymentMaxOrderByAggregateInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
@@ -518,7 +591,10 @@ export type PaymentMinOrderByAggregateInput = {
   razorpayOrderId?: Prisma.SortOrder
   razorpayPaymentId?: Prisma.SortOrder
   razorpaySignature?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   status?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
@@ -529,6 +605,8 @@ export type PaymentMinOrderByAggregateInput = {
 
 export type PaymentSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  depositedAmount?: Prisma.SortOrder
+  exchangeRate?: Prisma.SortOrder
 }
 
 export type PaymentCreateNestedManyWithoutUserInput = {
@@ -582,7 +660,10 @@ export type PaymentCreateWithoutUserInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -597,7 +678,10 @@ export type PaymentUncheckedCreateWithoutUserInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -642,7 +726,10 @@ export type PaymentScalarWhereInput = {
   razorpayOrderId?: Prisma.StringFilter<"Payment"> | string
   razorpayPaymentId?: Prisma.StringNullableFilter<"Payment"> | string | null
   razorpaySignature?: Prisma.StringNullableFilter<"Payment"> | string | null
-  amount?: Prisma.FloatFilter<"Payment"> | number
+  idempotencyKey?: Prisma.StringNullableFilter<"Payment"> | string | null
+  amount?: Prisma.DecimalFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFilter<"Payment"> | string
   status?: Prisma.EnumPaymentStatusFilter<"Payment"> | $Enums.PaymentStatus
   purpose?: Prisma.StringFilter<"Payment"> | string
@@ -657,7 +744,10 @@ export type PaymentCreateManyUserInput = {
   razorpayOrderId: string
   razorpayPaymentId?: string | null
   razorpaySignature?: string | null
-  amount: number
+  idempotencyKey?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: string
   status?: $Enums.PaymentStatus
   purpose: string
@@ -672,7 +762,10 @@ export type PaymentUpdateWithoutUserInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -687,7 +780,10 @@ export type PaymentUncheckedUpdateWithoutUserInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -702,7 +798,10 @@ export type PaymentUncheckedUpdateManyWithoutUserInput = {
   razorpayOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   razorpayPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   razorpaySignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositedAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  exchangeRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
   purpose?: Prisma.StringFieldUpdateOperationsInput | string
@@ -720,7 +819,10 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  idempotencyKey?: boolean
   amount?: boolean
+  depositedAmount?: boolean
+  exchangeRate?: boolean
   currency?: boolean
   status?: boolean
   purpose?: boolean
@@ -737,7 +839,10 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  idempotencyKey?: boolean
   amount?: boolean
+  depositedAmount?: boolean
+  exchangeRate?: boolean
   currency?: boolean
   status?: boolean
   purpose?: boolean
@@ -754,7 +859,10 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  idempotencyKey?: boolean
   amount?: boolean
+  depositedAmount?: boolean
+  exchangeRate?: boolean
   currency?: boolean
   status?: boolean
   purpose?: boolean
@@ -771,7 +879,10 @@ export type PaymentSelectScalar = {
   razorpayOrderId?: boolean
   razorpayPaymentId?: boolean
   razorpaySignature?: boolean
+  idempotencyKey?: boolean
   amount?: boolean
+  depositedAmount?: boolean
+  exchangeRate?: boolean
   currency?: boolean
   status?: boolean
   purpose?: boolean
@@ -781,7 +892,7 @@ export type PaymentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "amount" | "currency" | "status" | "purpose" | "referenceId" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
+export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "razorpayOrderId" | "razorpayPaymentId" | "razorpaySignature" | "idempotencyKey" | "amount" | "depositedAmount" | "exchangeRate" | "currency" | "status" | "purpose" | "referenceId" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -803,7 +914,10 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     razorpayOrderId: string
     razorpayPaymentId: string | null
     razorpaySignature: string | null
-    amount: number
+    idempotencyKey: string | null
+    amount: runtime.Decimal
+    depositedAmount: runtime.Decimal | null
+    exchangeRate: runtime.Decimal | null
     currency: string
     status: $Enums.PaymentStatus
     purpose: string
@@ -1240,7 +1354,10 @@ export interface PaymentFieldRefs {
   readonly razorpayOrderId: Prisma.FieldRef<"Payment", 'String'>
   readonly razorpayPaymentId: Prisma.FieldRef<"Payment", 'String'>
   readonly razorpaySignature: Prisma.FieldRef<"Payment", 'String'>
-  readonly amount: Prisma.FieldRef<"Payment", 'Float'>
+  readonly idempotencyKey: Prisma.FieldRef<"Payment", 'String'>
+  readonly amount: Prisma.FieldRef<"Payment", 'Decimal'>
+  readonly depositedAmount: Prisma.FieldRef<"Payment", 'Decimal'>
+  readonly exchangeRate: Prisma.FieldRef<"Payment", 'Decimal'>
   readonly currency: Prisma.FieldRef<"Payment", 'String'>
   readonly status: Prisma.FieldRef<"Payment", 'PaymentStatus'>
   readonly purpose: Prisma.FieldRef<"Payment", 'String'>

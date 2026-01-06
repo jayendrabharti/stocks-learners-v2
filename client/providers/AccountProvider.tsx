@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
+import ApiClient from "@/utils/ApiClient";
 
 export type AccountType = "main" | "event";
 
@@ -30,92 +37,110 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Prevent concurrent refresh calls (race condition prevention)
+  const refreshInProgress = useRef(false);
+
   const refreshAccounts = useCallback(async () => {
+    // Prevent concurrent refreshes that could cause data inconsistency
+    if (refreshInProgress.current) {
+      return;
+    }
+
+    refreshInProgress.current = true;
     setIsLoading(true);
+
     try {
-      // Fetch main account
-      const mainAccountResponse = await fetch('/api/account', {
-        credentials: 'include',
-      });
-      
-      if (!mainAccountResponse.ok) {
-        throw new Error('Failed to fetch main account');
+      // Use ApiClient instead of fetch for proper session handling
+      // ApiClient handles token refresh automatically
+      const [mainAccountResponse, registrationsResponse] =
+        await Promise.allSettled([
+          ApiClient.get("/account"),
+          ApiClient.get("/events/my-registrations"),
+        ]);
+
+      // Handle main account response
+      if (mainAccountResponse.status === "rejected") {
+        throw new Error("Failed to fetch main account");
       }
-      
-      const mainAccountData = await mainAccountResponse.json();
-      
-      // Fetch event registrations and their accounts
-      const registrationsResponse = await fetch('/api/events/my-registrations', {
-        credentials: 'include',
-      });
-      
-      const registrationsData = registrationsResponse.ok 
-        ? await registrationsResponse.json()
-        : { registrations: [] };
-      
-      // Build accounts list
+
+      const mainAccountData = mainAccountResponse.value.data;
+
+      // Handle registrations (optional - don't fail if unavailable)
+      const registrationsData =
+        registrationsResponse.status === "fulfilled"
+          ? registrationsResponse.value.data
+          : { registrations: [] };
+
+      // Build accounts list with explicit number parsing for safety
       const allAccounts: Account[] = [
         {
-          id: 'main',
-          type: 'main',
-          name: 'Main Trading Account',
-          cash: mainAccountData.cash || 0,
-          usedMargin: mainAccountData.usedMargin || 0,
-          availableMargin: mainAccountData.availableMargin || 0,
+          id: "main",
+          type: "main",
+          name: "Main Trading Account",
+          cash: Number(mainAccountData.cash) || 0,
+          usedMargin: Number(mainAccountData.usedMargin) || 0,
+          availableMargin: Number(mainAccountData.availableMargin) || 0,
         },
         ...registrationsData.registrations
           .filter((reg: any) => reg.eventAccount)
           .map((reg: any) => ({
             id: reg.eventAccount.id,
-            type: 'event' as const,
+            type: "event" as const,
             name: reg.event.title,
-            cash: reg.eventAccount.cash,
-            usedMargin: reg.eventAccount.usedMargin,
-            availableMargin: reg.eventAccount.cash - reg.eventAccount.usedMargin,
+            cash: Number(reg.eventAccount.cash) || 0,
+            usedMargin: Number(reg.eventAccount.usedMargin) || 0,
+            availableMargin:
+              Number(reg.eventAccount.cash || 0) -
+              Number(reg.eventAccount.usedMargin || 0),
             eventId: reg.eventId,
             eventTitle: reg.event.title,
           })),
       ];
 
       setAccounts(allAccounts);
-      
+
       // Restore from localStorage or default to main
       const savedAccountId = localStorage.getItem("currentAccountId");
       if (savedAccountId) {
-        const savedAccount = allAccounts.find(acc => acc.id === savedAccountId);
+        const savedAccount = allAccounts.find(
+          (acc) => acc.id === savedAccountId,
+        );
         if (savedAccount) {
           setCurrentAccount(savedAccount);
           return;
         }
       }
-      
+
       // Default to main account
       setCurrentAccount(allAccounts[0]);
-    } catch (error) {
-      console.error("Error refreshing accounts:", error);
-      // Set default main account on error
-      const defaultAccount: Account = {
-        id: "main",
-        type: "main",
-        name: "Main Trading Account",
-        cash: 0,
-        usedMargin: 0,
-        availableMargin: 0,
-      };
-      setAccounts([defaultAccount]);
-      setCurrentAccount(defaultAccount);
+    } catch (error: any) {
+      // Check if this is an auth error (401)
+      const isAuthError = error?.response?.status === 401;
+
+      if (!isAuthError) {
+        console.error("Error refreshing accounts:", error);
+      }
+
+      // For auth errors or other failures, set null to indicate unauthenticated state
+      // This allows components to show appropriate login prompts
+      setAccounts([]);
+      setCurrentAccount(null);
     } finally {
       setIsLoading(false);
+      refreshInProgress.current = false;
     }
   }, []);
 
-  const switchAccount = useCallback((accountId: string) => {
-    const account = accounts.find((acc) => acc.id === accountId);
-    if (account) {
-      setCurrentAccount(account);
-      localStorage.setItem("currentAccountId", accountId);
-    }
-  }, [accounts]);
+  const switchAccount = useCallback(
+    (accountId: string) => {
+      const account = accounts.find((acc) => acc.id === accountId);
+      if (account) {
+        setCurrentAccount(account);
+        localStorage.setItem("currentAccountId", accountId);
+      }
+    },
+    [accounts],
+  );
 
   // Initialize accounts on mount
   React.useEffect(() => {

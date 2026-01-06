@@ -31,7 +31,9 @@ export default function GoogleButton({
           router.push(redirect || "/stocks");
         }
       } else if (event.data === "logged-in-failed") {
-        toast.error("Google Login failed. Please try again.");
+        toast.error("Login unsuccessful", {
+          description: "Unable to sign in with Google. Please try again.",
+        });
       }
     };
 
@@ -61,7 +63,9 @@ export default function GoogleButton({
       const response = await ApiClient.get("/auth/google/url");
       window.open(response.data.url, "googleLogin", "width=600,height=600");
     } catch {
-      toast.error("Error while Google Login...");
+      toast.error("Unable to open login", {
+        description: "Please disable popup blockers and try again.",
+      });
     }
   };
 

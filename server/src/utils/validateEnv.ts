@@ -54,4 +54,30 @@ export function validateSecretStrength(): void {
       );
     }
   }
+
+  // Validate Razorpay keys are not empty (critical for payments)
+  const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+  const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (razorpayKeyId && razorpayKeyId.length < 10) {
+    console.warn(
+      `⚠️  RAZORPAY_KEY_ID appears invalid (too short). Payments will fail.`
+    );
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "RAZORPAY_KEY_ID is invalid. Cannot start in production."
+      );
+    }
+  }
+
+  if (razorpayKeySecret && razorpayKeySecret.length < 10) {
+    console.warn(
+      `⚠️  RAZORPAY_KEY_SECRET appears invalid (too short). Payments will fail.`
+    );
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "RAZORPAY_KEY_SECRET is invalid. Cannot start in production."
+      );
+    }
+  }
 }

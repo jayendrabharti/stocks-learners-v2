@@ -28,9 +28,14 @@ export default function WatchlistItemCard({
 
   // Fetch metadata
   useEffect(() => {
-    ApiClient.get(`/metadata?search_id=${searchId}`).then((response) => {
-      setMetadata(response.data);
-    });
+    ApiClient.get(`/metadata?search_id=${searchId}`)
+      .then((response) => {
+        setMetadata(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to load metadata for watchlist item:", error);
+        // Still show the item with basic info
+      });
   }, [watchlistItem]);
 
   // Set title based on variant

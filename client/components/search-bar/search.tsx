@@ -79,11 +79,25 @@ export default function Search({
             if (success) {
               setSearchResults(instruments || []);
             } else {
-              toast.error("Search failed. Please try again.");
+              toast.error("No results found", {
+                description: "Try searching with a different keyword",
+              });
             }
-          } catch (error) {
+          } catch (error: any) {
             if (latestQueryRef.current === normalizedQuery) {
-              toast.error("Search failed. Please try again.");
+              // Distinguish network errors from server errors
+              if (!navigator.onLine || error?.code === "ERR_NETWORK") {
+                toast.error("You're offline", {
+                  description: "Check your internet connection and try again",
+                });
+              } else if (error?.response?.status === 401) {
+                // Don't show error for auth issues on search - just show no results
+                setSearchResults([]);
+              } else {
+                toast.error("Search unavailable", {
+                  description: "Please try again in a moment",
+                });
+              }
             }
           }
         })();

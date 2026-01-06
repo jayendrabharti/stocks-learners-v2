@@ -77,8 +77,8 @@ model Account {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
-  cash       Float @default(0)
-  usedMargin Float @default(0)
+  cash       Decimal @default(0) @db.Decimal(20, 4)
+  usedMargin Decimal @default(0) @db.Decimal(20, 4)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -188,10 +188,10 @@ model Transaction {
   product TradeType
 
   qty        Int
-  price      Float
-  limitPrice Float?
+  price      Decimal  @db.Decimal(20, 4)
+  limitPrice Decimal? @db.Decimal(20, 4)
 
-  realizedPnl Float?
+  realizedPnl Decimal? @db.Decimal(20, 4)
 
   positionId String?
   position   Position? @relation(fields: [positionId], references: [id], onDelete: Cascade)
@@ -199,7 +199,7 @@ model Transaction {
   // BUY transaction creates lots
   buyLots PositionLot[] @relation("BuyTransaction")
 
-  fees      Float    @default(0)
+  fees      Decimal  @default(0) @db.Decimal(20, 4)
   createdAt DateTime @default(now())
 }
 
@@ -217,8 +217,8 @@ model Position {
   instrumentId String
 
   qty         Int       @default(0)
-  avgPrice    Float     @default(0)
-  realizedPnl Float     @default(0)
+  avgPrice    Decimal   @default(0) @db.Decimal(20, 4)
+  realizedPnl Decimal   @default(0) @db.Decimal(20, 4)
   product     TradeType
 
   isOpen Boolean @default(true)
@@ -255,8 +255,8 @@ model PositionLot {
   buyTransactionId String
 
   totalQty     Int
-  remainingQty Int   @default(0)
-  buyPrice     Float
+  remainingQty Int     @default(0)
+  buyPrice     Decimal @db.Decimal(20, 4)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -267,8 +267,8 @@ model PositionLot {
 // -------------------------------------
 
 model AppSettings {
-  id           String   @id @default(cuid())
-  exchangeRate Float    @default(1.0) // Real ₹ to dummy ₹ conversion
+  id           String  @id @default(cuid())
+  exchangeRate Decimal @default(1.0) @db.Decimal(10, 4) // Real ₹ to dummy ₹ conversion
   updatedAt    DateTime @updatedAt
   updatedBy    String? // Admin user ID
 
@@ -289,10 +289,15 @@ model Payment {
   razorpayPaymentId String? @unique
   razorpaySignature String?
 
+  // Idempotency
+  idempotencyKey String? @unique
+
   // Payment info
-  amount   Float
-  currency String        @default("INR")
-  status   PaymentStatus @default(PENDING)
+  amount          Decimal       @db.Decimal(20, 4)
+  depositedAmount Decimal?      @db.Decimal(20, 4) // Amount after exchange rate (for deposits)
+  exchangeRate    Decimal?      @db.Decimal(10, 4) // Exchange rate applied
+  currency        String        @default("INR")
+  status          PaymentStatus @default(PENDING)
 
   // Purpose
   purpose     String // "EVENT_REGISTRATION", "FUND_DEPOSIT", etc.
@@ -307,6 +312,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([purpose])
+  @@index([razorpayPaymentId, status])
   @@map("payments")
 }
 
@@ -327,8 +333,8 @@ model Event {
   eventEndAt          DateTime
 
   // Financial
-  registrationFee Float // Real rupees
-  initialBalance  Float // Dummy money for participants
+  registrationFee Decimal @db.Decimal(20, 4) // Real rupees
+  initialBalance  Decimal @db.Decimal(20, 4) // Dummy money for participants
 
   // Settings
   isActive        Boolean @default(true)
@@ -367,7 +373,7 @@ model EventRegistration {
   paymentId     String? // Razorpay payment ID
   orderId       String? // Razorpay order ID
   paymentStatus PaymentStatus @default(PENDING)
-  amountPaid    Float
+  amountPaid    Decimal       @db.Decimal(20, 4)
 
   // Status
   status RegistrationStatus @default(PENDING)
@@ -393,8 +399,8 @@ model EventAccount {
   registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   registrationId String            @unique
 
-  cash       Float @default(0)
-  usedMargin Float @default(0)
+  cash       Decimal @default(0) @db.Decimal(20, 4)
+  usedMargin Decimal @default(0) @db.Decimal(20, 4)
 
   positions    EventPosition[]
   transactions EventTransaction[]
@@ -418,8 +424,8 @@ model EventPosition {
   instrumentId String
 
   qty         Int       @default(0)
-  avgPrice    Float     @default(0)
-  realizedPnl Float     @default(0)
+  avgPrice    Decimal   @default(0) @db.Decimal(20, 4)
+  realizedPnl Decimal   @default(0) @db.Decimal(20, 4)
   product     TradeType
 
   isOpen Boolean @default(true)
@@ -459,10 +465,10 @@ model EventTransaction {
   product TradeType
 
   qty        Int
-  price      Float
-  limitPrice Float?
+  price      Decimal  @db.Decimal(20, 4)
+  limitPrice Decimal? @db.Decimal(20, 4)
 
-  realizedPnl Float?
+  realizedPnl Decimal? @db.Decimal(20, 4)
 
   positionId String?
   position   EventPosition? @relation(fields: [positionId], references: [id], onDelete: Cascade)
@@ -470,7 +476,7 @@ model EventTransaction {
   // BUY transaction creates lots
   buyLots EventPositionLot[] @relation("EventBuyTransaction")
 
-  fees      Float    @default(0)
+  fees      Decimal  @default(0) @db.Decimal(20, 4)
   createdAt DateTime @default(now())
 
   @@index([eventAccountId])
@@ -491,8 +497,8 @@ model EventPositionLot {
   buyTransactionId String
 
   totalQty     Int
-  remainingQty Int   @default(0)
-  buyPrice     Float
+  remainingQty Int     @default(0)
+  buyPrice     Decimal @db.Decimal(20, 4)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

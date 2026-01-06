@@ -5,6 +5,7 @@
 
 import { Request, Response } from "express";
 import prisma from "@/database/client";
+import { fromDecimal } from "@/utils/currency";
 import { executeBuy, executeSell } from "@/utils/trading";
 import { getLivePrice } from "@/utils/trading/livePrice";
 import { calculateTotalUnrealizedPnL } from "@/utils/trading/calculatePnL";
@@ -358,8 +359,10 @@ export const getPositions = async (req: Request, res: Response) => {
 
           // Calculate unrealized PnL
           const unrealizedPnL = calculateTotalUnrealizedPnL(position.lots, ltp);
-          const totalPnL = position.realizedPnl + unrealizedPnL;
-          const investedValue = position.avgPrice * position.qty;
+          const realizedPnl = fromDecimal(position.realizedPnl);
+          const avgPrice = fromDecimal(position.avgPrice);
+          const totalPnL = realizedPnl + unrealizedPnL;
+          const investedValue = avgPrice * position.qty;
           const currentValue = ltp * position.qty;
 
           return {
@@ -376,11 +379,11 @@ export const getPositions = async (req: Request, res: Response) => {
             },
             product: position.product,
             qty: position.qty,
-            avgPrice: position.avgPrice,
+            avgPrice: avgPrice,
             currentPrice: ltp,
             investedValue,
             currentValue,
-            realizedPnL: position.realizedPnl,
+            realizedPnL: realizedPnl,
             unrealizedPnL,
             totalPnL,
             pnlPercentage:
@@ -389,8 +392,9 @@ export const getPositions = async (req: Request, res: Response) => {
               id: lot.id,
               totalQty: lot.totalQty,
               remainingQty: lot.remainingQty,
-              buyPrice: lot.buyPrice,
-              unrealizedPnL: (ltp - lot.buyPrice) * lot.remainingQty,
+              buyPrice: fromDecimal(lot.buyPrice),
+              unrealizedPnL:
+                (ltp - fromDecimal(lot.buyPrice)) * lot.remainingQty,
               createdAt: lot.createdAt,
             })),
             recentTransactions: position.transactions.map((txn) => ({
@@ -408,6 +412,8 @@ export const getPositions = async (req: Request, res: Response) => {
         } catch (error) {
           console.error(`Error enriching position ${position.id}:`, error);
           // Return position with fallback values if live price fetch fails
+          const avgPriceFallback = fromDecimal(position.avgPrice);
+          const realizedPnlFallback = fromDecimal(position.realizedPnl);
           return {
             id: position.id,
             instrument: {
@@ -422,11 +428,11 @@ export const getPositions = async (req: Request, res: Response) => {
             },
             product: position.product,
             qty: position.qty,
-            avgPrice: position.avgPrice,
-            currentPrice: position.avgPrice,
-            investedValue: position.avgPrice * position.qty,
-            currentValue: position.avgPrice * position.qty,
-            realizedPnL: position.realizedPnl,
+            avgPrice: avgPriceFallback,
+            currentPrice: avgPriceFallback,
+            investedValue: avgPriceFallback * position.qty,
+            currentValue: avgPriceFallback * position.qty,
+            realizedPnL: realizedPnlFallback,
             unrealizedPnL: 0,
             totalPnL: position.realizedPnl,
             pnlPercentage: 0,
@@ -516,8 +522,10 @@ export const getPositionById = async (req: Request, res: Response) => {
 
     // Calculate metrics
     const unrealizedPnL = calculateTotalUnrealizedPnL(position.lots, ltp);
-    const totalPnL = position.realizedPnl + unrealizedPnL;
-    const investedValue = position.avgPrice * position.qty;
+    const realizedPnl = fromDecimal(position.realizedPnl);
+    const avgPrice = fromDecimal(position.avgPrice);
+    const totalPnL = realizedPnl + unrealizedPnL;
+    const investedValue = avgPrice * position.qty;
     const currentValue = ltp * position.qty;
 
     return res.status(200).json({
@@ -527,16 +535,19 @@ export const getPositionById = async (req: Request, res: Response) => {
         instrument: position.instrument,
         product: position.product,
         qty: position.qty,
-        avgPrice: position.avgPrice,
+        avgPrice: avgPrice,
         currentPrice: ltp,
         investedValue,
         currentValue,
-        realizedPnL: position.realizedPnl,
+        realizedPnL: realizedPnl,
         unrealizedPnL,
         totalPnL,
         pnlPercentage: investedValue > 0 ? (totalPnL / investedValue) * 100 : 0,
         isOpen: position.isOpen,
-        lots: position.lots,
+        lots: position.lots.map((l) => ({
+          ...l,
+          buyPrice: fromDecimal(l.buyPrice),
+        })),
         transactions: position.transactions,
         createdAt: position.createdAt,
         updatedAt: position.updatedAt,

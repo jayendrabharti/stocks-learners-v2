@@ -27,23 +27,23 @@ export type AggregateAppSettings = {
 }
 
 export type AppSettingsAvgAggregateOutputType = {
-  exchangeRate: number | null
+  exchangeRate: runtime.Decimal | null
 }
 
 export type AppSettingsSumAggregateOutputType = {
-  exchangeRate: number | null
+  exchangeRate: runtime.Decimal | null
 }
 
 export type AppSettingsMinAggregateOutputType = {
   id: string | null
-  exchangeRate: number | null
+  exchangeRate: runtime.Decimal | null
   updatedAt: Date | null
   updatedBy: string | null
 }
 
 export type AppSettingsMaxAggregateOutputType = {
   id: string | null
-  exchangeRate: number | null
+  exchangeRate: runtime.Decimal | null
   updatedAt: Date | null
   updatedBy: string | null
 }
@@ -175,7 +175,7 @@ export type AppSettingsGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type AppSettingsGroupByOutputType = {
   id: string
-  exchangeRate: number
+  exchangeRate: runtime.Decimal
   updatedAt: Date
   updatedBy: string | null
   _count: AppSettingsCountAggregateOutputType | null
@@ -205,7 +205,7 @@ export type AppSettingsWhereInput = {
   OR?: Prisma.AppSettingsWhereInput[]
   NOT?: Prisma.AppSettingsWhereInput | Prisma.AppSettingsWhereInput[]
   id?: Prisma.StringFilter<"AppSettings"> | string
-  exchangeRate?: Prisma.FloatFilter<"AppSettings"> | number
+  exchangeRate?: Prisma.DecimalFilter<"AppSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFilter<"AppSettings"> | Date | string
   updatedBy?: Prisma.StringNullableFilter<"AppSettings"> | string | null
 }
@@ -222,7 +222,7 @@ export type AppSettingsWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AppSettingsWhereInput | Prisma.AppSettingsWhereInput[]
   OR?: Prisma.AppSettingsWhereInput[]
   NOT?: Prisma.AppSettingsWhereInput | Prisma.AppSettingsWhereInput[]
-  exchangeRate?: Prisma.FloatFilter<"AppSettings"> | number
+  exchangeRate?: Prisma.DecimalFilter<"AppSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFilter<"AppSettings"> | Date | string
   updatedBy?: Prisma.StringNullableFilter<"AppSettings"> | string | null
 }, "id">
@@ -244,56 +244,56 @@ export type AppSettingsScalarWhereWithAggregatesInput = {
   OR?: Prisma.AppSettingsScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AppSettingsScalarWhereWithAggregatesInput | Prisma.AppSettingsScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AppSettings"> | string
-  exchangeRate?: Prisma.FloatWithAggregatesFilter<"AppSettings"> | number
+  exchangeRate?: Prisma.DecimalWithAggregatesFilter<"AppSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AppSettings"> | Date | string
   updatedBy?: Prisma.StringNullableWithAggregatesFilter<"AppSettings"> | string | null
 }
 
 export type AppSettingsCreateInput = {
   id?: string
-  exchangeRate?: number
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
   updatedBy?: string | null
 }
 
 export type AppSettingsUncheckedCreateInput = {
   id?: string
-  exchangeRate?: number
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
   updatedBy?: string | null
 }
 
 export type AppSettingsUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  exchangeRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  exchangeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AppSettingsUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  exchangeRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  exchangeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AppSettingsCreateManyInput = {
   id?: string
-  exchangeRate?: number
+  exchangeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Date | string
   updatedBy?: string | null
 }
 
 export type AppSettingsUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  exchangeRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  exchangeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AppSettingsUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  exchangeRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  exchangeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -364,7 +364,7 @@ export type $AppSettingsPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    exchangeRate: number
+    exchangeRate: runtime.Decimal
     updatedAt: Date
     updatedBy: string | null
   }, ExtArgs["result"]["appSettings"]>
@@ -791,7 +791,7 @@ export interface Prisma__AppSettingsClient<T, Null = never, ExtArgs extends runt
  */
 export interface AppSettingsFieldRefs {
   readonly id: Prisma.FieldRef<"AppSettings", 'String'>
-  readonly exchangeRate: Prisma.FieldRef<"AppSettings", 'Float'>
+  readonly exchangeRate: Prisma.FieldRef<"AppSettings", 'Decimal'>
   readonly updatedAt: Prisma.FieldRef<"AppSettings", 'DateTime'>
   readonly updatedBy: Prisma.FieldRef<"AppSettings", 'String'>
 }

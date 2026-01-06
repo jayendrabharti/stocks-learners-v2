@@ -26,6 +26,22 @@ export interface OrderResult {
 }
 
 /**
+ * Helper to extract error message from API response
+ * Backend may return errors in multiple formats
+ */
+function extractErrorMessage(data: any, fallback: string): string {
+  // Check structured error format first
+  if (data?.error?.message) {
+    return data.error.message;
+  }
+  // Check direct message
+  if (data?.message) {
+    return data.message;
+  }
+  return fallback;
+}
+
+/**
  * Execute a BUY order
  */
 export async function executeBuyOrder(
@@ -34,7 +50,9 @@ export async function executeBuyOrder(
   const response = await ApiClient.post<OrderResult>("/trading/buy", order);
 
   if (!response.data.success) {
-    throw new Error(response.data.message || "Failed to execute buy order");
+    throw new Error(
+      extractErrorMessage(response.data, "Failed to execute buy order"),
+    );
   }
 
   return response.data;
@@ -49,7 +67,9 @@ export async function executeSellOrder(
   const response = await ApiClient.post<OrderResult>("/trading/sell", order);
 
   if (!response.data.success) {
-    throw new Error(response.data.message || "Failed to execute sell order");
+    throw new Error(
+      extractErrorMessage(response.data, "Failed to execute sell order"),
+    );
   }
 
   return response.data;

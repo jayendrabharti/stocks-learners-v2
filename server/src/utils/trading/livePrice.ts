@@ -3,8 +3,12 @@
  * Integrates with market data services to fetch real-time prices
  */
 
-import { fetchLiveData } from "@/services";
-import type { Exchange, InstrumentType } from "@/database/generated/enums";
+import { fetchHistoricalData, fetchLiveData } from "@/services";
+import type {
+  Exchange,
+  InstrumentType,
+  Segment,
+} from "@/database/generated/enums";
 
 export interface LivePriceData {
   ltp: number;
@@ -45,7 +49,34 @@ export async function getLivePrice(
     });
 
     // Extract LTP from the live data response
-    const ltp = result.liveData?.ltp || result.liveData?.close || 0;
+    let ltp = result.liveData?.ltp || result.liveData?.close || 0;
+
+    // If live feed is unavailable (e.g., market closed), fall back to last close
+    if (ltp === 0) {
+      const segment: Segment =
+        type === "FUT" || type === "CE" || type === "PE" ? "FNO" : "CASH";
+
+      try {
+        const historical = await fetchHistoricalData({
+          scriptCode: effectiveScriptCode,
+          exchange,
+          segment,
+          timeRange: "1D",
+        });
+
+        const candles = historical.historicalData?.candles;
+        if (candles && candles.length > 0) {
+          const lastCandle = candles[candles.length - 1];
+          ltp = lastCandle[4] || 0; // close price fallback
+        }
+      } catch (fallbackError) {
+        // Log and continue with zero so trading can still proceed in simulation
+        console.error(
+          `Historical fallback failed for ${effectiveScriptCode}:`,
+          fallbackError
+        );
+      }
+    }
 
     if (ltp === 0) {
       throw new Error(`Unable to fetch live price for ${scriptCode}`);

@@ -19,7 +19,10 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import ApiClient from "@/utils/ApiClient";
+import {
+  fetchInstrumentMetadata,
+  getInstrumentUrl,
+} from "@/utils/instrumentMetadata";
 import Link from "next/link";
 import { instrumentTypeName } from "../trading/InstrumentDataSection";
 import { formatTimestamp } from "@/utils";
@@ -39,49 +42,29 @@ export function PortfolioHoldings({
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  // Fetch metadata when portfolio changes
+  // Fetch metadata when portfolio changes using shared utility
   useEffect(() => {
     if (!portfolio) return;
 
-    const fetchMetadata = async () => {
-      // Fetch metadata for stocks/indices
+    const loadMetadata = async () => {
       const allHoldings = [
         ...portfolio.holdings.CNC.positions,
         ...portfolio.holdings.MIS.positions,
       ];
 
-      const newMetadata: Record<string, any> = {};
-      const newTitles: Record<string, string> = {};
-      for (const holding of allHoldings) {
-        try {
-          const searchId =
-            holding.instrument.searchId ||
-            holding.instrument.tradingSymbol.toLowerCase();
-          const metadataResponse = await ApiClient.get(
-            `/metadata?search_id=${searchId}`,
-          );
-          if (holding.instrument.segment === "CASH") {
-            newTitles[holding.instrument.id] =
-              metadataResponse.data.displayName;
-          } else {
-            const searchResponse = await ApiClient.get("/search", {
-              params: { query: holding.instrument.tradingSymbol, size: 1 },
-            });
-            const { success, instruments } = searchResponse.data;
-            if (success && instruments[0]) {
-              newTitles[holding.instrument.id] = instruments[0].title;
-            }
-          }
-          newMetadata[holding.instrument.id] = metadataResponse.data;
-        } catch (error) {
-          // Metadata not found - logo will not be displayed
-        }
-      }
-      setMetadataMap(newMetadata);
-      setTitleMap(newTitles);
+      const { metadataMap: metadata, titleMap: titles } =
+        await fetchInstrumentMetadata(
+          allHoldings.map((h) => ({
+            id: h.instrument.id,
+            instrument: h.instrument,
+          })),
+          true, // Use instrument.id as key
+        );
+      setMetadataMap(metadata);
+      setTitleMap(titles);
     };
 
-    fetchMetadata();
+    loadMetadata();
   }, [portfolio]);
 
   if (loading) {
@@ -159,6 +142,184 @@ export function PortfolioHoldings({
     );
   }
 
+  // Helper function to get instrument URL - used by both mobile and desktop views
+  const getInstrumentUrl = (holding: Holding) => {
+    const { type, tradingSymbol, searchId, exchange } = holding.instrument;
+    const id = searchId || tradingSymbol.toLowerCase();
+    const exchangeParam = `?exchange=${exchange}`;
+
+    if (type === "EQ") return `/stocks/${id}${exchangeParam}`;
+    if (type === "IDX") return `/indices/${id}${exchangeParam}`;
+    if (type === "FUT")
+      return `/futures/${id}/${tradingSymbol}${exchangeParam}`;
+    if (type === "CE" || type === "PE")
+      return `/options/${id}/${tradingSymbol}${exchangeParam}`;
+    return "#";
+  };
+
+  // Mobile card component for each holding
+  const MobileHoldingCard = ({ holding }: { holding: Holding }) => {
+    const isProfitable = holding.totalPnL >= 0;
+    const metadata = metadataMap[holding.instrument.id];
+    const isExpanded = expandedRows.has(holding.positionId);
+    const hasLots = holding.lots && holding.lots.length > 0;
+
+    return (
+      <div className="border-b p-4 last:border-b-0">
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            href={getInstrumentUrl(holding)}
+            className="flex min-w-0 flex-1 items-center gap-3"
+          >
+            <Avatar className="h-10 w-10 shrink-0 rounded-lg">
+              <AvatarImage
+                src={metadata?.logoUrl}
+                alt={holding.instrument.tradingSymbol}
+              />
+              <AvatarFallback className="rounded-lg">
+                {holding.instrument.tradingSymbol.substring(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="truncate font-semibold hover:underline">
+                {titleMap[holding.instrument.id] ||
+                  holding.instrument.tradingSymbol}
+              </div>
+              <div className="text-muted-foreground text-xs">
+                {holding.instrument.tradingSymbol} •{" "}
+                {holding.instrument.exchange}
+              </div>
+            </div>
+          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Badge
+              variant={holding.product === "CNC" ? "default" : "secondary"}
+              className="text-xs"
+            >
+              {holding.product}
+            </Badge>
+            {hasLots && (
+              <button
+                onClick={() => {
+                  const newExpanded = new Set(expandedRows);
+                  if (isExpanded) {
+                    newExpanded.delete(holding.positionId);
+                  } else {
+                    newExpanded.add(holding.positionId);
+                  }
+                  setExpandedRows(newExpanded);
+                }}
+                className="hover:bg-muted rounded p-1"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div>
+            <div className="text-muted-foreground text-xs">Qty × Avg Price</div>
+            <div className="text-sm font-medium">
+              {holding.qty} × ₹{holding.avgPrice.toFixed(2)}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-muted-foreground text-xs">LTP</div>
+            <div className="text-sm font-medium">
+              ₹{holding.currentPrice.toFixed(2)}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs">Current Value</div>
+            <div className="text-sm font-medium">
+              ₹
+              {holding.currentValue.toLocaleString("en-IN", {
+                maximumFractionDigits: 2,
+              })}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-muted-foreground text-xs">P&L</div>
+            <div
+              className={`text-sm font-semibold ${isProfitable ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+            >
+              {isProfitable && "+"}₹
+              {holding.totalPnL.toLocaleString("en-IN", {
+                maximumFractionDigits: 2,
+              })}
+              <span className="ml-1 text-xs">
+                (
+                {isProfitable ? (
+                  <TrendingUp className="inline h-3 w-3" />
+                ) : (
+                  <TrendingDown className="inline h-3 w-3" />
+                )}
+                {holding.pnlPercentage.toFixed(2)}%)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Expanded Lots Details - Mobile */}
+        {isExpanded && hasLots && (
+          <div className="mt-4 border-t pt-4">
+            <h4 className="mb-3 text-sm font-semibold">
+              Individual Lots ({holding.lots!.length})
+            </h4>
+            <div className="space-y-3">
+              {holding.lots!.map((lot, index) => {
+                const lotPnL = lot.unrealizedPnL;
+                const lotPnLPercentage =
+                  ((holding.currentPrice - lot.buyPrice) / lot.buyPrice) * 100;
+                const lotProfitable = lotPnL >= 0;
+
+                return (
+                  <div key={lot.id} className="bg-muted/50 rounded-lg p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 text-primary flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold">
+                          {index + 1}
+                        </div>
+                        <div className="text-sm font-medium">
+                          {lot.remainingQty} / {lot.totalQty} shares
+                        </div>
+                      </div>
+                      <div
+                        className={`text-sm font-semibold ${lotProfitable ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                      >
+                        {lotProfitable && "+"}₹
+                        {lotPnL.toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground flex justify-between text-xs">
+                      <span>Buy: ₹{lot.buyPrice.toFixed(2)}</span>
+                      <span>Current: ₹{holding.currentPrice.toFixed(2)}</span>
+                      <span
+                        className={
+                          lotProfitable ? "text-green-600" : "text-red-600"
+                        }
+                      >
+                        {lotProfitable ? "+" : ""}
+                        {lotPnLPercentage.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -170,8 +331,16 @@ export function PortfolioHoldings({
               : "All Holdings"}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
+      <CardContent className="p-0 sm:p-6">
+        {/* Mobile View - Card Layout */}
+        <div className="md:hidden">
+          {sortedHoldings.map((holding) => (
+            <MobileHoldingCard key={holding.positionId} holding={holding} />
+          ))}
+        </div>
+
+        {/* Desktop View - Table Layout */}
+        <div className="hidden rounded-md border md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -191,21 +360,6 @@ export function PortfolioHoldings({
                 const metadata = metadataMap[holding.instrument.id];
                 const isExpanded = expandedRows.has(holding.positionId);
                 const hasLots = holding.lots && holding.lots.length > 0;
-
-                const getInstrumentUrl = () => {
-                  const { type, tradingSymbol, searchId, exchange } =
-                    holding.instrument;
-                  const id = searchId || tradingSymbol.toLowerCase();
-                  const exchangeParam = `?exchange=${exchange}`;
-
-                  if (type === "EQ") return `/stocks/${id}${exchangeParam}`;
-                  if (type === "IDX") return `/indices/${id}${exchangeParam}`;
-                  if (type === "FUT")
-                    return `/futures/${id}/${tradingSymbol}${exchangeParam}`;
-                  if (type === "CE" || type === "PE")
-                    return `/options/${id}/${tradingSymbol}${exchangeParam}`;
-                  return "#";
-                };
 
                 return (
                   <Fragment key={holding.positionId}>
@@ -234,7 +388,7 @@ export function PortfolioHoldings({
                       </TableCell>
                       <TableCell className="font-medium">
                         <Link
-                          href={getInstrumentUrl()}
+                          href={getInstrumentUrl(holding)}
                           className="flex items-center gap-3"
                         >
                           <Avatar className="h-10 w-10 rounded-lg">
@@ -248,7 +402,8 @@ export function PortfolioHoldings({
                           </Avatar>
                           <div>
                             <div className="font-semibold hover:underline">
-                              {titleMap[holding.instrument.id]}
+                              {titleMap[holding.instrument.id] ||
+                                holding.instrument.tradingSymbol}
                             </div>
                             <div className="text-muted-foreground text-xs">
                               {holding.instrument.tradingSymbol} •{" "}

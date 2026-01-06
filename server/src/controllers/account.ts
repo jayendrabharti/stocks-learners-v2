@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import prisma from "@/database/client";
+import {
+  fromDecimal,
+  toDecimal,
+  roundCurrency,
+  parseAmount,
+} from "@/utils/currency";
 
 /**
  * Get user account details
@@ -35,22 +41,24 @@ export const getAccount = async (
       where: { userId },
       create: {
         userId,
-        cash: 0,
-        usedMargin: 0,
+        cash: toDecimal(0),
+        usedMargin: toDecimal(0),
       },
       update: {}, // No update needed, just fetch
     });
 
-    // Available margin = cash (margin is already deducted from cash in trading operations)
-    const availableMargin = account.cash;
+    // Convert Decimal to number for response
+    const cash = fromDecimal(account.cash);
+    const usedMargin = fromDecimal(account.usedMargin);
+    const availableMargin = cash;
 
     return res.status(200).json({
       success: true,
       account: {
-        cash: account.cash,
-        usedMargin: account.usedMargin,
+        cash,
+        usedMargin,
         availableMargin,
-        totalFunds: account.cash + account.usedMargin, // For transparency
+        totalFunds: roundCurrency(cash + usedMargin), // For transparency
       },
     });
   } catch (error) {
@@ -83,9 +91,9 @@ export const depositFunds = async (
       });
     }
 
-    // Validate and parse amount
-    const parsedAmount = parseFloat(amount);
-    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+    // Validate and parse amount using currency utility
+    const parsedAmount = parseAmount(amount);
+    if (parsedAmount === null) {
       return res.status(400).json({
         success: false,
         message: "Invalid amount. Must be a positive number",
@@ -106,23 +114,27 @@ export const depositFunds = async (
 
     // Get exchange rate
     const settings = await prisma.appSettings.findFirst();
-    const exchangeRate = settings?.exchangeRate || 1.0;
+    const exchangeRate = settings ? fromDecimal(settings.exchangeRate) : 1.0;
 
-    // Calculate dummy money
-    const dummyMoney = parsedAmount * exchangeRate;
+    // Calculate dummy money with proper rounding
+    const dummyMoney = roundCurrency(parsedAmount * exchangeRate);
 
     // Use upsert to atomically create or update account (prevents race condition)
     const account = await prisma.account.upsert({
       where: { userId },
       create: {
         userId,
-        cash: dummyMoney,
-        usedMargin: 0,
+        cash: toDecimal(dummyMoney),
+        usedMargin: toDecimal(0),
       },
       update: {
         cash: { increment: dummyMoney },
       },
     });
+
+    // Convert Decimal to number for response
+    const cash = fromDecimal(account.cash);
+    const usedMargin = fromDecimal(account.usedMargin);
 
     return res.status(200).json({
       success: true,
@@ -133,10 +145,10 @@ export const depositFunds = async (
         dummyMoney,
       },
       account: {
-        cash: account.cash,
-        usedMargin: account.usedMargin,
-        availableMargin: account.cash, // Cash already excludes used margin
-        totalFunds: account.cash + account.usedMargin,
+        cash,
+        usedMargin,
+        availableMargin: cash, // Cash already excludes used margin
+        totalFunds: roundCurrency(cash + usedMargin),
       },
     });
   } catch (error) {
@@ -166,9 +178,9 @@ export const withdrawFunds = async (
       });
     }
 
-    // Validate and parse amount
-    const parsedAmount = parseFloat(amount);
-    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+    // Validate and parse amount using currency utility
+    const parsedAmount = parseAmount(amount);
+    if (parsedAmount === null) {
       return res.status(400).json({
         success: false,
         message: "Invalid amount. Must be a positive number",
@@ -186,37 +198,66 @@ export const withdrawFunds = async (
       });
     }
 
-    // Available margin = cash (margin already deducted)
-    const availableMargin = account.cash;
+    // Use Serializable transaction for atomic withdrawal (prevents race condition)
+    const updatedAccount = await prisma.$transaction(
+      async (tx) => {
+        // Re-fetch account inside transaction for atomic check
+        const currentAccount = await tx.account.findUnique({
+          where: { userId },
+        });
 
-    if (parsedAmount > availableMargin) {
-      return res.status(400).json({
-        success: false,
-        message: `Insufficient funds. Available: ₹${availableMargin.toFixed(
-          2
-        )}, Requested: ₹${parsedAmount.toFixed(2)}`,
-      });
-    }
+        if (!currentAccount) {
+          throw new Error("Account not found");
+        }
 
-    const updatedAccount = await prisma.account.update({
-      where: { userId },
-      data: {
-        cash: { decrement: parsedAmount },
+        const availableMargin = fromDecimal(currentAccount.cash);
+
+        if (parsedAmount > availableMargin) {
+          throw new Error(
+            `Insufficient funds. Available: ₹${availableMargin.toFixed(
+              2
+            )}, Requested: ₹${parsedAmount.toFixed(2)}`
+          );
+        }
+
+        return tx.account.update({
+          where: { userId },
+          data: {
+            cash: { decrement: parsedAmount },
+          },
+        });
       },
-    });
+      {
+        isolationLevel: "Serializable" as const,
+        timeout: 10000,
+      }
+    );
+
+    // Convert Decimal to number for response
+    const cash = fromDecimal(updatedAccount.cash);
+    const usedMargin = fromDecimal(updatedAccount.usedMargin);
 
     return res.status(200).json({
       success: true,
       message: `Successfully withdrew ₹${parsedAmount}`,
       account: {
-        cash: updatedAccount.cash,
-        usedMargin: updatedAccount.usedMargin,
-        availableMargin: updatedAccount.cash, // Cash already excludes used margin
-        totalFunds: updatedAccount.cash + updatedAccount.usedMargin,
+        cash,
+        usedMargin,
+        availableMargin: cash, // Cash already excludes used margin
+        totalFunds: roundCurrency(cash + usedMargin),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error withdrawing funds:", error);
+
+    // Handle insufficient funds error from transaction
+    if (error.message?.includes("Insufficient funds")) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Failed to withdraw funds",

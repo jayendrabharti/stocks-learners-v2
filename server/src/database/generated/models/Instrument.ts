@@ -840,6 +840,14 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type InstrumentCreateNestedOneWithoutTransactionsInput = {
   create?: Prisma.XOR<Prisma.InstrumentCreateWithoutTransactionsInput, Prisma.InstrumentUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.InstrumentCreateOrConnectWithoutTransactionsInput

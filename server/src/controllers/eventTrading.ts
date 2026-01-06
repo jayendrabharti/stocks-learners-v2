@@ -134,8 +134,54 @@ export const buyOrder = async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error: any) {
     console.error("Event BUY order error:", error);
+
+    const errorMessage = error?.message || "Error executing BUY order";
+
+    // Categorize errors for consistent response format
+    if (
+      errorMessage.includes("Insufficient funds") ||
+      errorMessage.includes("Insufficient margin")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "INSUFFICIENT_FUNDS",
+          message: errorMessage,
+          action: "You don't have enough funds in your event account",
+        },
+      });
+    }
+
+    if (
+      errorMessage.includes("not started") ||
+      errorMessage.includes("has ended") ||
+      errorMessage.includes("not active")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "EVENT_NOT_TRADEABLE",
+          message: errorMessage,
+        },
+      });
+    }
+
+    if (errorMessage.includes("not found")) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: errorMessage,
+        },
+      });
+    }
+
     return res.status(500).json({
-      error: { message: error.message || "Error executing BUY order" },
+      success: false,
+      error: {
+        code: "ORDER_EXECUTION_FAILED",
+        message: errorMessage,
+      },
     });
   }
 };
@@ -202,6 +248,44 @@ export const sellOrder = async (req: Request, res: Response) => {
       });
     }
 
+    // Get event and validate it's active and within trading window
+    const event = await prisma.event.findUnique({
+      where: { id: eventId as string },
+    });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        error: { code: "EVENT_NOT_FOUND", message: "Event not found" },
+      });
+    }
+
+    if (!event.isActive) {
+      return res.status(400).json({
+        success: false,
+        error: { code: "EVENT_NOT_ACTIVE", message: "Event is not active" },
+      });
+    }
+
+    // Validate event timeframe
+    const now = new Date();
+    if (now < event.eventStartAt) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "EVENT_NOT_STARTED",
+          message: "Event trading has not started yet",
+        },
+      });
+    }
+
+    if (now > event.eventEndAt) {
+      return res.status(400).json({
+        success: false,
+        error: { code: "EVENT_ENDED", message: "Event trading has ended" },
+      });
+    }
+
     // Get user's event account
     const registration = (await prisma.eventRegistration.findFirst({
       where: {
@@ -216,7 +300,9 @@ export const sellOrder = async (req: Request, res: Response) => {
 
     if (!registration || !registration.eventAccount) {
       return res.status(404).json({
+        success: false,
         error: {
+          code: "ACCOUNT_NOT_FOUND",
           message: "Event account not found or registration not confirmed",
         },
       });
@@ -234,8 +320,54 @@ export const sellOrder = async (req: Request, res: Response) => {
     return res.status(200).json(result);
   } catch (error: any) {
     console.error("Event SELL order error:", error);
+
+    const errorMessage = error?.message || "Error executing SELL order";
+
+    // Categorize errors for consistent response format
+    if (
+      errorMessage.includes("Insufficient quantity") ||
+      errorMessage.includes("No open")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "INSUFFICIENT_QUANTITY",
+          message: errorMessage,
+          action: "You can only sell from existing holdings",
+        },
+      });
+    }
+
+    if (
+      errorMessage.includes("not started") ||
+      errorMessage.includes("has ended") ||
+      errorMessage.includes("not active")
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "EVENT_NOT_TRADEABLE",
+          message: errorMessage,
+        },
+      });
+    }
+
+    if (errorMessage.includes("not found")) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: errorMessage,
+        },
+      });
+    }
+
     return res.status(500).json({
-      error: { message: error.message || "Error executing SELL order" },
+      success: false,
+      error: {
+        code: "ORDER_EXECUTION_FAILED",
+        message: errorMessage,
+      },
     });
   }
 };

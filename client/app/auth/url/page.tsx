@@ -6,13 +6,15 @@ import { toast } from "sonner";
 
 export default function GoogleUrlRedirect() {
   useEffect(() => {
-    try {
-      ApiClient.get("/auth/google/url?type=redirect").then((response) => {
+    ApiClient.get("/auth/google/url?type=redirect")
+      .then((response) => {
         window.open(response.data.url, "googleLogin", "width=600,height=600");
+      })
+      .catch(() => {
+        toast.error("Unable to open login", {
+          description: "Please disable popup blockers and try again.",
+        });
       });
-    } catch {
-      toast.error("Error while Google Login...");
-    }
   }, []);
 
   return <div>Redirecting to Google...</div>;

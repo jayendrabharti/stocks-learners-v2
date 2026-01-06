@@ -29,13 +29,13 @@ export type AggregateEventPositionLot = {
 export type EventPositionLotAvgAggregateOutputType = {
   totalQty: number | null
   remainingQty: number | null
-  buyPrice: number | null
+  buyPrice: runtime.Decimal | null
 }
 
 export type EventPositionLotSumAggregateOutputType = {
   totalQty: number | null
   remainingQty: number | null
-  buyPrice: number | null
+  buyPrice: runtime.Decimal | null
 }
 
 export type EventPositionLotMinAggregateOutputType = {
@@ -44,7 +44,7 @@ export type EventPositionLotMinAggregateOutputType = {
   buyTransactionId: string | null
   totalQty: number | null
   remainingQty: number | null
-  buyPrice: number | null
+  buyPrice: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -55,7 +55,7 @@ export type EventPositionLotMaxAggregateOutputType = {
   buyTransactionId: string | null
   totalQty: number | null
   remainingQty: number | null
-  buyPrice: number | null
+  buyPrice: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -211,7 +211,7 @@ export type EventPositionLotGroupByOutputType = {
   buyTransactionId: string
   totalQty: number
   remainingQty: number
-  buyPrice: number
+  buyPrice: runtime.Decimal
   createdAt: Date
   updatedAt: Date
   _count: EventPositionLotCountAggregateOutputType | null
@@ -245,7 +245,7 @@ export type EventPositionLotWhereInput = {
   buyTransactionId?: Prisma.StringFilter<"EventPositionLot"> | string
   totalQty?: Prisma.IntFilter<"EventPositionLot"> | number
   remainingQty?: Prisma.IntFilter<"EventPositionLot"> | number
-  buyPrice?: Prisma.FloatFilter<"EventPositionLot"> | number
+  buyPrice?: Prisma.DecimalFilter<"EventPositionLot"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
   position?: Prisma.XOR<Prisma.EventPositionScalarRelationFilter, Prisma.EventPositionWhereInput>
@@ -274,7 +274,7 @@ export type EventPositionLotWhereUniqueInput = Prisma.AtLeast<{
   buyTransactionId?: Prisma.StringFilter<"EventPositionLot"> | string
   totalQty?: Prisma.IntFilter<"EventPositionLot"> | number
   remainingQty?: Prisma.IntFilter<"EventPositionLot"> | number
-  buyPrice?: Prisma.FloatFilter<"EventPositionLot"> | number
+  buyPrice?: Prisma.DecimalFilter<"EventPositionLot"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
   position?: Prisma.XOR<Prisma.EventPositionScalarRelationFilter, Prisma.EventPositionWhereInput>
@@ -306,7 +306,7 @@ export type EventPositionLotScalarWhereWithAggregatesInput = {
   buyTransactionId?: Prisma.StringWithAggregatesFilter<"EventPositionLot"> | string
   totalQty?: Prisma.IntWithAggregatesFilter<"EventPositionLot"> | number
   remainingQty?: Prisma.IntWithAggregatesFilter<"EventPositionLot"> | number
-  buyPrice?: Prisma.FloatWithAggregatesFilter<"EventPositionLot"> | number
+  buyPrice?: Prisma.DecimalWithAggregatesFilter<"EventPositionLot"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventPositionLot"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EventPositionLot"> | Date | string
 }
@@ -315,7 +315,7 @@ export type EventPositionLotCreateInput = {
   id?: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   position: Prisma.EventPositionCreateNestedOneWithoutLotsInput
@@ -328,7 +328,7 @@ export type EventPositionLotUncheckedCreateInput = {
   buyTransactionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -337,7 +337,7 @@ export type EventPositionLotUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   position?: Prisma.EventPositionUpdateOneRequiredWithoutLotsNestedInput
@@ -350,7 +350,7 @@ export type EventPositionLotUncheckedUpdateInput = {
   buyTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -361,7 +361,7 @@ export type EventPositionLotCreateManyInput = {
   buyTransactionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -370,7 +370,7 @@ export type EventPositionLotUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -381,7 +381,7 @@ export type EventPositionLotUncheckedUpdateManyInput = {
   buyTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -529,7 +529,7 @@ export type EventPositionLotCreateWithoutPositionInput = {
   id?: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   buyTransaction: Prisma.EventTransactionCreateNestedOneWithoutBuyLotsInput
@@ -540,7 +540,7 @@ export type EventPositionLotUncheckedCreateWithoutPositionInput = {
   buyTransactionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -580,7 +580,7 @@ export type EventPositionLotScalarWhereInput = {
   buyTransactionId?: Prisma.StringFilter<"EventPositionLot"> | string
   totalQty?: Prisma.IntFilter<"EventPositionLot"> | number
   remainingQty?: Prisma.IntFilter<"EventPositionLot"> | number
-  buyPrice?: Prisma.FloatFilter<"EventPositionLot"> | number
+  buyPrice?: Prisma.DecimalFilter<"EventPositionLot"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventPositionLot"> | Date | string
 }
@@ -589,7 +589,7 @@ export type EventPositionLotCreateWithoutBuyTransactionInput = {
   id?: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   position: Prisma.EventPositionCreateNestedOneWithoutLotsInput
@@ -600,7 +600,7 @@ export type EventPositionLotUncheckedCreateWithoutBuyTransactionInput = {
   positionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -636,7 +636,7 @@ export type EventPositionLotCreateManyPositionInput = {
   buyTransactionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -645,7 +645,7 @@ export type EventPositionLotUpdateWithoutPositionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   buyTransaction?: Prisma.EventTransactionUpdateOneRequiredWithoutBuyLotsNestedInput
@@ -656,7 +656,7 @@ export type EventPositionLotUncheckedUpdateWithoutPositionInput = {
   buyTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -666,7 +666,7 @@ export type EventPositionLotUncheckedUpdateManyWithoutPositionInput = {
   buyTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -676,7 +676,7 @@ export type EventPositionLotCreateManyBuyTransactionInput = {
   positionId: string
   totalQty: number
   remainingQty?: number
-  buyPrice: number
+  buyPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -685,7 +685,7 @@ export type EventPositionLotUpdateWithoutBuyTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   position?: Prisma.EventPositionUpdateOneRequiredWithoutLotsNestedInput
@@ -696,7 +696,7 @@ export type EventPositionLotUncheckedUpdateWithoutBuyTransactionInput = {
   positionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -706,7 +706,7 @@ export type EventPositionLotUncheckedUpdateManyWithoutBuyTransactionInput = {
   positionId?: Prisma.StringFieldUpdateOperationsInput | string
   totalQty?: Prisma.IntFieldUpdateOperationsInput | number
   remainingQty?: Prisma.IntFieldUpdateOperationsInput | number
-  buyPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  buyPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -789,7 +789,7 @@ export type $EventPositionLotPayload<ExtArgs extends runtime.Types.Extensions.In
     buyTransactionId: string
     totalQty: number
     remainingQty: number
-    buyPrice: number
+    buyPrice: runtime.Decimal
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["eventPositionLot"]>
@@ -1222,7 +1222,7 @@ export interface EventPositionLotFieldRefs {
   readonly buyTransactionId: Prisma.FieldRef<"EventPositionLot", 'String'>
   readonly totalQty: Prisma.FieldRef<"EventPositionLot", 'Int'>
   readonly remainingQty: Prisma.FieldRef<"EventPositionLot", 'Int'>
-  readonly buyPrice: Prisma.FieldRef<"EventPositionLot", 'Float'>
+  readonly buyPrice: Prisma.FieldRef<"EventPositionLot", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"EventPositionLot", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EventPositionLot", 'DateTime'>
 }

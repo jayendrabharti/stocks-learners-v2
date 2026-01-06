@@ -59,9 +59,16 @@ export default function PaymentPage() {
           `/payment/create-order?amount=${amount}`,
         );
         setOrder(orderRes.data.order);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
-        setError("Failed to initialize payment. Please try again.");
+        const isAuthError = err?.response?.status === 401;
+        if (isAuthError) {
+          setError("Please log in to add funds to your account.");
+        } else {
+          setError(
+            "Unable to initialize payment. Please check your connection and try again.",
+          );
+        }
       } finally {
         setLoading(false);
       }

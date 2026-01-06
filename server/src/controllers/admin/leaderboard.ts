@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "@/database/client";
+import { fromDecimal } from "@/utils/currency";
 
 interface LeaderboardUser {
   id: string;
@@ -68,7 +69,7 @@ export const getLeaderboard = async (
         });
 
         const totalRealizedPnL = allPositions.reduce(
-          (sum, p) => sum + p.realizedPnl,
+          (sum, p) => sum + fromDecimal(p.realizedPnl),
           0
         );
 
@@ -94,21 +95,24 @@ export const getLeaderboard = async (
 
         // Calculate unrealized P&L for open positions
         for (const position of openPositions) {
-          const investedValue = position.avgPrice * position.qty;
+          const avgPrice = fromDecimal(position.avgPrice);
+          const investedValue = avgPrice * position.qty;
           totalInvested += investedValue;
 
           // Calculate unrealized P&L from lots
           const unrealizedPnL = position.lots.reduce((sum, lot) => {
             // Use avgPrice as proxy for current price (simplified)
-            return sum + (position.avgPrice - lot.buyPrice) * lot.remainingQty;
+            return (
+              sum + (avgPrice - fromDecimal(lot.buyPrice)) * lot.remainingQty
+            );
           }, 0);
 
           totalUnrealizedPnL += unrealizedPnL;
-          totalCurrentValue += position.avgPrice * position.qty;
+          totalCurrentValue += avgPrice * position.qty;
         }
 
         const totalPnL = totalRealizedPnL + totalUnrealizedPnL;
-        const portfolioValue = account.cash + totalCurrentValue;
+        const portfolioValue = fromDecimal(account.cash) + totalCurrentValue;
 
         leaderboardData.push({
           id: user.id,

@@ -1,9 +1,11 @@
 /**
  * BUY Order Execution Engine
  * Handles the complete flow of executing a BUY order
+ * Uses Serializable transaction isolation for race condition prevention
  */
 
 import prisma from "@/database/client";
+import { Prisma } from "@/database/generated/client";
 import type { TradeType } from "@/database/generated/enums";
 import { validateOrder } from "./validateOrder";
 import { getLivePrice } from "./livePrice";
@@ -13,7 +15,8 @@ import {
 } from "./updatePosition";
 import { fetchInstrumentById } from "@/utils/instruments";
 import type { InstrumentModel } from "@/database/generated/models/Instrument";
-import { setAutoSquareOffTime } from "@/services/autoSquareOffService";
+import { getNextMarketCloseTime } from "@/services/autoSquareOffService";
+import { roundCurrency, fromDecimal, toDecimal } from "@/utils/currency";
 export type Instrument = InstrumentModel;
 
 export interface BuyOrderInput {
@@ -51,7 +54,7 @@ function calculateFees(
   // Additional charges for F&O
   const additionalFee = segment === "FNO" ? 20 : 0;
 
-  return orderValue * feeRate + additionalFee;
+  return roundCurrency(orderValue * feeRate + additionalFee);
 }
 
 /**
@@ -80,6 +83,13 @@ export async function executeBuy(
       instrument.exchangeToken
     );
 
+    // Validate price is positive (catches API failures/bad data)
+    if (!ltp || ltp <= 0 || !isFinite(ltp)) {
+      throw new Error(
+        `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`
+      );
+    }
+
     // Actual fill price is LTP (limit price is ignored in this implementation)
     const executedPrice = ltp;
 
@@ -101,160 +111,187 @@ export async function executeBuy(
     }
 
     // Step 4: Calculate order value and fees
-    const orderValue = executedPrice * qty;
+    const orderValue = roundCurrency(executedPrice * qty);
     const fees = calculateFees(orderValue, product, instrument.segment);
-    const totalCost = orderValue + fees;
+    const totalCost = roundCurrency(orderValue + fees);
 
-    // Step 5: Check user account and margin (for MIS)
-    const account = await prisma.account.findUnique({
-      where: { userId },
-    });
-
-    if (!account) {
-      throw new Error("User account not found");
+    // Validate leverage is positive (prevent division by zero)
+    if (product === "MIS" && instrument.leverage <= 0) {
+      throw new Error("Invalid instrument leverage configuration");
     }
 
-    // For MIS, validate margin and check cash
-    if (product === "MIS") {
-      const requiredMargin = (executedPrice * qty) / instrument.leverage;
-      const totalRequired = requiredMargin + fees;
+    // Step 5: Execute the order in a Serializable transaction
+    // Balance check MUST be inside transaction to prevent race conditions
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // Re-fetch account inside transaction for atomic balance check
+        const account = await tx.account.findUnique({
+          where: { userId },
+        });
 
-      if (account.cash < totalRequired) {
-        throw new Error(
-          `Insufficient funds. Required: ₹${totalRequired.toFixed(
-            2
-          )} (Margin: ₹${requiredMargin.toFixed(2)} + Fees: ₹${fees.toFixed(
-            2
-          )}), Available: ₹${account.cash.toFixed(2)}`
-        );
-      }
-    } else {
-      // For CNC, check if user has sufficient cash
-      if (account.cash < totalCost) {
-        throw new Error(
-          `Insufficient funds. Required: ${totalCost.toFixed(
-            2
-          )}, Available: ${account.cash.toFixed(2)}`
-        );
-      }
-    }
+        if (!account) {
+          throw new Error("User account not found");
+        }
 
-    // Step 6: Execute the order in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Find or create position with lock to prevent race conditions
-      let position = await tx.position.findFirst({
-        where: {
-          userId,
-          instrumentId,
-          product,
-          isOpen: true,
-        },
-        include: {
-          lots: true,
-        },
-      });
+        const accountCash = fromDecimal(account.cash);
 
-      let isNewPosition = false;
+        // Validate sufficient funds inside transaction
+        if (product === "MIS") {
+          const requiredMargin = roundCurrency(
+            (executedPrice * qty) / instrument.leverage
+          );
+          const totalRequired = roundCurrency(requiredMargin + fees);
 
-      if (!position) {
-        // Create new position
-        const initialData = createInitialPositionData(qty, executedPrice);
-        position = await tx.position.create({
-          data: {
+          if (accountCash < totalRequired) {
+            throw new Error(
+              `Insufficient funds. Required: ₹${totalRequired.toFixed(
+                2
+              )} (Margin: ₹${requiredMargin.toFixed(2)} + Fees: ₹${fees.toFixed(
+                2
+              )}), Available: ₹${accountCash.toFixed(2)}`
+            );
+          }
+        } else {
+          if (accountCash < totalCost) {
+            throw new Error(
+              `Insufficient funds. Required: ${totalCost.toFixed(
+                2
+              )}, Available: ${accountCash.toFixed(2)}`
+            );
+          }
+        }
+
+        // Find or create position with lock to prevent race conditions
+        let position = await tx.position.findFirst({
+          where: {
             userId,
             instrumentId,
             product,
-            ...initialData,
+            isOpen: true,
           },
           include: {
             lots: true,
           },
         });
-        isNewPosition = true;
-      }
 
-      // Create transaction record
-      const transaction = await tx.transaction.create({
-        data: {
-          userId,
-          instrumentId,
+        let isNewPosition = false;
+
+        // For MIS, get auto square-off time upfront (inside transaction)
+        let autoSquareOffAt: Date | null = null;
+        if (product === "MIS") {
+          autoSquareOffAt = await getNextMarketCloseTime();
+        }
+
+        if (!position) {
+          // Create new position with auto square-off time if MIS
+          const initialData = createInitialPositionData(qty, executedPrice);
+          position = await tx.position.create({
+            data: {
+              userId,
+              instrumentId,
+              product,
+              ...initialData,
+              autoSquareOffAt: autoSquareOffAt,
+              autoSquareOffStatus: product === "MIS" ? "PENDING" : undefined,
+            },
+            include: {
+              lots: true,
+            },
+          });
+          isNewPosition = true;
+        } else if (product === "MIS" && autoSquareOffAt) {
+          // Update auto square-off time for existing MIS position
+          await tx.position.update({
+            where: { id: position.id },
+            data: {
+              autoSquareOffAt: autoSquareOffAt,
+              autoSquareOffStatus: "PENDING",
+            },
+          });
+        }
+
+        // Create transaction record
+        const transaction = await tx.transaction.create({
+          data: {
+            userId,
+            instrumentId,
+            positionId: position.id,
+            side: "BUY",
+            product,
+            qty,
+            price: toDecimal(executedPrice),
+            limitPrice: limitPrice ? toDecimal(limitPrice) : null,
+            fees: toDecimal(fees),
+          },
+        });
+
+        // Create position lot
+        await tx.positionLot.create({
+          data: {
+            positionId: position.id,
+            buyTransactionId: transaction.id,
+            totalQty: qty,
+            remainingQty: qty,
+            buyPrice: toDecimal(executedPrice),
+          },
+        });
+
+        // Update position (if not new)
+        if (!isNewPosition) {
+          const updatedPosition = recalculatePositionOnBuy(
+            position.qty,
+            fromDecimal(position.avgPrice),
+            qty,
+            executedPrice
+          );
+
+          await tx.position.update({
+            where: { id: position.id },
+            data: {
+              qty: updatedPosition.qty,
+              avgPrice: toDecimal(updatedPosition.avgPrice),
+              updatedAt: new Date(),
+            },
+          });
+        }
+
+        // Update account with properly rounded values
+        if (product === "MIS") {
+          // For MIS, deduct margin + fees from cash and increase used margin
+          const requiredMargin = roundCurrency(
+            (executedPrice * qty) / instrument.leverage
+          );
+          const totalDeduction = roundCurrency(requiredMargin + fees);
+
+          await tx.account.update({
+            where: { userId },
+            data: {
+              cash: { decrement: totalDeduction },
+              usedMargin: { increment: requiredMargin },
+              updatedAt: new Date(),
+            },
+          });
+        } else {
+          // For CNC, deduct cash
+          await tx.account.update({
+            where: { userId },
+            data: {
+              cash: { decrement: totalCost },
+              updatedAt: new Date(),
+            },
+          });
+        }
+
+        return {
+          transactionId: transaction.id,
           positionId: position.id,
-          side: "BUY",
-          product,
-          qty,
-          price: executedPrice,
-          limitPrice: limitPrice || null,
-          fees,
-        },
-      });
-
-      // Create position lot
-      await tx.positionLot.create({
-        data: {
-          positionId: position.id,
-          buyTransactionId: transaction.id,
-          totalQty: qty,
-          remainingQty: qty,
-          buyPrice: executedPrice,
-        },
-      });
-
-      // Update position (if not new)
-      if (!isNewPosition) {
-        const updatedPosition = recalculatePositionOnBuy(
-          position.qty,
-          position.avgPrice,
-          qty,
-          executedPrice
-        );
-
-        await tx.position.update({
-          where: { id: position.id },
-          data: {
-            qty: updatedPosition.qty,
-            avgPrice: updatedPosition.avgPrice,
-            updatedAt: new Date(),
-          },
-        });
+        };
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 30000, // 30 seconds
       }
-
-      // Update account
-      if (product === "MIS") {
-        // For MIS, deduct margin + fees from cash and increase used margin
-        const requiredMargin = (executedPrice * qty) / instrument.leverage;
-        const totalDeduction = requiredMargin + fees;
-
-        await tx.account.update({
-          where: { userId },
-          data: {
-            cash: { decrement: totalDeduction },
-            usedMargin: { increment: requiredMargin },
-            updatedAt: new Date(),
-          },
-        });
-      } else {
-        // For CNC, deduct cash
-        await tx.account.update({
-          where: { userId },
-          data: {
-            cash: { decrement: totalCost },
-            updatedAt: new Date(),
-          },
-        });
-      }
-
-      return {
-        transactionId: transaction.id,
-        positionId: position.id,
-      };
-    });
-
-    // Set auto square-off time for MIS positions (async, non-blocking)
-    if (product === "MIS") {
-      setAutoSquareOffTime(result.positionId).catch((error) => {
-        console.error("Error setting auto square-off time:", error);
-      });
-    }
+    );
 
     return {
       success: true,

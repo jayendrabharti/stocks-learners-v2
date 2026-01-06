@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { useSession } from "@/providers/SessionProvider";
-import eventsApi, { Event as ApiEvent, EventRegistration as ApiEventRegistration } from "@/services/eventsApi";
+import eventsApi, {
+  Event as ApiEvent,
+  EventRegistration as ApiEventRegistration,
+} from "@/services/eventsApi";
 
 // Re-export types from API
 export type Event = ApiEvent;
@@ -30,7 +33,9 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 export function EventProvider({ children }: { children: React.ReactNode }) {
   const { user } = useSession();
   const [events, setEvents] = useState<Event[]>([]);
-  const [myRegistrations, setMyRegistrations] = useState<EventRegistration[]>([]);
+  const [myRegistrations, setMyRegistrations] = useState<EventRegistration[]>(
+    [],
+  );
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,8 +44,12 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await eventsApi.getActiveEvents();
       setEvents(response.events);
-    } catch (error) {
-      console.error("Error refreshing events:", error);
+    } catch (error: any) {
+      // Silent fail for non-critical errors, events just won't show
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Error refreshing events:", error);
+      }
       setEvents([]);
     } finally {
       setIsLoading(false);
@@ -59,8 +68,12 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await eventsApi.getUserRegistrations();
       setMyRegistrations(response.registrations);
-    } catch (error) {
-      console.error("Error refreshing my registrations:", error);
+    } catch (error: any) {
+      // Silent fail for auth errors - user will see login prompt elsewhere
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Error refreshing my registrations:", error);
+      }
       setMyRegistrations([]);
     } finally {
       setIsLoading(false);

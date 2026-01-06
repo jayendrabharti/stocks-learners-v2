@@ -13,7 +13,10 @@ import {
 } from "lucide-react";
 import { usePortfolio } from "@/providers/PortfolioProvider";
 import { useEffect, useState } from "react";
-import ApiClient from "@/utils/ApiClient";
+import {
+  fetchInstrumentMetadata,
+  getInstrumentUrl,
+} from "@/utils/instrumentMetadata";
 import Link from "next/link";
 import { formatTimestamp } from "@/utils";
 
@@ -88,44 +91,17 @@ function PositionsList({ positions }: { positions: any[] }) {
     new Set(),
   );
 
-  // Fetch metadata and titles for all positions
+  // Fetch metadata and titles for all positions using shared utility
   useEffect(() => {
-    const fetchMetadata = async () => {
-      const newMetadata: Record<string, any> = {};
-      const newTitles: Record<string, string> = {};
-
-      for (const position of positions) {
-        try {
-          const searchId =
-            position.instrument.searchId ||
-            position.instrument.tradingSymbol.toLowerCase();
-          const metadataResponse = await ApiClient.get(
-            `/metadata?search_id=${searchId}`,
-          );
-
-          if (position.instrument.segment === "CASH") {
-            newTitles[position.id] = metadataResponse.data.displayName;
-          } else {
-            const searchResponse = await ApiClient.get("/search", {
-              params: { query: position.instrument.tradingSymbol, size: 1 },
-            });
-            const { success, instruments } = searchResponse.data;
-            if (success && instruments[0]) {
-              newTitles[position.id] = instruments[0].title;
-            }
-          }
-          newMetadata[position.id] = metadataResponse.data;
-        } catch (error) {
-          // Metadata not found - logo will not be displayed
-        }
-      }
-
-      setMetadataMap(newMetadata);
-      setTitleMap(newTitles);
+    const loadMetadata = async () => {
+      const { metadataMap: metadata, titleMap: titles } =
+        await fetchInstrumentMetadata(positions, false);
+      setMetadataMap(metadata);
+      setTitleMap(titles);
     };
 
     if (positions.length > 0) {
-      fetchMetadata();
+      loadMetadata();
     }
   }, [positions]);
 

@@ -64,7 +64,7 @@ interface EventTradingContextType {
 }
 
 const EventTradingContext = createContext<EventTradingContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function EventTradingProvider({
@@ -82,13 +82,17 @@ export function EventTradingProvider({
 
   const refreshPositions = useCallback(async () => {
     if (!eventId || currentAccount?.type !== "event") return;
-    
+
     setIsLoading(true);
     try {
       const response = await eventTradingApi.getPositions(eventId);
       setPositions(response.positions);
-    } catch (error) {
-      console.error("Error refreshing positions:", error);
+    } catch (error: any) {
+      // Silent fail for auth errors - user will see login prompt
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Error refreshing positions:", error);
+      }
       setPositions([]);
     } finally {
       setIsLoading(false);
@@ -97,13 +101,16 @@ export function EventTradingProvider({
 
   const refreshTransactions = useCallback(async () => {
     if (!eventId || currentAccount?.type !== "event") return;
-    
+
     setIsLoading(true);
     try {
       const response = await eventTradingApi.getTransactions(eventId);
       setTransactions(response.transactions);
-    } catch (error) {
-      console.error("Error refreshing transactions:", error);
+    } catch (error: any) {
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Error refreshing transactions:", error);
+      }
       setTransactions([]);
     } finally {
       setIsLoading(false);
@@ -112,13 +119,16 @@ export function EventTradingProvider({
 
   const refreshPortfolio = useCallback(async () => {
     if (!eventId || currentAccount?.type !== "event") return;
-    
+
     setIsLoading(true);
     try {
       const response = await eventTradingApi.getPortfolio(eventId);
       setPortfolio(response);
-    } catch (error) {
-      console.error("Error refreshing portfolio:", error);
+    } catch (error: any) {
+      const isAuthError = error?.response?.status === 401;
+      if (!isAuthError) {
+        console.error("Error refreshing portfolio:", error);
+      }
       setPortfolio(null);
     } finally {
       setIsLoading(false);
@@ -126,9 +136,14 @@ export function EventTradingProvider({
   }, [eventId, currentAccount]);
 
   const executeBuy = useCallback(
-    async (params: { exchangeToken: string; qty: number; product: string; limitPrice?: number }) => {
+    async (params: {
+      exchangeToken: string;
+      qty: number;
+      product: string;
+      limitPrice?: number;
+    }) => {
       if (!eventId) throw new Error("No event ID");
-      
+
       setIsLoading(true);
       try {
         await eventTradingApi.buyOrder(eventId, params);
@@ -140,13 +155,18 @@ export function EventTradingProvider({
         setIsLoading(false);
       }
     },
-    [eventId, refreshPositions, refreshPortfolio]
+    [eventId, refreshPositions, refreshPortfolio],
   );
 
   const executeSell = useCallback(
-    async (params: { exchangeToken: string; qty: number; product: string; limitPrice?: number }) => {
+    async (params: {
+      exchangeToken: string;
+      qty: number;
+      product: string;
+      limitPrice?: number;
+    }) => {
       if (!eventId) throw new Error("No event ID");
-      
+
       setIsLoading(true);
       try {
         await eventTradingApi.sellOrder(eventId, params);
@@ -158,7 +178,7 @@ export function EventTradingProvider({
         setIsLoading(false);
       }
     },
-    [eventId, refreshPositions, refreshPortfolio]
+    [eventId, refreshPositions, refreshPortfolio],
   );
 
   return (
@@ -184,7 +204,7 @@ export function useEventTrading() {
   const context = useContext(EventTradingContext);
   if (context === undefined) {
     throw new Error(
-      "useEventTrading must be used within an EventTradingProvider"
+      "useEventTrading must be used within an EventTradingProvider",
     );
   }
   return context;

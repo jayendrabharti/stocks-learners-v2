@@ -41,9 +41,14 @@ export default function RegisterPage() {
     try {
       const data = await eventsApi.getEventDetails(eventId);
       setEvent(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading event:", error);
-      toast.error("Failed to load event details");
+      const isNotFound = error?.response?.status === 404;
+      toast.error(isNotFound ? "Event not found" : "Unable to load event", {
+        description: isNotFound
+          ? "This event may have been removed or the link is incorrect."
+          : "Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }

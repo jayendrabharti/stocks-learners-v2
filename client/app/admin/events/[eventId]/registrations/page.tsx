@@ -92,9 +92,17 @@ export default function EventRegistrationsPage() {
         .reduce((sum: number, r: Registration) => sum + r.amountPaid, 0);
 
       setStats({ total, confirmed, pending, totalRevenue });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading data:", error);
-      toast.error("Failed to load registrations");
+      const isNotFound = error?.response?.status === 404;
+      toast.error(
+        isNotFound ? "Event not found" : "Unable to load registrations",
+        {
+          description: isNotFound
+            ? "This event may have been deleted."
+            : "Please check your connection and try again.",
+        },
+      );
     } finally {
       setIsLoading(false);
     }
