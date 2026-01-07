@@ -6,7 +6,7 @@
 import { Request, Response } from "express";
 import prisma from "@/database/client.js";
 import { fromDecimal } from "@/utils/currency";
-import { createOrder, logPayment } from "@/services/razorpayService.js";
+import { createPaymentLink, logPayment } from "@/services/razorpayService.js";
 import {
   getEventStatus,
   checkRegistrationEligibility,
@@ -319,39 +319,73 @@ export const registerForEvent = async (req: Request, res: Response) => {
       });
     }
 
-    // Create Razorpay order for paid events
-    const order = await createOrder({
+    // Get user details for payment link
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, phone: true },
+    });
+
+    if (!user || !user.email) {
+      return res.status(400).json({
+        error: {
+          message: "User profile incomplete. Please update your email.",
+        },
+      });
+    }
+
+    // Generate unique reference ID for tracking
+    const referenceId = `evt_${event.id.slice(-8)}_${userId.slice(
+      -8
+    )}_${Date.now().toString(36)}`;
+
+    // Build callback URL - redirect back to app after payment
+    const clientUrl = process.env.CLIENT_BASE_URL || "http://localhost:3000";
+    const callbackUrl = `${clientUrl}/events/${event.slug}/register/callback`;
+
+    // Create Razorpay Payment Link for paid events
+    const paymentLink = await createPaymentLink({
       amount: registrationFeeAmount,
-      receipt: `evt_${event.id.slice(-8)}_${userId.slice(-8)}_${Date.now()
-        .toString()
-        .slice(-6)}`,
+      description: `Registration for ${event.title}`,
+      customer: {
+        name: user.name || "User",
+        email: user.email,
+        contact: user.phone || undefined,
+      },
+      referenceId,
+      callbackUrl,
+      expireBy: Math.floor(Date.now() / 1000) + 60 * 30, // Expires in 30 minutes
       notes: {
         eventId: event.id,
         userId,
         eventTitle: event.title,
+        eventSlug: event.slug,
       },
     });
 
-    // Log payment intent (no registration created yet)
+    // Log payment intent with payment link ID
     await logPayment({
       userId,
-      razorpayOrderId: order.orderId,
+      razorpayOrderId: paymentLink.paymentLinkId, // Using paymentLinkId as orderId field
       amount: registrationFeeAmount,
       status: "PENDING",
       purpose: "EVENT_REGISTRATION",
-      referenceId: undefined, // No registration ID yet
+      referenceId,
       metadata: {
         eventId: event.id,
         eventTitle: event.title,
+        paymentLinkUrl: paymentLink.paymentLinkUrl,
+        isPaymentLink: true,
       },
     });
 
     return res.status(200).json({
-      message: "Payment initiated",
+      message: "Payment link created",
       payment: {
-        orderId: order.orderId,
-        amount: order.amount,
-        currency: order.currency,
+        paymentLinkId: paymentLink.paymentLinkId,
+        paymentUrl: paymentLink.paymentLinkUrl,
+        amount: paymentLink.amount,
+        currency: paymentLink.currency,
+        referenceId,
       },
     });
   } catch (error) {

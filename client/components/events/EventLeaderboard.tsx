@@ -47,7 +47,7 @@ export default function EventLeaderboard({
       {isEventEnded && topThree.length > 0 && (
         <div className="relative">
           {/* Celebration Banner */}
-          <div className="mb-6 rounded-lg bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 p-6 text-center text-white">
+          <div className="mb-6 rounded-lg bg-linear-to-r from-yellow-500 via-orange-500 to-red-500 p-6 text-center text-white">
             <div className="mb-2 flex items-center justify-center gap-2">
               <Trophy className="h-8 w-8" />
               <h2 className="text-3xl font-bold">Event Complete - Winners!</h2>
@@ -101,7 +101,7 @@ export default function EventLeaderboard({
             {/* 1st Place - Larger */}
             {topThree[0] && (
               <Card className="relative scale-105 overflow-hidden border-4 border-yellow-500 md:order-first md:col-start-1 md:col-end-4 md:row-start-1 lg:col-start-2 lg:col-end-3 lg:row-start-1">
-                <div className="absolute top-0 right-0 left-0 h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600" />
+                <div className="absolute top-0 right-0 left-0 h-3 bg-linear-to-r from-yellow-400 via-yellow-500 to-yellow-600" />
                 <CardHeader className="pb-3 text-center">
                   <div className="mb-2 flex justify-center">
                     <div className="animate-bounce text-7xl">🥇</div>

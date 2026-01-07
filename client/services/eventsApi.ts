@@ -94,10 +94,18 @@ export async function getEventDetails(eventId: string): Promise<Event> {
 
 /**
  * Register for event
+ * Returns payment link URL for paid events, or registration for free events
  */
 export async function registerForEvent(eventId: string): Promise<{
-  registration: { id: string; status: string };
-  payment: { orderId: string; amount: number; currency: string };
+  message: string;
+  registration?: { id: string; status: string };
+  payment?: {
+    paymentLinkId: string;
+    paymentUrl: string;
+    amount: number;
+    currency: string;
+    referenceId: string;
+  };
 }> {
   const response = await ApiClient.post(
     `/events/${encodeURIComponent(eventId)}/register`,

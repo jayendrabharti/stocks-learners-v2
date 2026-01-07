@@ -13,14 +13,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, CreditCard, Trophy, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Trophy,
+  TrendingUp,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 import AuthGuard from "@/auth/AuthGuard";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
 
 export default function RegisterPage() {
   const params = useParams();
@@ -59,51 +60,24 @@ export default function RegisterPage() {
 
     setIsProcessing(true);
     try {
-      // Create order
-      const response = await eventsApi.registerForEvent(event.id); // Use event.id for registration
+      // Create payment link
+      const response = await eventsApi.registerForEvent(event.id);
 
-      // Initialize Razorpay
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: response.payment.amount,
-        currency: response.payment.currency,
-        name: "Stocks Learners",
-        description: `Registration for ${event.title}`,
-        order_id: response.payment.orderId,
-        handler: async function (razorpayResponse: any) {
-          try {
-            // Verify payment using ApiClient which handles auth cookies
-            const { default: ApiClient } = await import("@/utils/ApiClient");
+      // For free events, registration is immediate
+      if (response.registration) {
+        toast.success("Successfully registered for free event!");
+        router.push(`/events/${event.slug}`);
+        return;
+      }
 
-            await ApiClient.post("/payment/event/verify", {
-              razorpay_order_id: razorpayResponse.razorpay_order_id,
-              razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-              razorpay_signature: razorpayResponse.razorpay_signature,
-            });
-
-            toast.success(
-              "Registration successful! Your event account has been created.",
-            );
-            router.push(`/events/${event.slug}`);
-          } catch (error: any) {
-            console.error("Payment verification error:", error);
-            const errorMessage =
-              error.response?.data?.error?.message ||
-              "Payment verification failed. Please contact support.";
-            toast.error(errorMessage);
-          }
-        },
-        prefill: {
-          name: "",
-          email: "",
-        },
-        theme: {
-          color: "#3399cc",
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      // For paid events, redirect to Razorpay payment link
+      if (response.payment?.paymentUrl) {
+        toast.info("Redirecting to payment page...");
+        // Open in same window - Razorpay will redirect back after payment
+        window.location.href = response.payment.paymentUrl;
+      } else {
+        throw new Error("Payment URL not received");
+      }
     } catch (error: any) {
       console.error("Error initiating registration:", error);
       const errorMessage =
@@ -111,7 +85,6 @@ export default function RegisterPage() {
         error.message ||
         "Failed to initiate registration";
       toast.error(errorMessage);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -235,10 +208,18 @@ export default function RegisterPage() {
           disabled={isProcessing || event.isFull}
         >
           {isProcessing ? (
-            "Processing..."
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Redirecting to payment...
+            </>
+          ) : event.registrationFee === 0 ? (
+            <>
+              <Trophy className="mr-2 h-5 w-5" />
+              Register for Free
+            </>
           ) : (
             <>
-              <CreditCard className="mr-2 h-5 w-5" />
+              <ExternalLink className="mr-2 h-5 w-5" />
               Pay ₹{event.registrationFee} & Register
             </>
           )}
@@ -249,9 +230,6 @@ export default function RegisterPage() {
             This event is full and no longer accepting registrations
           </p>
         )}
-
-        {/* Razorpay Script */}
-        <script src="https://checkout.razorpay.com/v1/checkout.js" async />
       </AuthGuard>
     </div>
   );

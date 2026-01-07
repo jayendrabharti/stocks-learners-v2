@@ -499,6 +499,209 @@ export const verifyEventPayment = async (req: Request, res: Response) => {
 };
 
 /**
+ * Verify event payment from Payment Link callback
+ * GET /payment/event/verify-link
+ * Query: { razorpay_payment_link_id, razorpay_payment_link_reference_id, razorpay_payment_link_status, razorpay_payment_id, razorpay_signature }
+ */
+export const verifyEventPaymentLink = async (req: Request, res: Response) => {
+  try {
+    const {
+      razorpay_payment_link_id,
+      razorpay_payment_link_reference_id,
+      razorpay_payment_link_status,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.query;
+
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: { message: "Authentication required" },
+      });
+    }
+
+    // Validate required fields
+    if (
+      !razorpay_payment_link_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature
+    ) {
+      return res.status(400).json({
+        error: { message: "Missing payment verification parameters" },
+      });
+    }
+
+    // Verify signature: payment_link_id|reference_id|status|payment_id
+    const secret = process.env.RAZORPAY_KEY_SECRET || "";
+    const expectedSignature = require("crypto")
+      .createHmac("sha256", secret)
+      .update(
+        `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`
+      )
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      console.error("Payment link signature verification failed");
+      return res.status(400).json({
+        error: { message: "Invalid payment signature" },
+      });
+    }
+
+    // Check if payment status is paid
+    if (razorpay_payment_link_status !== "paid") {
+      return res.status(400).json({
+        error: {
+          message: `Payment not completed. Status: ${razorpay_payment_link_status}`,
+        },
+      });
+    }
+
+    // Get payment record by payment link ID (stored in razorpayOrderId field)
+    const paymentRecord = await prisma.payment.findFirst({
+      where: {
+        razorpayOrderId: razorpay_payment_link_id as string,
+        userId,
+        purpose: "EVENT_REGISTRATION",
+      },
+    });
+
+    if (!paymentRecord) {
+      return res.status(404).json({
+        error: { message: "Payment record not found" },
+      });
+    }
+
+    // Get event ID from metadata
+    const metadata = paymentRecord.metadata as any;
+    const eventId = metadata?.eventId;
+
+    if (!eventId) {
+      return res.status(400).json({
+        error: { message: "Event ID not found in payment record" },
+      });
+    }
+
+    // Execute all operations in a serializable transaction
+    const registration = await prisma.$transaction(
+      async (tx) => {
+        // Get event details with registration count
+        const event = await tx.event.findUnique({
+          where: { id: eventId },
+          include: {
+            _count: {
+              select: { registrations: { where: { status: "CONFIRMED" } } },
+            },
+          },
+        });
+
+        if (!event) {
+          throw new Error("Event not found");
+        }
+
+        // Check if already registered (inside transaction for atomicity)
+        const existingRegistration = await tx.eventRegistration.findUnique({
+          where: {
+            userId_eventId: { userId, eventId: event.id },
+          },
+        });
+
+        if (existingRegistration) {
+          if (existingRegistration.status === "CONFIRMED") {
+            // Idempotent response - already registered
+            return {
+              alreadyRegistered: true,
+              registration: existingRegistration,
+              eventSlug: event.slug,
+            };
+          }
+        }
+
+        // Check max participants (atomic check inside transaction)
+        if (event.maxParticipants !== null) {
+          const confirmedCount = event._count.registrations;
+          if (confirmedCount >= event.maxParticipants) {
+            throw new Error("Event is full");
+          }
+        }
+
+        // Create or update registration with CONFIRMED status
+        const newRegistration = await tx.eventRegistration.upsert({
+          where: {
+            userId_eventId: { userId, eventId: event.id },
+          },
+          create: {
+            userId,
+            eventId: event.id,
+            orderId: razorpay_payment_link_id as string,
+            paymentId: razorpay_payment_id as string,
+            paymentStatus: "COMPLETED",
+            amountPaid: event.registrationFee,
+            status: "CONFIRMED",
+          },
+          update: {
+            orderId: razorpay_payment_link_id as string,
+            paymentId: razorpay_payment_id as string,
+            paymentStatus: "COMPLETED",
+            status: "CONFIRMED",
+          },
+        });
+
+        // Update payment log
+        await tx.payment.update({
+          where: { id: paymentRecord.id },
+          data: {
+            status: "COMPLETED",
+            razorpayPaymentId: razorpay_payment_id as string,
+            razorpaySignature: razorpay_signature as string,
+            referenceId: newRegistration.id,
+          },
+        });
+
+        // Create event account (if not exists)
+        await tx.eventAccount.upsert({
+          where: { registrationId: newRegistration.id },
+          create: {
+            registrationId: newRegistration.id,
+            cash: event.initialBalance,
+            usedMargin: toDecimal(0),
+          },
+          update: {}, // No update needed
+        });
+
+        return {
+          alreadyRegistered: false,
+          registration: newRegistration,
+          eventSlug: event.slug,
+        };
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 30000,
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: registration.alreadyRegistered
+        ? "Already registered for this event"
+        : "Payment verified successfully",
+      registration: {
+        id: registration.registration.id,
+        status: "CONFIRMED",
+        eventId: registration.registration.eventId,
+      },
+      eventSlug: registration.eventSlug,
+    });
+  } catch (error) {
+    console.error("Error verifying event payment link:", error);
+    return res.status(500).json({
+      error: { message: getErrorMessage(error) || "Error verifying payment" },
+    });
+  }
+};
+
+/**
  * Get payment history
  * GET /payment/history
  */

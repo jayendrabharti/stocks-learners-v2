@@ -3,6 +3,7 @@ import {
   CreateOrder,
   VerifyOrder,
   verifyEventPayment,
+  verifyEventPaymentLink,
   getPaymentHistory,
 } from "@/controllers/payment";
 import express from "express";
@@ -52,6 +53,11 @@ PaymentRouter.post("/verify-order", verifyOrderLimiter, VerifyOrder);
 
 // Event payment routes
 PaymentRouter.post("/event/verify", verifyOrderLimiter, verifyEventPayment);
+PaymentRouter.get(
+  "/event/verify-link",
+  verifyOrderLimiter,
+  verifyEventPaymentLink
+);
 
 // Payment history
 PaymentRouter.get("/history", getPaymentHistory);

@@ -1,6 +1,6 @@
 /**
  * Razorpay Service
- * Payment integration for event registrations
+ * Payment integration for event registrations using Payment Links
  */
 
 import Razorpay from "razorpay";
@@ -13,6 +13,109 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "",
 });
+
+export interface CreatePaymentLinkOptions {
+  amount: number; // in rupees
+  currency?: string;
+  description: string;
+  customer: {
+    name: string;
+    email: string;
+    contact?: string;
+  };
+  referenceId: string;
+  callbackUrl: string;
+  expireBy?: number; // Unix timestamp
+  notes?: Record<string, string>;
+}
+
+export interface CreatePaymentLinkResult {
+  paymentLinkId: string;
+  paymentLinkUrl: string;
+  shortUrl: string;
+  amount: number;
+  currency: string;
+  referenceId: string;
+  status: string;
+}
+
+/**
+ * Create a Razorpay Payment Link
+ * This is used instead of Orders API for event registrations
+ */
+export async function createPaymentLink(
+  options: CreatePaymentLinkOptions
+): Promise<CreatePaymentLinkResult> {
+  try {
+    // Convert amount to paise (Razorpay uses smallest currency unit)
+    const amountInPaise = Math.round(options.amount * 100);
+
+    const paymentLink = await razorpay.paymentLink.create({
+      amount: amountInPaise,
+      currency: options.currency || "INR",
+      accept_partial: false,
+      description: options.description,
+      customer: {
+        name: options.customer.name,
+        email: options.customer.email,
+        contact: options.customer.contact || "",
+      },
+      notify: {
+        sms: false, // We handle notification ourselves
+        email: false,
+      },
+      reminder_enable: false,
+      reference_id: options.referenceId,
+      callback_url: options.callbackUrl,
+      callback_method: "get",
+      expire_by: options.expireBy,
+      notes: options.notes || {},
+    });
+
+    return {
+      paymentLinkId: paymentLink.id,
+      paymentLinkUrl: paymentLink.short_url, // Use short_url for cleaner redirects
+      shortUrl: paymentLink.short_url,
+      amount: Number(paymentLink.amount) / 100, // Convert back to rupees
+      currency: paymentLink.currency || "INR",
+      referenceId: paymentLink.reference_id || options.referenceId,
+      status: paymentLink.status,
+    };
+  } catch (error) {
+    console.error("Razorpay payment link creation error:", error);
+    throw new Error(
+      `Failed to create payment link: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+/**
+ * Fetch Payment Link details by ID
+ */
+export async function getPaymentLink(paymentLinkId: string) {
+  try {
+    const paymentLink = await razorpay.paymentLink.fetch(paymentLinkId);
+    return paymentLink;
+  } catch (error) {
+    console.error("Error fetching payment link:", error);
+    throw new Error("Failed to fetch payment link");
+  }
+}
+
+/**
+ * Cancel a Payment Link
+ */
+export async function cancelPaymentLink(paymentLinkId: string) {
+  try {
+    const result = await razorpay.paymentLink.cancel(paymentLinkId);
+    return result;
+  } catch (error) {
+    console.error("Error cancelling payment link:", error);
+    throw new Error("Failed to cancel payment link");
+  }
+}
 
 export interface CreateOrderOptions {
   amount: number; // in rupees
@@ -113,7 +216,9 @@ export async function logPayment(data: {
         status: data.status,
         purpose: data.purpose,
         referenceId: data.referenceId || null,
-        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : null,
+        metadata: data.metadata
+          ? JSON.parse(JSON.stringify(data.metadata))
+          : null,
       },
     });
 
