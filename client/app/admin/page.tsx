@@ -62,8 +62,9 @@ export default function AdminPage() {
     // Load current exchange rate
     ApiClient.get("/admin/settings")
       .then((response) => {
-        setExchangeRate(response.data.exchangeRate);
-        setNewExchangeRate(response.data.exchangeRate.toString());
+        const rate = Number(response.data.exchangeRate) || 1.0;
+        setExchangeRate(rate);
+        setNewExchangeRate(rate.toString());
       })
       .catch((err) => {
         console.error("Failed to load settings:", err);
@@ -216,7 +217,7 @@ export default function AdminPage() {
                 Exchange Rate (INR to Credits)
               </Label>
               <p className="text-muted-foreground mt-1 mb-3 text-sm">
-                Current rate: ₹1 = {exchangeRate.toFixed(2)} Credits
+                Current rate: ₹1 = {Number(exchangeRate).toFixed(2)} Credits
               </p>
               <div className="flex gap-2">
                 <Input

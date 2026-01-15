@@ -4,6 +4,7 @@ import {
   UserWhereInput,
 } from "@/database/generated/models";
 import { Request, Response } from "express";
+import { fromDecimal } from "@/utils/currency";
 
 export const getDashboardData = async (_req: Request, res: Response) => {
   try {
@@ -34,7 +35,7 @@ export const getDashboardData = async (_req: Request, res: Response) => {
     const confirmedRegistrations = await prisma.eventRegistration.count({
       where: { status: "CONFIRMED" },
     });
-    
+
     // Calculate total revenue from event registrations
     const revenueData = await prisma.eventRegistration.aggregate({
       where: { paymentStatus: "COMPLETED" },
@@ -166,10 +167,16 @@ export const getAppSettings = async (_req: Request, res: Response) => {
           exchangeRate: 1.0,
         },
       });
-      return res.status(200).json(newSettings);
+      return res.status(200).json({
+        ...newSettings,
+        exchangeRate: fromDecimal(newSettings.exchangeRate),
+      });
     }
 
-    return res.status(200).json(settings);
+    return res.status(200).json({
+      ...settings,
+      exchangeRate: fromDecimal(settings.exchangeRate),
+    });
   } catch (error) {
     console.error("Error retrieving app settings:", error);
     return res

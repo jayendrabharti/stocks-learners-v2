@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -29,6 +31,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ArrowUpDown,
   Search,
   ChevronLeft,
@@ -40,9 +50,14 @@ import {
   User,
   Shield,
   ShieldOff,
+  Wallet,
+  Plus,
+  Minus,
+  IndianRupee,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 interface Pagination {
   total: number;
@@ -53,6 +68,29 @@ interface Pagination {
 
 type SortField = "email" | "name" | "createdAt" | "updatedAt" | "isAdmin";
 type SortOrder = "asc" | "desc";
+
+interface UserAccount {
+  id: string;
+  cash: number;
+  usedMargin: number;
+  availableBalance: number;
+}
+
+interface UserDetails {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    phone: string | null;
+    isAdmin: boolean;
+    createdAt: string;
+  };
+  account: UserAccount | null;
+  stats: {
+    openPositions: number;
+    totalTransactions: number;
+  };
+}
 
 export default function AdminUsersPage() {
   const role_filter = useSearchParams().get("role_filter");
@@ -72,6 +110,16 @@ export default function AdminUsersPage() {
   );
   const [sortBy, setSortBy] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+
+  // Fund adjustment dialog state
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [adjustType, setAdjustType] = useState<"ADD" | "DEDUCT">("ADD");
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [isAdjusting, setIsAdjusting] = useState(false);
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -149,6 +197,84 @@ export default function AdminUsersPage() {
         .slice(0, 2);
     }
     return email.slice(0, 2).toUpperCase();
+  };
+
+  // Fund adjustment functions
+  const openFundDialog = async (user: User) => {
+    setSelectedUser(user);
+    setIsDialogOpen(true);
+    setIsLoadingDetails(true);
+    setAdjustAmount("");
+    setAdjustReason("");
+    setAdjustType("ADD");
+    setUserDetails(null);
+
+    try {
+      const response = await ApiClient.get(`/admin/users/${user.id}/account`);
+      if (response.status === 200) {
+        setUserDetails(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      toast.error("Failed to fetch user account details");
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handleAdjustFunds = async () => {
+    if (!selectedUser || !adjustAmount || !adjustReason) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const amount = parseFloat(adjustAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid positive amount");
+      return;
+    }
+
+    setIsAdjusting(true);
+    try {
+      const response = await ApiClient.post(
+        `/admin/users/${selectedUser.id}/funds/adjust`,
+        {
+          amount,
+          type: adjustType,
+          reason: adjustReason,
+        },
+      );
+
+      if (response.status === 200) {
+        toast.success(
+          `Successfully ${adjustType === "ADD" ? "added" : "deducted"} ₹${amount.toLocaleString("en-IN")} ${adjustType === "ADD" ? "to" : "from"} ${selectedUser.name || selectedUser.email}'s account`,
+        );
+        // Refresh the user details to show updated balance
+        setAdjustAmount("");
+        setAdjustReason("");
+        // Re-fetch user details to update displayed balance
+        const refreshResponse = await ApiClient.get(
+          `/admin/users/${selectedUser.id}/account`,
+        );
+        if (refreshResponse.status === 200) {
+          setUserDetails(refreshResponse.data);
+        }
+        fetchUsers();
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "Failed to adjust funds");
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
+
+  const closeFundDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedUser(null);
+    setUserDetails(null);
+    setAdjustAmount("");
+    setAdjustReason("");
   };
 
   return (
@@ -287,6 +413,15 @@ export default function AdminUsersPage() {
                         Joined {formatDate(user.createdAt)}
                       </span>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openFundDialog(user)}
+                      className="mt-3 gap-2"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Manage Funds
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -325,6 +460,9 @@ export default function AdminUsersPage() {
                       Role
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
+                  </TableHead>
+                  <TableHead className="p-4 text-left text-sm font-semibold">
+                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -384,6 +522,19 @@ export default function AdminUsersPage() {
                         {user.isAdmin ? "Admin" : "User"}
                       </Badge>
                     </TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="p-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openFundDialog(user)}
+                        className="gap-2"
+                      >
+                        <Wallet className="h-4 w-4" />
+                        Manage Funds
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -425,6 +576,160 @@ export default function AdminUsersPage() {
           )}
         </Card>
       )}
+
+      {/* Fund Adjustment Dialog */}
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => !open && closeFundDialog()}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Manage User Funds
+            </DialogTitle>
+            <DialogDescription>
+              Add or deduct funds from user&apos;s main account
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUser && (
+            <div className="space-y-4">
+              {/* User Info */}
+              <div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
+                <Avatar>
+                  <AvatarImage
+                    src={selectedUser.avatar || undefined}
+                    alt={selectedUser.name || selectedUser.email}
+                  />
+                  <AvatarFallback>
+                    {getInitials(selectedUser.name, selectedUser.email)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-medium">
+                    {selectedUser.name || "No Name"}
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    {selectedUser.email}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Balance */}
+              {isLoadingDetails ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : userDetails ? (
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="text-muted-foreground mb-1 text-sm">
+                    Current Main Account Balance
+                  </div>
+                  <div className="flex items-center gap-1 text-2xl font-bold">
+                    <IndianRupee className="h-5 w-5" />
+                    {(userDetails.account?.cash ?? 0).toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-muted-foreground text-center text-sm">
+                  Could not load account details
+                </div>
+              )}
+
+              {/* Adjustment Form */}
+              <div className="space-y-4">
+                {/* Type Selection */}
+                <div className="space-y-2">
+                  <Label>Transaction Type</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={adjustType === "ADD" ? "default" : "outline"}
+                      onClick={() => setAdjustType("ADD")}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Funds
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={
+                        adjustType === "DEDUCT" ? "destructive" : "outline"
+                      }
+                      onClick={() => setAdjustType("DEDUCT")}
+                      className="gap-2"
+                    >
+                      <Minus className="h-4 w-4" />
+                      Deduct
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Amount Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (₹)</Label>
+                  <div className="relative">
+                    <IndianRupee className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="Enter amount"
+                      value={adjustAmount}
+                      onChange={(e) => setAdjustAmount(e.target.value)}
+                      className="pl-10"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div className="space-y-2">
+                  <Label htmlFor="reason">Reason (Required)</Label>
+                  <Textarea
+                    id="reason"
+                    placeholder="Enter reason for this adjustment..."
+                    value={adjustReason}
+                    onChange={(e) => setAdjustReason(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={closeFundDialog}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdjustFunds}
+              disabled={isAdjusting || !adjustAmount || !adjustReason}
+              variant={adjustType === "DEDUCT" ? "destructive" : "default"}
+            >
+              {isAdjusting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {adjustType === "ADD" ? (
+                    <Plus className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Minus className="mr-2 h-4 w-4" />
+                  )}
+                  {adjustType === "ADD" ? "Add Funds" : "Deduct Funds"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
