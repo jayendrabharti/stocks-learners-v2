@@ -4,6 +4,7 @@
  */
 
 import ApiClient from "@/utils/ApiClient";
+import { parseApiError } from "@/utils/apiErrors";
 
 export interface AccountBalance {
   totalCash: number;
@@ -18,60 +19,84 @@ export interface AccountResponse {
 }
 
 /**
+ * Helper to throw parsed errors
+ */
+function throwParsedError(error: unknown, fallback: string): never {
+  const parsed = parseApiError(error);
+  const customError = new Error(parsed.message || fallback) as Error & {
+    code?: string;
+  };
+  customError.code = parsed.code;
+  throw customError;
+}
+
+/**
  * Get user account details
  */
 export async function getAccount(): Promise<AccountBalance> {
-  const response = await ApiClient.get<any>("/account");
+  try {
+    const response = await ApiClient.get<any>("/account");
 
-  if (!response.data.success) {
-    throw new Error(response.data.message || "Failed to fetch account");
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Failed to fetch account");
+    }
+
+    // Map backend 'cash' to 'totalCash'
+    const account = response.data.account;
+    return {
+      totalCash: account.cash,
+      usedMargin: account.usedMargin,
+      availableMargin: account.availableMargin,
+    };
+  } catch (error) {
+    throwParsedError(error, "Failed to fetch account details");
   }
-
-  // Map backend 'cash' to 'totalCash'
-  const account = response.data.account;
-  return {
-    totalCash: account.cash,
-    usedMargin: account.usedMargin,
-    availableMargin: account.availableMargin,
-  };
 }
 
 /**
  * Deposit funds (manual - for testing)
  */
 export async function depositFunds(amount: number): Promise<AccountBalance> {
-  const response = await ApiClient.post<any>("/account/deposit", {
-    amount,
-  });
+  try {
+    const response = await ApiClient.post<any>("/account/deposit", {
+      amount,
+    });
 
-  if (!response.data.success) {
-    throw new Error(response.data.message || "Failed to deposit funds");
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Failed to deposit funds");
+    }
+
+    const account = response.data.account;
+    return {
+      totalCash: account.cash,
+      usedMargin: account.usedMargin,
+      availableMargin: account.availableMargin,
+    };
+  } catch (error) {
+    throwParsedError(error, "Failed to deposit funds");
   }
-
-  const account = response.data.account;
-  return {
-    totalCash: account.cash,
-    usedMargin: account.usedMargin,
-    availableMargin: account.availableMargin,
-  };
 }
 
 /**
  * Withdraw funds (manual - for testing)
  */
 export async function withdrawFunds(amount: number): Promise<AccountBalance> {
-  const response = await ApiClient.post<any>("/account/withdraw", {
-    amount,
-  });
+  try {
+    const response = await ApiClient.post<any>("/account/withdraw", {
+      amount,
+    });
 
-  if (!response.data.success) {
-    throw new Error(response.data.message || "Failed to withdraw funds");
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Failed to withdraw funds");
+    }
+
+    const account = response.data.account;
+    return {
+      totalCash: account.cash,
+      usedMargin: account.usedMargin,
+      availableMargin: account.availableMargin,
+    };
+  } catch (error) {
+    throwParsedError(error, "Failed to withdraw funds");
   }
-
-  const account = response.data.account;
-  return {
-    totalCash: account.cash,
-    usedMargin: account.usedMargin,
-    availableMargin: account.availableMargin,
-  };
 }

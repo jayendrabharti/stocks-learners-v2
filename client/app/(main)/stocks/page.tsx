@@ -71,10 +71,10 @@ export default function StocksPage() {
       )}
 
       {/* Most Bought on Groww Section */}
-      <section className="w-full space-y-6">
-        <div className="flex items-end justify-between">
+      <section className="w-full space-y-4 sm:space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-xl font-semibold sm:text-2xl">
               Most bought stocks on Groww
             </h2>
           </div>
@@ -115,10 +115,12 @@ export default function StocksPage() {
       </section>
 
       {/* Top Market Movers Section */}
-      <section className="w-full space-y-6">
-        <div className="flex items-end justify-between">
+      <section className="w-full space-y-4 sm:space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-semibold">Top market movers</h2>
+            <h2 className="text-xl font-semibold sm:text-2xl">
+              Top market movers
+            </h2>
           </div>
           <Link href={`/stocks/top?type=${activeTab}`}>
             <Button variant="link" className="text-primary gap-1 px-0">
@@ -129,10 +131,10 @@ export default function StocksPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-border flex w-full gap-1 border-b">
+        <div className="border-border -mx-4 flex w-[calc(100%+2rem)] gap-1 overflow-x-auto border-b px-4 sm:mx-0 sm:w-full sm:px-0">
           <button
             onClick={() => setActiveTab("gainers")}
-            className={`text-foreground hover:text-foreground relative px-4 pb-3 text-sm font-medium transition-colors ${
+            className={`text-foreground hover:text-foreground relative px-4 pb-3 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === "gainers"
                 ? "after:bg-primary after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5"
                 : "text-muted-foreground"
@@ -142,7 +144,7 @@ export default function StocksPage() {
           </button>
           <button
             onClick={() => setActiveTab("losers")}
-            className={`text-foreground hover:text-foreground relative px-4 pb-3 text-sm font-medium transition-colors ${
+            className={`text-foreground hover:text-foreground relative px-4 pb-3 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === "losers"
                 ? "after:bg-primary after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5"
                 : "text-muted-foreground"
@@ -150,20 +152,10 @@ export default function StocksPage() {
           >
             Losers
           </button>
-          <button
-            onClick={() => setActiveTab("volume")}
-            className={`text-foreground hover:text-foreground relative px-4 pb-3 text-sm font-medium transition-colors ${
-              activeTab === "volume"
-                ? "after:bg-primary after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5"
-                : "text-muted-foreground"
-            }`}
-          >
-            Volume shockers
-          </button>
         </div>
 
         {/* Table Header */}
-        <div className="text-muted-foreground grid w-full grid-cols-[2fr_1fr] gap-4 px-4 text-sm font-medium">
+        <div className="text-muted-foreground hidden w-full grid-cols-[2fr_1fr] gap-4 px-4 text-sm font-medium sm:grid">
           <div>Company</div>
           <div className="text-right">Market price (1D)</div>
         </div>

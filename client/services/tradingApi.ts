@@ -4,6 +4,7 @@
  */
 
 import ApiClient from "@/utils/ApiClient";
+import { parseApiError, getErrorMessage } from "@/utils/apiErrors";
 
 export type ProductType = "CNC" | "MIS";
 
@@ -11,7 +12,6 @@ export interface OrderRequest {
   exchangeToken: string;
   qty: number;
   product: ProductType;
-  limitPrice?: number;
 }
 
 export interface OrderResult {
@@ -25,20 +25,13 @@ export interface OrderResult {
   message: string;
 }
 
-/**
- * Helper to extract error message from API response
- * Backend may return errors in multiple formats
- */
-function extractErrorMessage(data: any, fallback: string): string {
-  // Check structured error format first
-  if (data?.error?.message) {
-    return data.error.message;
-  }
-  // Check direct message
-  if (data?.message) {
-    return data.message;
-  }
-  return fallback;
+export interface OrderError {
+  code: string;
+  message: string;
+  action?: {
+    label: string;
+    href?: string;
+  };
 }
 
 /**
@@ -47,15 +40,33 @@ function extractErrorMessage(data: any, fallback: string): string {
 export async function executeBuyOrder(
   order: OrderRequest,
 ): Promise<OrderResult> {
-  const response = await ApiClient.post<OrderResult>("/trading/buy", order);
+  try {
+    const response = await ApiClient.post<OrderResult>("/trading/buy", order);
 
-  if (!response.data.success) {
-    throw new Error(
-      extractErrorMessage(response.data, "Failed to execute buy order"),
-    );
+    if (!response.data.success) {
+      const errorData = response.data as unknown as {
+        error?: OrderError;
+        message?: string;
+      };
+      throw new Error(
+        errorData?.error?.message ||
+          errorData?.message ||
+          "Failed to execute buy order",
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    // Re-throw with parsed error message for better UX
+    const parsed = parseApiError(error);
+    const customError = new Error(parsed.message) as Error & {
+      code?: string;
+      action?: { label: string; href?: string };
+    };
+    customError.code = parsed.code;
+    customError.action = parsed.action;
+    throw customError;
   }
-
-  return response.data;
 }
 
 /**
@@ -64,15 +75,33 @@ export async function executeBuyOrder(
 export async function executeSellOrder(
   order: OrderRequest,
 ): Promise<OrderResult> {
-  const response = await ApiClient.post<OrderResult>("/trading/sell", order);
+  try {
+    const response = await ApiClient.post<OrderResult>("/trading/sell", order);
 
-  if (!response.data.success) {
-    throw new Error(
-      extractErrorMessage(response.data, "Failed to execute sell order"),
-    );
+    if (!response.data.success) {
+      const errorData = response.data as unknown as {
+        error?: OrderError;
+        message?: string;
+      };
+      throw new Error(
+        errorData?.error?.message ||
+          errorData?.message ||
+          "Failed to execute sell order",
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    // Re-throw with parsed error message for better UX
+    const parsed = parseApiError(error);
+    const customError = new Error(parsed.message) as Error & {
+      code?: string;
+      action?: { label: string; href?: string };
+    };
+    customError.code = parsed.code;
+    customError.action = parsed.action;
+    throw customError;
   }
-
-  return response.data;
 }
 
 export interface Position {

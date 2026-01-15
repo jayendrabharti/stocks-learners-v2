@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { Bookmark } from "lucide-react";
 import { useWatchlist } from "@/providers/WatchlistProvider";
+import { useSession } from "@/providers/SessionProvider";
 
 interface MostBoughtCardProps {
   searchId: string;
@@ -30,6 +31,7 @@ export function MostBoughtCard({
 }: MostBoughtCardProps) {
   const isPositive = dayChangePerc >= 0;
 
+  const { isAuthenticated } = useSession();
   const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
     useWatchlist();
 
@@ -67,11 +69,11 @@ export function MostBoughtCard({
   return (
     <div
       className={cn(
-        "group border-border/50 bg-card hover:border-border rounded-xl border p-4 transition-all hover:shadow-md",
+        "group border-border/50 bg-card hover:border-border rounded-xl border p-3 transition-all hover:shadow-md sm:p-4",
         className,
       )}
     >
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {/* Logo and Watchlist */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -79,35 +81,37 @@ export function MostBoughtCard({
               <img
                 src={imageUrl}
                 alt={companyShortName}
-                className="h-10 w-10 rounded-lg object-cover"
+                className="h-8 w-8 rounded-lg object-cover sm:h-10 sm:w-10"
               />
             ) : (
-              <div className="bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-lg text-xs font-semibold">
+              <div className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold sm:h-10 sm:w-10">
                 {companyShortName.substring(0, 2).toUpperCase()}
               </div>
             )}
           </div>
-          <button
-            onClick={handleWatchlistToggle}
-            disabled={isLoading}
-            className={cn(
-              "transition-all",
-              isWatchlisted
-                ? "text-primary fill-primary"
-                : "text-muted-foreground hover:text-foreground",
-              isLoading && "cursor-not-allowed opacity-50",
-            )}
-          >
-            <Bookmark
-              className={cn("h-4 w-4", isWatchlisted && "fill-current")}
-            />
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={handleWatchlistToggle}
+              disabled={isLoading}
+              className={cn(
+                "transition-all",
+                isWatchlisted
+                  ? "text-primary fill-primary"
+                  : "text-muted-foreground hover:text-foreground",
+                isLoading && "cursor-not-allowed opacity-50",
+              )}
+            >
+              <Bookmark
+                className={cn("h-4 w-4", isWatchlisted && "fill-current")}
+              />
+            </button>
+          )}
         </div>
 
         {/* Company Name */}
         <div>
           <Link href={`/stocks/${searchId}`}>
-            <h3 className="text-foreground hover:text-primary text-sm font-medium transition-colors">
+            <h3 className="text-foreground hover:text-primary line-clamp-1 text-sm font-medium transition-colors">
               {companyShortName}
             </h3>
           </Link>
@@ -115,7 +119,7 @@ export function MostBoughtCard({
 
         {/* Price */}
         <div>
-          <p className="text-foreground text-lg font-semibold">
+          <p className="text-foreground text-base font-semibold sm:text-lg">
             {formatCurrency(ltp)}
           </p>
         </div>
@@ -124,7 +128,7 @@ export function MostBoughtCard({
         <div>
           <span
             className={cn(
-              "text-sm font-medium",
+              "text-xs font-medium sm:text-sm",
               isPositive
                 ? "text-green-600 dark:text-green-400"
                 : "text-red-600 dark:text-red-400",

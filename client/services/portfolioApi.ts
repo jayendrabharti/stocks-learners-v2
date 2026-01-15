@@ -4,6 +4,7 @@
  */
 
 import ApiClient from "@/utils/ApiClient";
+import { parseApiError } from "@/utils/apiErrors";
 import type { ProductType } from "./tradingApi";
 
 export interface Holding {
@@ -82,11 +83,16 @@ export interface PortfolioResponse {
  * Get complete portfolio summary
  */
 export async function getPortfolio(): Promise<Portfolio> {
-  const response = await ApiClient.get<PortfolioResponse>("/portfolio");
+  try {
+    const response = await ApiClient.get<PortfolioResponse>("/portfolio");
 
-  if (!response.data.success) {
-    throw new Error("Failed to fetch portfolio");
+    if (!response.data.success) {
+      throw new Error("Failed to fetch portfolio");
+    }
+
+    return response.data.portfolio;
+  } catch (error) {
+    const parsed = parseApiError(error);
+    throw new Error(parsed.message || "Failed to fetch portfolio data");
   }
-
-  return response.data.portfolio;
 }

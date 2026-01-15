@@ -155,28 +155,24 @@ export function BuySellSection({
     } catch (error: any) {
       setShowConfirmDialog(false);
 
-      // Parse error response
-      const errorData = error?.response?.data?.error || error;
-      const errorMessage =
-        errorData?.message || error?.message || "Order failed";
-      const errorCode = errorData?.code || errorData?.errorCode;
-      const suggestedAction = errorData?.action;
+      // Error is already parsed by the trading API service
+      const errorMessage = error?.message || "Order failed. Please try again.";
+      const errorCode = error?.code;
+      const errorAction = error?.action;
 
       // Determine action based on error code
       let action = undefined;
       if (
-        errorCode === "INSUFFICIENT_FUNDS" ||
-        errorCode === "INSUFFICIENT_MARGIN"
+        errorCode === "TRADING_INSUFFICIENT_FUNDS" ||
+        errorCode === "TRADING_INSUFFICIENT_MARGIN" ||
+        errorCode === "ACCOUNT_INSUFFICIENT_BALANCE"
       ) {
         action = {
           label: "Add Funds",
           href: "/add-funds",
         };
-      } else if (suggestedAction) {
-        action = {
-          label: suggestedAction,
-          onClick: () => setErrorDialog(null),
-        };
+      } else if (errorAction?.href) {
+        action = errorAction;
       }
 
       setErrorDialog({

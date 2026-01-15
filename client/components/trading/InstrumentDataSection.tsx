@@ -17,6 +17,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useInstrument } from "./InstrumentProvider";
 import { useTransition } from "react";
 import { sleep } from "@/utils";
+import { useSession } from "@/providers/SessionProvider";
 
 const timeRangeName: Record<HistoricalDataTimeRange, string> = {
   "1D": "Today",
@@ -64,12 +65,13 @@ export function InstrumentDataSection() {
     type,
   } = useInstrument();
 
+  const { isAuthenticated } = useSession();
   const [togglingWatchlist, startTogglingWatchlist] = useTransition();
 
   return (
-    <div className="w-full max-w-full px-4">
+    <div className="w-full max-w-full px-2 sm:px-4">
       {/* header */}
-      <div className="flex flex-row flex-wrap justify-between gap-2 px-2 py-6">
+      <div className="flex flex-col gap-4 px-2 py-4 sm:flex-row sm:flex-wrap sm:justify-between sm:gap-2 sm:py-6">
         <div className="flex flex-col gap-2">
           {metadataError ? (
             <div className="border-destructive bg-destructive/10 flex items-center gap-2 rounded-lg border p-3">
@@ -86,14 +88,14 @@ export function InstrumentDataSection() {
             <Skeleton className="size-20 rounded-lg" />
           )}
           {title ? (
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold">{title}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xl font-semibold sm:text-2xl">{title}</span>
               <Badge variant="secondary">{instrumentTypeName[type]}</Badge>
             </div>
           ) : (
             <Skeleton className="h-8 w-48" />
           )}
-          <div className="flex flex-row items-baseline gap-2 text-sm">
+          <div className="flex flex-row flex-wrap items-baseline gap-2 text-sm">
             {liveDataError ? (
               <div className="border-destructive bg-destructive/10 flex items-center gap-2 rounded border px-2 py-1">
                 <MdError className="text-destructive size-4" />
@@ -103,7 +105,7 @@ export function InstrumentDataSection() {
               </div>
             ) : liveData ? (
               <>
-                <span className="text-3xl font-bold">₹{currentPrice}</span>
+                <span className="text-2xl font-bold sm:text-3xl">₹{currentPrice}</span>
                 <span
                   className={
                     positiveChange ? "text-green-600" : "text-destructive"
@@ -112,7 +114,7 @@ export function InstrumentDataSection() {
                   {positiveChange && "+"}
                   {changeValue.toFixed(2)} ({changePerc.toFixed(2)}%)
                 </span>
-                {timeRangeName[timeRange]}
+                <span className="hidden sm:inline">{timeRangeName[timeRange]}</span>
               </>
             ) : (
               <>
@@ -122,27 +124,29 @@ export function InstrumentDataSection() {
             )}
           </div>
         </div>
-        <div className="flex flex-col flex-wrap items-end gap-2">
-          <Button
-            variant={watchlist ? "default" : "outline"}
-            onClick={() => {
-              startTogglingWatchlist(async () => {
-                await toggleWatchlist();
-              });
-            }}
-            size={"sm"}
-            disabled={!metadata || togglingWatchlist}
-          >
-            <SaveIcon />
-            Watchlist
-            {togglingWatchlist ? (
-              <Loader2Icon className="animate-spin" />
-            ) : watchlist ? (
-              <CheckIcon />
-            ) : (
-              <PlusIcon />
-            )}
-          </Button>
+        <div className="flex flex-row flex-wrap items-start gap-2 sm:flex-col sm:items-end">
+          {isAuthenticated && (
+            <Button
+              variant={watchlist ? "default" : "outline"}
+              onClick={() => {
+                startTogglingWatchlist(async () => {
+                  await toggleWatchlist();
+                });
+              }}
+              size={"sm"}
+              disabled={!metadata || togglingWatchlist}
+            >
+              <SaveIcon />
+              Watchlist
+              {togglingWatchlist ? (
+                <Loader2Icon className="animate-spin" />
+              ) : watchlist ? (
+                <CheckIcon />
+              ) : (
+                <PlusIcon />
+              )}
+            </Button>
+          )}
           <Button size={"sm"} variant={"link"} disabled={!metadata}>
             <Link2Icon />
             Option Chain

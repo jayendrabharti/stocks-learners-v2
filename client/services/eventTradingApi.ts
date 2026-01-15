@@ -4,6 +4,7 @@
  */
 
 import ApiClient from "@/utils/ApiClient";
+import { parseApiError } from "@/utils/apiErrors";
 
 export interface Pagination {
   total: number;
@@ -68,6 +69,15 @@ export interface Portfolio {
   };
 }
 
+export interface OrderError {
+  code: string;
+  message: string;
+  action?: {
+    label: string;
+    href?: string;
+  };
+}
+
 /**
  * Execute buy order in event
  */
@@ -77,7 +87,6 @@ export async function buyOrder(
     exchangeToken: string;
     qty: number;
     product: string;
-    limitPrice?: number;
   },
 ): Promise<{
   success: boolean;
@@ -88,11 +97,22 @@ export async function buyOrder(
   fees: number;
   message: string;
 }> {
-  const response = await ApiClient.post(
-    `/events/${eventId}/trading/buy`,
-    params,
-  );
-  return response.data;
+  try {
+    const response = await ApiClient.post(
+      `/events/${eventId}/trading/buy`,
+      params,
+    );
+    return response.data;
+  } catch (error) {
+    const parsed = parseApiError(error);
+    const customError = new Error(parsed.message) as Error & {
+      code?: string;
+      action?: { label: string; href?: string };
+    };
+    customError.code = parsed.code;
+    customError.action = parsed.action;
+    throw customError;
+  }
 }
 
 /**
@@ -104,7 +124,6 @@ export async function sellOrder(
     exchangeToken: string;
     qty: number;
     product: string;
-    limitPrice?: number;
   },
 ): Promise<{
   success: boolean;
@@ -116,11 +135,22 @@ export async function sellOrder(
   fees: number;
   message: string;
 }> {
-  const response = await ApiClient.post(
-    `/events/${eventId}/trading/sell`,
-    params,
-  );
-  return response.data;
+  try {
+    const response = await ApiClient.post(
+      `/events/${eventId}/trading/sell`,
+      params,
+    );
+    return response.data;
+  } catch (error) {
+    const parsed = parseApiError(error);
+    const customError = new Error(parsed.message) as Error & {
+      code?: string;
+      action?: { label: string; href?: string };
+    };
+    customError.code = parsed.code;
+    customError.action = parsed.action;
+    throw customError;
+  }
 }
 
 /**

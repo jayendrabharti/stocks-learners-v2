@@ -4,8 +4,9 @@ import { formatCurrency, calculateChangePercent } from "@/services/marketApi";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useWatchlist } from "@/providers/WatchlistProvider";
+import { useSession } from "@/providers/SessionProvider";
 
 interface StockCardProps {
   companyName: string;
@@ -34,6 +35,7 @@ export function StockCard({
   const changeValue = ltp - close;
   const isPositive = changeValue >= 0;
 
+  const { isAuthenticated } = useSession();
   const { watchlistItems, addWatchlistItem, removeWatchlistItem } =
     useWatchlist();
 
@@ -71,21 +73,21 @@ export function StockCard({
   return (
     <div
       className={cn(
-        "hover:bg-accent group grid grid-cols-[2fr_1fr] gap-4 rounded-lg px-4 py-3 transition-colors",
+        "hover:bg-accent group grid grid-cols-[1fr_auto] gap-2 rounded-lg px-3 py-3 transition-colors sm:grid-cols-[2fr_1fr] sm:gap-4 sm:px-4",
         className,
       )}
     >
       {/* Company Info */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <div className="shrink-0">
           {logoUrl ? (
             <img
               src={logoUrl}
               alt={companyShortName}
-              className="h-10 w-10 rounded-lg object-cover"
+              className="h-8 w-8 rounded-lg object-cover sm:h-10 sm:w-10"
             />
           ) : (
-            <div className="bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-lg text-xs font-semibold">
+            <div className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold sm:h-10 sm:w-10">
               {companyShortName?.substring(0, 2).toUpperCase() || "NA"}
             </div>
           )}
@@ -97,21 +99,23 @@ export function StockCard({
             </h3>
           </Link>
         </div>
-        <button
-          onClick={handleWatchlistToggle}
-          disabled={isLoading}
-          className={cn(
-            "transition-all",
-            isWatchlisted
-              ? "text-primary fill-primary"
-              : "text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100",
-            isLoading && "cursor-not-allowed opacity-50",
-          )}
-        >
-          <Bookmark
-            className={cn("h-4 w-4", isWatchlisted && "fill-current")}
-          />
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={handleWatchlistToggle}
+            disabled={isLoading}
+            className={cn(
+              "shrink-0 transition-all",
+              isWatchlisted
+                ? "text-primary fill-primary"
+                : "text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100",
+              isLoading && "cursor-not-allowed opacity-50",
+            )}
+          >
+            <Bookmark
+              className={cn("h-4 w-4", isWatchlisted && "fill-current")}
+            />
+          </button>
+        )}
       </div>
 
       {/* Market Price and Change */}
