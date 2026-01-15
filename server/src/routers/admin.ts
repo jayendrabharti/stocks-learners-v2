@@ -1,4 +1,9 @@
-import { getAllUsers, getDashboardData, getAppSettings, updateExchangeRate } from "@/controllers/admin";
+import {
+  getAllUsers,
+  getDashboardData,
+  getAppSettings,
+  updateExchangeRate,
+} from "@/controllers/admin";
 import {
   seedInstrumentsEndpoint,
   syncInstrumentsEndpoint,
@@ -13,6 +18,11 @@ import {
   getEventRegistrations,
   getEventLeaderboard,
 } from "@/controllers/admin/events";
+import {
+  adjustUserFunds,
+  getUserAccount,
+  getAuditLogs,
+} from "@/controllers/admin/users";
 import { getLeaderboard } from "@/controllers/admin/leaderboard";
 import validToken from "@/middlewares/validToken";
 import verifyAdmin from "@/middlewares/verifyAdmin";
@@ -25,6 +35,13 @@ AdminRouter.use(validToken);
 AdminRouter.use(verifyAdmin);
 
 AdminRouter.get("/users", getAllUsers);
+
+// User Management & Fund Adjustment
+AdminRouter.get("/users/:userId/account", getUserAccount);
+AdminRouter.post("/users/:userId/funds/adjust", adjustUserFunds);
+
+// Audit Logs
+AdminRouter.get("/audit-logs", getAuditLogs);
 
 AdminRouter.get("/dashboard", getDashboardData);
 

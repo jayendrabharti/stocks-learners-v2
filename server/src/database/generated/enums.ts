@@ -72,6 +72,21 @@ export const AutoSquareOffStatus = {
 export type AutoSquareOffStatus = (typeof AutoSquareOffStatus)[keyof typeof AutoSquareOffStatus]
 
 
+export const AdminAction = {
+  ADJUST_FUNDS: 'ADJUST_FUNDS',
+  UPDATE_USER: 'UPDATE_USER',
+  TOGGLE_ADMIN: 'TOGGLE_ADMIN',
+  UPDATE_SETTINGS: 'UPDATE_SETTINGS',
+  CREATE_EVENT: 'CREATE_EVENT',
+  UPDATE_EVENT: 'UPDATE_EVENT',
+  DELETE_EVENT: 'DELETE_EVENT',
+  RESOLVE_CONTACT: 'RESOLVE_CONTACT',
+  MANUAL_SQUARE_OFF: 'MANUAL_SQUARE_OFF'
+} as const
+
+export type AdminAction = (typeof AdminAction)[keyof typeof AdminAction]
+
+
 export const PaymentStatus = {
   PENDING: 'PENDING',
   COMPLETED: 'COMPLETED',

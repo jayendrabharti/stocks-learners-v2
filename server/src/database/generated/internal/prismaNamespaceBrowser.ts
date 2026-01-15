@@ -62,6 +62,7 @@ export const ModelName = {
   Position: 'Position',
   PositionLot: 'PositionLot',
   AppSettings: 'AppSettings',
+  AdminAuditLog: 'AdminAuditLog',
   Payment: 'Payment',
   Event: 'Event',
   EventRegistration: 'EventRegistration',
@@ -260,6 +261,24 @@ export const AppSettingsScalarFieldEnum = {
 } as const
 
 export type AppSettingsScalarFieldEnum = (typeof AppSettingsScalarFieldEnum)[keyof typeof AppSettingsScalarFieldEnum]
+
+
+export const AdminAuditLogScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  action: 'action',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  description: 'description',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  metadata: 'metadata',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminAuditLogScalarFieldEnum = (typeof AdminAuditLogScalarFieldEnum)[keyof typeof AdminAuditLogScalarFieldEnum]
 
 
 export const PaymentScalarFieldEnum = {

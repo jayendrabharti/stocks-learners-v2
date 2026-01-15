@@ -13,7 +13,7 @@ export interface EventSellOrderInput {
   instrumentId: string;
   qty: number;
   product: TradeType;
-  limitPrice?: number | undefined;
+  // Note: limitPrice is not supported - all orders execute at market price
 }
 
 export interface EventSellOrderResult {
@@ -33,7 +33,7 @@ export interface EventSellOrderResult {
 export async function executeEventSell(
   input: EventSellOrderInput
 ): Promise<EventSellOrderResult> {
-  const { eventAccountId, instrumentId, qty, product, limitPrice } = input;
+  const { eventAccountId, instrumentId, qty, product } = input;
 
   try {
     // Get event account
@@ -69,7 +69,6 @@ export async function executeEventSell(
       instrumentId,
       qty,
       product,
-      limitPrice,
     });
 
     return result;
@@ -100,7 +99,7 @@ async function executeEventSellInternal(
     "../fifoMatchLots.js"
   );
 
-  const { eventAccountId, instrumentId, qty, product, limitPrice } = input;
+  const { eventAccountId, instrumentId, qty, product } = input;
 
   // Step 1: Fetch instrument
   const instrument = await fetchInstrumentById(instrumentId);
@@ -203,7 +202,7 @@ async function executeEventSellInternal(
           product,
           qty,
           price: executedPrice,
-          limitPrice: limitPrice || null,
+          limitPrice: null, // Limit orders not supported
           realizedPnl: netRealizedPnL,
           fees,
         },

@@ -13,7 +13,7 @@ export interface EventBuyOrderInput {
   instrumentId: string;
   qty: number;
   product: TradeType;
-  limitPrice?: number | undefined;
+  // Note: limitPrice is not supported - all orders execute at market price
 }
 
 export interface EventBuyOrderResult {
@@ -33,7 +33,7 @@ export interface EventBuyOrderResult {
 export async function executeEventBuy(
   input: EventBuyOrderInput
 ): Promise<EventBuyOrderResult> {
-  const { eventAccountId, instrumentId, qty, product, limitPrice } = input;
+  const { eventAccountId, instrumentId, qty, product } = input;
 
   try {
     // Get event account to verify it exists
@@ -74,7 +74,6 @@ export async function executeEventBuy(
       instrumentId,
       qty,
       product,
-      limitPrice: limitPrice || undefined,
     });
 
     return result;
@@ -106,7 +105,7 @@ async function executeEventBuyInternal(
     "@/services/autoSquareOffService.js"
   );
 
-  const { eventAccountId, instrumentId, qty, product, limitPrice } = input;
+  const { eventAccountId, instrumentId, qty, product } = input;
 
   // Step 1: Fetch instrument
   const instrument = await fetchInstrumentById(instrumentId);
@@ -247,7 +246,7 @@ async function executeEventBuyInternal(
           product,
           qty,
           price: executedPrice,
-          limitPrice: limitPrice || null,
+          limitPrice: null, // Limit orders not supported
           fees,
         },
       });

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "@/database/client";
 import { fromDecimal } from "@/utils/currency";
 import { calculatePortfolioStats } from "@/services/portfolioService";
+import { AppError, ErrorCode, handleControllerError } from "@/utils/errors";
 
 /**
  * Get user's complete portfolio summary
@@ -15,10 +16,7 @@ export const getPortfolio = async (
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Verify user exists in database
@@ -27,10 +25,10 @@ export const getPortfolio = async (
     });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found. Please log in again.",
-      });
+      throw new AppError(
+        ErrorCode.AUTH_USER_NOT_FOUND,
+        "User not found. Please log in again."
+      );
     }
 
     // Get account details
@@ -121,10 +119,10 @@ export const getPortfolio = async (
       portfolio,
     });
   } catch (error) {
-    console.error("Error fetching portfolio:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch portfolio",
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };

@@ -73,6 +73,11 @@ export type PositionLot = Prisma.PositionLotModel
  */
 export type AppSettings = Prisma.AppSettingsModel
 /**
+ * Model AdminAuditLog
+ * 
+ */
+export type AdminAuditLog = Prisma.AdminAuditLogModel
+/**
  * Model Payment
  * 
  */

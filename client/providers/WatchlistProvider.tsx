@@ -13,7 +13,7 @@ import {
 import { useSession } from "./SessionProvider";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 type WatchlistContextType = {
   watchlistItems: WatchlistItem[] | null;
@@ -40,7 +40,6 @@ export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[] | null>(
     null,
@@ -75,12 +74,11 @@ export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
     tradingSymbol?: string;
   }) => {
     if (!isAuthenticated) {
-      const redirect = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
       toast.error("Please log in to save to watchlist", {
         action: {
           label: "Login",
           onClick: () =>
-            router.push(`/login?redirect=${encodeURIComponent(redirect)}`),
+            router.push(`/login?redirect=${encodeURIComponent(pathname)}`),
         },
       });
       return;
@@ -101,14 +99,13 @@ export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
       });
     } catch (error) {
       const status = (error as any)?.response?.status;
-      const redirect = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
 
       if (status === 401) {
         toast.error("Please log in to save to watchlist", {
           action: {
             label: "Login",
             onClick: () =>
-              router.push(`/login?redirect=${encodeURIComponent(redirect)}`),
+              router.push(`/login?redirect=${encodeURIComponent(pathname)}`),
           },
         });
       } else {
@@ -121,12 +118,11 @@ export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
 
   const removeWatchlistItem = async (id: string) => {
     if (!isAuthenticated) {
-      const redirect = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
       toast.error("Please log in to manage your watchlist", {
         action: {
           label: "Login",
           onClick: () =>
-            router.push(`/login?redirect=${encodeURIComponent(redirect)}`),
+            router.push(`/login?redirect=${encodeURIComponent(pathname)}`),
         },
       });
       return;
@@ -142,14 +138,13 @@ export const WatchlistProvider = ({ children }: { children: ReactNode }) => {
       });
     } catch (error) {
       const status = (error as any)?.response?.status;
-      const redirect = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
 
       if (status === 401) {
         toast.error("Please log in to manage your watchlist", {
           action: {
             label: "Login",
             onClick: () =>
-              router.push(`/login?redirect=${encodeURIComponent(redirect)}`),
+              router.push(`/login?redirect=${encodeURIComponent(pathname)}`),
           },
         });
       } else {

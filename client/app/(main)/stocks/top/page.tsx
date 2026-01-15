@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ const typeConfig: Record<
   },
 };
 
-export default function TopStocksPage() {
+function TopStocksContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const type = (searchParams.get("type") as StockType) || "bought";
@@ -241,5 +241,41 @@ export default function TopStocksPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function TopStocksLoading() {
+  return (
+    <div className="container mx-auto space-y-6 p-6">
+      <Skeleton className="h-10 w-32" />
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-12 w-12 rounded-lg" />
+        <div>
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="mt-1 h-5 w-48" />
+        </div>
+      </div>
+      <Skeleton className="h-14 w-full" />
+      <Card className="border-border/50 shadow-lg">
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function TopStocksPage() {
+  return (
+    <Suspense fallback={<TopStocksLoading />}>
+      <TopStocksContent />
+    </Suspense>
   );
 }

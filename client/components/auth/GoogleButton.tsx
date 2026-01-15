@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useSession } from "@/providers/SessionProvider";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import ApiClient from "@/utils/ApiClient";
 
-export default function GoogleButton({
+function GoogleButtonInner({
   className = "",
   type = "redirect",
   showText = true,
@@ -79,5 +79,24 @@ export default function GoogleButton({
       <FcGoogle />
       {showText && "Continue with Google"}
     </Button>
+  );
+}
+
+export default function GoogleButton(props: {
+  className?: string;
+  type?: "redirect" | "refresh";
+  showText?: boolean;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <Button variant="outline" disabled className={props.className}>
+          <FcGoogle />
+          {props.showText !== false && "Continue with Google"}
+        </Button>
+      }
+    >
+      <GoogleButtonInner {...props} />
+    </Suspense>
   );
 }

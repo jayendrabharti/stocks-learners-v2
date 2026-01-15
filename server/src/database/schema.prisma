@@ -276,6 +276,38 @@ model AppSettings {
 }
 
 // -------------------------------------
+// ADMIN AUDIT LOG
+// -------------------------------------
+
+model AdminAuditLog {
+  id      String @id @default(cuid())
+  adminId String // The admin who performed the action
+  
+  // Action details
+  action      AdminAction
+  targetType  String      // "USER", "ACCOUNT", "EVENT", etc.
+  targetId    String      // ID of the affected entity
+  
+  // Changes tracking
+  description String      // Human-readable description
+  oldValue    Json?       // Previous state (for updates)
+  newValue    Json?       // New state (for updates)
+  metadata    Json?       // Additional context
+  
+  // Request context
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+// -------------------------------------
 // PAYMENT LOGGING
 // -------------------------------------
 
@@ -551,6 +583,18 @@ enum AutoSquareOffStatus {
   IN_PROGRESS
   COMPLETED
   FAILED
+}
+
+enum AdminAction {
+  ADJUST_FUNDS        // Add/remove funds from user account
+  UPDATE_USER         // Modify user details
+  TOGGLE_ADMIN        // Grant/revoke admin privileges
+  UPDATE_SETTINGS     // Modify app settings
+  CREATE_EVENT        // Create new event
+  UPDATE_EVENT        // Modify event details
+  DELETE_EVENT        // Delete event
+  RESOLVE_CONTACT     // Handle contact form
+  MANUAL_SQUARE_OFF   // Force close positions
 }
 
 enum PaymentStatus {

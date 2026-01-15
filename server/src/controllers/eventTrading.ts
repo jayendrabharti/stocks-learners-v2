@@ -8,6 +8,7 @@ import prisma from "@/database/client.js";
 import { executeEventBuy } from "@/utils/trading/eventTrading/executeEventBuy.js";
 import { executeEventSell } from "@/utils/trading/eventTrading/executeEventSell.js";
 import { calculateEventPortfolio } from "@/services/eventAccountService.js";
+import { AppError, ErrorCode, handleControllerError } from "@/utils/errors";
 
 /**
  * Execute BUY order in event
@@ -18,46 +19,34 @@ export const buyOrder = async (req: Request, res: Response) => {
     const { eventId } = req.params;
 
     if (!eventId) {
-      return res.status(400).json({
-        error: { message: "Event ID is required" },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Event ID is required"
+      );
     }
 
-    const { exchangeToken, qty, product, limitPrice } = req.body;
+    const { exchangeToken, qty, product } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        error: { message: "Authentication required" },
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Validate required fields
     if (!exchangeToken || !qty || !product) {
-      return res.status(400).json({
-        error: {
-          message: "Missing required fields: exchangeToken, qty, product",
-        },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Missing required fields: exchangeToken, qty, product"
+      );
     }
 
     // Validate and parse quantity
     const parsedQty = parseInt(qty);
     if (isNaN(parsedQty) || parsedQty <= 0) {
-      return res.status(400).json({
-        error: { message: "Invalid quantity. Must be a positive number" },
-      });
-    }
-
-    // Validate and parse limit price if provided
-    let parsedLimitPrice: number | undefined;
-    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
-      parsedLimitPrice = parseFloat(limitPrice);
-      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
-        return res.status(400).json({
-          error: { message: "Invalid limit price. Must be a positive number" },
-        });
-      }
+      throw new AppError(
+        ErrorCode.TRADING_INVALID_QUANTITY,
+        "Invalid quantity. Must be a positive number"
+      );
     }
 
     // Find instrument by exchange token
@@ -66,9 +55,10 @@ export const buyOrder = async (req: Request, res: Response) => {
     });
 
     if (!instrument) {
-      return res.status(404).json({
-        error: { message: "Instrument not found" },
-      });
+      throw new AppError(
+        ErrorCode.INSTRUMENT_NOT_FOUND,
+        `Instrument with token ${exchangeToken} not found`
+      );
     }
 
     // Get event and validate it's active and within trading window
@@ -77,29 +67,21 @@ export const buyOrder = async (req: Request, res: Response) => {
     });
 
     if (!event) {
-      return res.status(404).json({
-        error: { message: "Event not found" },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_FOUND);
     }
 
     if (!event.isActive) {
-      return res.status(400).json({
-        error: { message: "Event is not active" },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_ACTIVE);
     }
 
     // Validate event timeframe (with proper UTC handling)
     const now = new Date();
     if (now < event.eventStartAt) {
-      return res.status(400).json({
-        error: { message: "Event trading has not started yet" },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_STARTED);
     }
 
     if (now > event.eventEndAt) {
-      return res.status(400).json({
-        error: { message: "Event trading has ended" },
-      });
+      throw new AppError(ErrorCode.EVENT_ENDED);
     }
 
     // Get user's event account
@@ -115,74 +97,27 @@ export const buyOrder = async (req: Request, res: Response) => {
     })) as any;
 
     if (!registration || !registration.eventAccount) {
-      return res.status(404).json({
-        error: {
-          message: "Event account not found or registration not confirmed",
-        },
-      });
+      throw new AppError(
+        ErrorCode.EVENT_NOT_REGISTERED,
+        "Event account not found or registration not confirmed"
+      );
     }
 
-    // Execute buy order
+    // Execute buy order (note: limitPrice is not supported)
     const result = await executeEventBuy({
       eventAccountId: registration.eventAccount.id,
       instrumentId: instrument.id,
       qty: parsedQty,
       product,
-      limitPrice: parsedLimitPrice,
     });
 
     return res.status(200).json(result);
-  } catch (error: any) {
-    console.error("Event BUY order error:", error);
-
-    const errorMessage = error?.message || "Error executing BUY order";
-
-    // Categorize errors for consistent response format
-    if (
-      errorMessage.includes("Insufficient funds") ||
-      errorMessage.includes("Insufficient margin")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "INSUFFICIENT_FUNDS",
-          message: errorMessage,
-          action: "You don't have enough funds in your event account",
-        },
-      });
-    }
-
-    if (
-      errorMessage.includes("not started") ||
-      errorMessage.includes("has ended") ||
-      errorMessage.includes("not active")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "EVENT_NOT_TRADEABLE",
-          message: errorMessage,
-        },
-      });
-    }
-
-    if (errorMessage.includes("not found")) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: "NOT_FOUND",
-          message: errorMessage,
-        },
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: "ORDER_EXECUTION_FAILED",
-        message: errorMessage,
-      },
-    });
+  } catch (error) {
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.TRADING_ORDER_FAILED
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -195,46 +130,34 @@ export const sellOrder = async (req: Request, res: Response) => {
     const { eventId } = req.params;
 
     if (!eventId) {
-      return res.status(400).json({
-        error: { message: "Event ID is required" },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Event ID is required"
+      );
     }
 
-    const { exchangeToken, qty, product, limitPrice } = req.body;
+    const { exchangeToken, qty, product } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        error: { message: "Authentication required" },
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Validate required fields
     if (!exchangeToken || !qty || !product) {
-      return res.status(400).json({
-        error: {
-          message: "Missing required fields: exchangeToken, qty, product",
-        },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Missing required fields: exchangeToken, qty, product"
+      );
     }
 
     // Validate and parse quantity
     const parsedQty = parseInt(qty);
     if (isNaN(parsedQty) || parsedQty <= 0) {
-      return res.status(400).json({
-        error: { message: "Invalid quantity. Must be a positive number" },
-      });
-    }
-
-    // Validate and parse limit price if provided
-    let parsedLimitPrice: number | undefined;
-    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
-      parsedLimitPrice = parseFloat(limitPrice);
-      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
-        return res.status(400).json({
-          error: { message: "Invalid limit price. Must be a positive number" },
-        });
-      }
+      throw new AppError(
+        ErrorCode.TRADING_INVALID_QUANTITY,
+        "Invalid quantity. Must be a positive number"
+      );
     }
 
     // Find instrument by exchange token
@@ -243,9 +166,10 @@ export const sellOrder = async (req: Request, res: Response) => {
     });
 
     if (!instrument) {
-      return res.status(404).json({
-        error: { message: "Instrument not found" },
-      });
+      throw new AppError(
+        ErrorCode.INSTRUMENT_NOT_FOUND,
+        `Instrument with token ${exchangeToken} not found`
+      );
     }
 
     // Get event and validate it's active and within trading window
@@ -254,36 +178,21 @@ export const sellOrder = async (req: Request, res: Response) => {
     });
 
     if (!event) {
-      return res.status(404).json({
-        success: false,
-        error: { code: "EVENT_NOT_FOUND", message: "Event not found" },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_FOUND);
     }
 
     if (!event.isActive) {
-      return res.status(400).json({
-        success: false,
-        error: { code: "EVENT_NOT_ACTIVE", message: "Event is not active" },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_ACTIVE);
     }
 
     // Validate event timeframe
     const now = new Date();
     if (now < event.eventStartAt) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "EVENT_NOT_STARTED",
-          message: "Event trading has not started yet",
-        },
-      });
+      throw new AppError(ErrorCode.EVENT_NOT_STARTED);
     }
 
     if (now > event.eventEndAt) {
-      return res.status(400).json({
-        success: false,
-        error: { code: "EVENT_ENDED", message: "Event trading has ended" },
-      });
+      throw new AppError(ErrorCode.EVENT_ENDED);
     }
 
     // Get user's event account
@@ -299,76 +208,27 @@ export const sellOrder = async (req: Request, res: Response) => {
     })) as any;
 
     if (!registration || !registration.eventAccount) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: "ACCOUNT_NOT_FOUND",
-          message: "Event account not found or registration not confirmed",
-        },
-      });
+      throw new AppError(
+        ErrorCode.EVENT_NOT_REGISTERED,
+        "Event account not found or registration not confirmed"
+      );
     }
 
-    // Execute sell order
+    // Execute sell order (note: limitPrice is not supported)
     const result = await executeEventSell({
       eventAccountId: registration.eventAccount.id,
       instrumentId: instrument.id,
       qty: parsedQty,
       product,
-      limitPrice: parsedLimitPrice,
     });
 
     return res.status(200).json(result);
-  } catch (error: any) {
-    console.error("Event SELL order error:", error);
-
-    const errorMessage = error?.message || "Error executing SELL order";
-
-    // Categorize errors for consistent response format
-    if (
-      errorMessage.includes("Insufficient quantity") ||
-      errorMessage.includes("No open")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "INSUFFICIENT_QUANTITY",
-          message: errorMessage,
-          action: "You can only sell from existing holdings",
-        },
-      });
-    }
-
-    if (
-      errorMessage.includes("not started") ||
-      errorMessage.includes("has ended") ||
-      errorMessage.includes("not active")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "EVENT_NOT_TRADEABLE",
-          message: errorMessage,
-        },
-      });
-    }
-
-    if (errorMessage.includes("not found")) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: "NOT_FOUND",
-          message: errorMessage,
-        },
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: "ORDER_EXECUTION_FAILED",
-        message: errorMessage,
-      },
-    });
+  } catch (error) {
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.TRADING_ORDER_FAILED
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -383,15 +243,14 @@ export const getPositions = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        error: { message: "Authentication required" },
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     if (!eventId) {
-      return res.status(400).json({
-        error: { message: "Event ID is required" },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Event ID is required"
+      );
     }
 
     // Get user's event account
@@ -407,9 +266,10 @@ export const getPositions = async (req: Request, res: Response) => {
     })) as any;
 
     if (!registration || !registration.eventAccount) {
-      return res.status(404).json({
-        error: { message: "Event account not found" },
-      });
+      throw new AppError(
+        ErrorCode.EVENT_NOT_REGISTERED,
+        "Event account not found"
+      );
     }
 
     // Build where clause
@@ -443,10 +303,11 @@ export const getPositions = async (req: Request, res: Response) => {
       positions,
     });
   } catch (error) {
-    console.error("Error retrieving event positions:", error);
-    return res.status(500).json({
-      error: { message: "Error retrieving positions" },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -461,15 +322,14 @@ export const getTransactions = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        error: { message: "Authentication required" },
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     if (!eventId) {
-      return res.status(400).json({
-        error: { message: "Event ID is required" },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Event ID is required"
+      );
     }
 
     // Get user's event account
@@ -485,9 +345,10 @@ export const getTransactions = async (req: Request, res: Response) => {
     })) as any;
 
     if (!registration || !registration.eventAccount) {
-      return res.status(404).json({
-        error: { message: "Event account not found" },
-      });
+      throw new AppError(
+        ErrorCode.EVENT_NOT_REGISTERED,
+        "Event account not found"
+      );
     }
 
     // Pagination
@@ -528,10 +389,11 @@ export const getTransactions = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error retrieving event transactions:", error);
-    return res.status(500).json({
-      error: { message: "Error retrieving transactions" },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -545,15 +407,14 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        error: { message: "Authentication required" },
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     if (!eventId) {
-      return res.status(400).json({
-        error: { message: "Event ID is required" },
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Event ID is required"
+      );
     }
 
     // Get user's event account
@@ -569,9 +430,10 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
     })) as any;
 
     if (!registration || !registration.eventAccount) {
-      return res.status(404).json({
-        error: { message: "Event account not found" },
-      });
+      throw new AppError(
+        ErrorCode.EVENT_NOT_REGISTERED,
+        "Event account not found"
+      );
     }
 
     // Calculate portfolio
@@ -581,9 +443,10 @@ export const getEventPortfolio = async (req: Request, res: Response) => {
 
     return res.status(200).json(portfolio);
   } catch (error) {
-    console.error("Error retrieving event portfolio:", error);
-    return res.status(500).json({
-      error: { message: "Error retrieving portfolio" },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };

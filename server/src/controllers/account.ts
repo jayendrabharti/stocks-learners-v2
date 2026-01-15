@@ -6,6 +6,7 @@ import {
   roundCurrency,
   parseAmount,
 } from "@/utils/currency";
+import { AppError, ErrorCode, handleControllerError } from "@/utils/errors";
 
 /**
  * Get user account details
@@ -18,10 +19,7 @@ export const getAccount = async (
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Verify user exists in database
@@ -30,10 +28,10 @@ export const getAccount = async (
     });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found. Please log in again.",
-      });
+      throw new AppError(
+        ErrorCode.AUTH_USER_NOT_FOUND,
+        "User not found. Please log in again."
+      );
     }
 
     // Get or create account (atomic operation)
@@ -62,14 +60,11 @@ export const getAccount = async (
       },
     });
   } catch (error) {
-    console.error("Error fetching account:", error);
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: "SERVER_ERROR",
-        message: "Failed to fetch account details",
-      },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -85,19 +80,16 @@ export const depositFunds = async (
     const { amount } = req.body; // Real money amount
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Validate and parse amount using currency utility
     const parsedAmount = parseAmount(amount);
     if (parsedAmount === null) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount. Must be a positive number",
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Invalid amount. Please enter a positive number."
+      );
     }
 
     // Verify user exists in database
@@ -106,10 +98,10 @@ export const depositFunds = async (
     });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found. Please log in again.",
-      });
+      throw new AppError(
+        ErrorCode.AUTH_USER_NOT_FOUND,
+        "User not found. Please log in again."
+      );
     }
 
     // Get exchange rate
@@ -152,11 +144,11 @@ export const depositFunds = async (
       },
     });
   } catch (error) {
-    console.error("Error depositing funds:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to deposit funds",
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -172,19 +164,16 @@ export const withdrawFunds = async (
     const { amount } = req.body;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     // Validate and parse amount using currency utility
     const parsedAmount = parseAmount(amount);
     if (parsedAmount === null) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount. Must be a positive number",
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Invalid amount. Please enter a positive number."
+      );
     }
 
     const account = await prisma.account.findUnique({
@@ -192,10 +181,7 @@ export const withdrawFunds = async (
     });
 
     if (!account) {
-      return res.status(404).json({
-        success: false,
-        message: "Account not found",
-      });
+      throw new AppError(ErrorCode.ACCOUNT_NOT_FOUND);
     }
 
     // Use Serializable transaction for atomic withdrawal (prevents race condition)
@@ -207,13 +193,14 @@ export const withdrawFunds = async (
         });
 
         if (!currentAccount) {
-          throw new Error("Account not found");
+          throw new AppError(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
         const availableMargin = fromDecimal(currentAccount.cash);
 
         if (parsedAmount > availableMargin) {
-          throw new Error(
+          throw new AppError(
+            ErrorCode.ACCOUNT_WITHDRAWAL_EXCEEDS_BALANCE,
             `Insufficient funds. Available: ₹${availableMargin.toFixed(
               2
             )}, Requested: ₹${parsedAmount.toFixed(2)}`
@@ -247,20 +234,11 @@ export const withdrawFunds = async (
         totalFunds: roundCurrency(cash + usedMargin),
       },
     });
-  } catch (error: any) {
-    console.error("Error withdrawing funds:", error);
-
-    // Handle insufficient funds error from transaction
-    if (error.message?.includes("Insufficient funds")) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to withdraw funds",
-    });
+  } catch (error) {
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };

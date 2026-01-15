@@ -9,12 +9,13 @@ import { fromDecimal } from "@/utils/currency";
 import { executeBuy, executeSell } from "@/utils/trading";
 import { getLivePrice } from "@/utils/trading/livePrice";
 import { calculateTotalUnrealizedPnL } from "@/utils/trading/calculatePnL";
+import { AppError, ErrorCode, handleControllerError } from "@/utils/errors";
 import type { TradeType } from "@/database/generated/enums";
 
 /**
  * Execute a BUY order
  * POST /trading/buy
- * Body: { instrumentId, qty, product, limitPrice? }
+ * Body: { instrumentId, qty, product }
  */
 export const buyOrder = async (req: Request, res: Response) => {
   try {
@@ -22,49 +23,34 @@ export const buyOrder = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized - user not authenticated",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
-    const { exchangeToken, qty, product, limitPrice } = req.body;
+    const { exchangeToken, qty, product } = req.body;
 
     // Validate required fields
-    if (!exchangeToken || !qty || !product) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: exchangeToken, qty, product",
-      });
+    if (!exchangeToken || qty === undefined || qty === null || !product) {
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Missing required fields: exchangeToken, qty, product"
+      );
     }
 
     // Validate product type
     if (product !== "CNC" && product !== "MIS") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product type. Must be 'CNC' or 'MIS'",
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Invalid product type. Must be 'CNC' or 'MIS'"
+      );
     }
 
     // Validate and parse quantity
     const parsedQty = parseInt(qty);
     if (isNaN(parsedQty) || parsedQty <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid quantity. Must be a positive number",
-      });
-    }
-
-    // Validate and parse limit price if provided
-    let parsedLimitPrice: number | undefined;
-    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
-      parsedLimitPrice = parseFloat(limitPrice);
-      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid limit price. Must be a positive number",
-        });
-      }
+      throw new AppError(
+        ErrorCode.TRADING_INVALID_QUANTITY,
+        "Invalid quantity. Must be a positive number"
+      );
     }
 
     // Find instrument by exchange token
@@ -73,86 +59,34 @@ export const buyOrder = async (req: Request, res: Response) => {
     });
 
     if (!instrument) {
-      return res.status(404).json({
-        success: false,
-        message: "Instrument not found",
-      });
+      throw new AppError(
+        ErrorCode.INSTRUMENT_NOT_FOUND,
+        `Instrument with token ${exchangeToken} not found`
+      );
     }
 
     // Execute buy order
-    const buyInput: any = {
+    const result = await executeBuy({
       userId,
       instrumentId: instrument.id,
       qty: parsedQty,
       product: product as TradeType,
-    };
-
-    if (parsedLimitPrice) {
-      buyInput.limitPrice = parsedLimitPrice;
-    }
-
-    const result = await executeBuy(buyInput);
+    });
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Buy order error:", error);
-
-    // Categorize error types for better user feedback
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to execute buy order";
-
-    if (
-      errorMessage.includes("Insufficient funds") ||
-      errorMessage.includes("Insufficient margin")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "INSUFFICIENT_FUNDS",
-          message: errorMessage,
-          action: "Add funds to continue trading",
-        },
-      });
-    }
-
-    if (
-      errorMessage.includes("validation failed") ||
-      errorMessage.includes("not allowed")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "VALIDATION_ERROR",
-          message: errorMessage,
-          action: "Please check order details and try again",
-        },
-      });
-    }
-
-    if (errorMessage.includes("not found")) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: "INSTRUMENT_NOT_FOUND",
-          message: errorMessage,
-        },
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: "ORDER_EXECUTION_FAILED",
-        message: errorMessage,
-      },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.TRADING_ORDER_FAILED
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
 /**
  * Execute a SELL order
  * POST /trading/sell
- * Body: { instrumentId, qty, product, limitPrice? }
+ * Body: { instrumentId, qty, product }
  */
 export const sellOrder = async (req: Request, res: Response) => {
   try {
@@ -160,49 +94,34 @@ export const sellOrder = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized - user not authenticated",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
-    const { exchangeToken, qty, product, limitPrice } = req.body;
+    const { exchangeToken, qty, product } = req.body;
 
     // Validate required fields
-    if (!exchangeToken || !qty || !product) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: exchangeToken, qty, product",
-      });
+    if (!exchangeToken || qty === undefined || qty === null || !product) {
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Missing required fields: exchangeToken, qty, product"
+      );
     }
 
     // Validate product type
     if (product !== "CNC" && product !== "MIS") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product type. Must be 'CNC' or 'MIS'",
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Invalid product type. Must be 'CNC' or 'MIS'"
+      );
     }
 
     // Validate and parse quantity
     const parsedQty = parseInt(qty);
     if (isNaN(parsedQty) || parsedQty <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid quantity. Must be a positive number",
-      });
-    }
-
-    // Validate and parse limit price if provided
-    let parsedLimitPrice: number | undefined;
-    if (limitPrice !== undefined && limitPrice !== null && limitPrice !== "") {
-      parsedLimitPrice = parseFloat(limitPrice);
-      if (isNaN(parsedLimitPrice) || parsedLimitPrice <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid limit price. Must be a positive number",
-        });
-      }
+      throw new AppError(
+        ErrorCode.TRADING_INVALID_QUANTITY,
+        "Invalid quantity. Must be a positive number"
+      );
     }
 
     // Find instrument by exchange token
@@ -211,79 +130,27 @@ export const sellOrder = async (req: Request, res: Response) => {
     });
 
     if (!instrument) {
-      return res.status(404).json({
-        success: false,
-        message: "Instrument not found",
-      });
+      throw new AppError(
+        ErrorCode.INSTRUMENT_NOT_FOUND,
+        `Instrument with token ${exchangeToken} not found`
+      );
     }
 
     // Execute sell order
-    const sellInput: any = {
+    const result = await executeSell({
       userId,
       instrumentId: instrument.id,
       qty: parsedQty,
       product: product as TradeType,
-    };
-
-    if (parsedLimitPrice) {
-      sellInput.limitPrice = parsedLimitPrice;
-    }
-
-    const result = await executeSell(sellInput);
+    });
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Sell order error:", error);
-
-    // Categorize error types for better user feedback
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to execute sell order";
-
-    if (
-      errorMessage.includes("Insufficient quantity") ||
-      errorMessage.includes("No open")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "INSUFFICIENT_QUANTITY",
-          message: errorMessage,
-          action: "You can only sell from existing holdings",
-        },
-      });
-    }
-
-    if (
-      errorMessage.includes("validation failed") ||
-      errorMessage.includes("not allowed")
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: "VALIDATION_ERROR",
-          message: errorMessage,
-          action: "Please check order details and try again",
-        },
-      });
-    }
-
-    if (errorMessage.includes("not found")) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: "POSITION_NOT_FOUND",
-          message: errorMessage,
-        },
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: "ORDER_EXECUTION_FAILED",
-        message: errorMessage,
-      },
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.TRADING_ORDER_FAILED
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -298,10 +165,7 @@ export const getPositions = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized - user not authenticated",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     const { product, instrumentId } = req.query;
@@ -451,12 +315,11 @@ export const getPositions = async (req: Request, res: Response) => {
       count: enrichedPositions.length,
     });
   } catch (error) {
-    console.error("Get positions error:", error);
-    return res.status(500).json({
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch positions",
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -470,19 +333,16 @@ export const getPositionById = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized - user not authenticated",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     const { positionId } = req.params;
 
     if (!positionId) {
-      return res.status(400).json({
-        success: false,
-        message: "Position ID is required",
-      });
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "Position ID is required"
+      );
     }
 
     const position = await prisma.position.findFirst({
@@ -506,10 +366,7 @@ export const getPositionById = async (req: Request, res: Response) => {
     });
 
     if (!position) {
-      return res.status(404).json({
-        success: false,
-        message: "Position not found",
-      });
+      throw new AppError(ErrorCode.POSITION_NOT_FOUND);
     }
 
     // Get current LTP
@@ -554,12 +411,11 @@ export const getPositionById = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get position by ID error:", error);
-    return res.status(500).json({
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch position",
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };
 
@@ -574,10 +430,7 @@ export const getTransactions = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized - user not authenticated",
-      });
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
     const limit = parseInt((req.query.limit as string) || "100");
@@ -624,11 +477,10 @@ export const getTransactions = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Get transactions error:", error);
-    return res.status(500).json({
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch transactions",
-    });
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.SERVER_ERROR
+    );
+    return res.status(statusCode).json(body);
   }
 };

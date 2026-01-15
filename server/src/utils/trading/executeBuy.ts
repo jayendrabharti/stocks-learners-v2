@@ -16,6 +16,7 @@ import {
 import { fetchInstrumentById } from "@/utils/instruments";
 import type { InstrumentModel } from "@/database/generated/models/Instrument";
 import { getNextMarketCloseTime } from "@/services/autoSquareOffService";
+import { getMarketStatus } from "@/services/marketService";
 import { roundCurrency, fromDecimal, toDecimal } from "@/utils/currency";
 export type Instrument = InstrumentModel;
 
@@ -24,7 +25,8 @@ export interface BuyOrderInput {
   instrumentId: string;
   qty: number;
   product: TradeType;
-  limitPrice?: number;
+  // Note: Limit orders are not currently implemented.
+  // All orders execute at market price (LTP).
 }
 
 export interface BuyOrderResult {
@@ -65,9 +67,22 @@ function calculateFees(
 export async function executeBuy(
   input: BuyOrderInput
 ): Promise<BuyOrderResult> {
-  const { userId, instrumentId, qty, product, limitPrice } = input;
+  const { userId, instrumentId, qty, product } = input;
 
   try {
+    // Step 0: Check if market is open
+    const marketStatus = await getMarketStatus();
+    if (!marketStatus.isOpen) {
+      const nextOpenMsg = marketStatus.nextOpenTime
+        ? ` Market opens at ${new Date(
+            marketStatus.nextOpenTime
+          ).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}.`
+        : "";
+      throw new Error(
+        `Market is currently closed.${nextOpenMsg} Orders can only be placed during market hours (9:15 AM - 3:30 PM IST on trading days).`
+      );
+    }
+
     // Step 1: Fetch instrument details (with CSV fallback)
     const instrument = await fetchInstrumentById(instrumentId);
 
@@ -220,7 +235,8 @@ export async function executeBuy(
             product,
             qty,
             price: toDecimal(executedPrice),
-            limitPrice: limitPrice ? toDecimal(limitPrice) : null,
+            // limitPrice is not supported - all orders execute at market price
+            limitPrice: null,
             fees: toDecimal(fees),
           },
         });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import AuthGuard from "@/auth/AuthGuard";
 
 type VerificationStatus = "verifying" | "success" | "error";
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -163,5 +163,27 @@ export default function PaymentCallbackPage() {
         </Card>
       </AuthGuard>
     </div>
+  );
+}
+
+function PaymentCallbackLoading() {
+  return (
+    <div className="container mx-auto flex min-h-[60vh] max-w-md items-center justify-center px-4 py-8">
+      <Card className="w-full">
+        <CardHeader className="text-center">
+          <Loader2 className="mx-auto mb-4 h-16 w-16 animate-spin text-blue-500" />
+          <CardTitle>Loading...</CardTitle>
+          <CardDescription>Please wait...</CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  );
+}
+
+export default function PaymentCallbackPage() {
+  return (
+    <Suspense fallback={<PaymentCallbackLoading />}>
+      <PaymentCallbackContent />
+    </Suspense>
   );
 }
