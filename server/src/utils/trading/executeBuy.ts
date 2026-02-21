@@ -46,7 +46,7 @@ export interface BuyOrderResult {
 function calculateFees(
   orderValue: number,
   product: TradeType,
-  segment: string
+  segment: string,
 ): number {
   // Simplified fee calculation
   // CNC: 0.1% of order value
@@ -65,7 +65,7 @@ function calculateFees(
  * @returns Buy order execution result
  */
 export async function executeBuy(
-  input: BuyOrderInput
+  input: BuyOrderInput,
 ): Promise<BuyOrderResult> {
   const { userId, instrumentId, qty, product } = input;
 
@@ -75,11 +75,11 @@ export async function executeBuy(
     if (!marketStatus.isOpen) {
       const nextOpenMsg = marketStatus.nextOpenTime
         ? ` Market opens at ${new Date(
-            marketStatus.nextOpenTime
+            marketStatus.nextOpenTime,
           ).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}.`
         : "";
       throw new Error(
-        `Market is currently closed.${nextOpenMsg} Orders can only be placed during market hours (9:15 AM - 3:30 PM IST on trading days).`
+        `Market is currently closed.${nextOpenMsg} Orders can only be placed during market hours (9:15 AM - 3:30 PM IST on trading days).`,
       );
     }
 
@@ -95,13 +95,13 @@ export async function executeBuy(
       instrument.tradingSymbol,
       instrument.exchange,
       instrument.type,
-      instrument.exchangeToken
+      instrument.exchangeToken,
     );
 
     // Validate price is positive (catches API failures/bad data)
     if (!ltp || ltp <= 0 || !isFinite(ltp)) {
       throw new Error(
-        `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`
+        `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`,
       );
     }
 
@@ -114,14 +114,14 @@ export async function executeBuy(
       "BUY",
       qty,
       executedPrice,
-      product
+      product,
     );
 
     if (!validation.valid) {
       throw new Error(
         `Order validation failed: ${validation.errors
           .map((e) => e.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -153,25 +153,25 @@ export async function executeBuy(
         // Validate sufficient funds inside transaction
         if (product === "MIS") {
           const requiredMargin = roundCurrency(
-            (executedPrice * qty) / instrument.leverage
+            (executedPrice * qty) / instrument.leverage,
           );
           const totalRequired = roundCurrency(requiredMargin + fees);
 
           if (accountCash < totalRequired) {
             throw new Error(
               `Insufficient funds. Required: ₹${totalRequired.toFixed(
-                2
+                2,
               )} (Margin: ₹${requiredMargin.toFixed(2)} + Fees: ₹${fees.toFixed(
-                2
-              )}), Available: ₹${accountCash.toFixed(2)}`
+                2,
+              )}), Available: ₹${accountCash.toFixed(2)}`,
             );
           }
         } else {
           if (accountCash < totalCost) {
             throw new Error(
               `Insufficient funds. Required: ${totalCost.toFixed(
-                2
-              )}, Available: ${accountCash.toFixed(2)}`
+                2,
+              )}, Available: ${accountCash.toFixed(2)}`,
             );
           }
         }
@@ -216,13 +216,17 @@ export async function executeBuy(
           isNewPosition = true;
         } else if (product === "MIS" && autoSquareOffAt) {
           // Update auto square-off time for existing MIS position
-          await tx.position.update({
-            where: { id: position.id },
-            data: {
-              autoSquareOffAt: autoSquareOffAt,
-              autoSquareOffStatus: "PENDING",
-            },
-          });
+          // BUT only if square-off is not currently in progress
+          // (Don't interrupt an ongoing square-off by resetting to PENDING)
+          if (position.autoSquareOffStatus !== "IN_PROGRESS") {
+            await tx.position.update({
+              where: { id: position.id },
+              data: {
+                autoSquareOffAt: autoSquareOffAt,
+                autoSquareOffStatus: "PENDING",
+              },
+            });
+          }
         }
 
         // Create transaction record
@@ -258,7 +262,7 @@ export async function executeBuy(
             position.qty,
             fromDecimal(position.avgPrice),
             qty,
-            executedPrice
+            executedPrice,
           );
 
           await tx.position.update({
@@ -275,15 +279,15 @@ export async function executeBuy(
         if (product === "MIS") {
           // For MIS, deduct margin + fees from cash and increase used margin
           const requiredMargin = roundCurrency(
-            (executedPrice * qty) / instrument.leverage
+            (executedPrice * qty) / instrument.leverage,
           );
           const totalDeduction = roundCurrency(requiredMargin + fees);
 
           await tx.account.update({
             where: { userId },
             data: {
-              cash: { decrement: totalDeduction },
-              usedMargin: { increment: requiredMargin },
+              cash: { decrement: toDecimal(totalDeduction) },
+              usedMargin: { increment: toDecimal(requiredMargin) },
               updatedAt: new Date(),
             },
           });
@@ -292,7 +296,7 @@ export async function executeBuy(
           await tx.account.update({
             where: { userId },
             data: {
-              cash: { decrement: totalCost },
+              cash: { decrement: toDecimal(totalCost) },
               updatedAt: new Date(),
             },
           });
@@ -306,7 +310,7 @@ export async function executeBuy(
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 30000, // 30 seconds
-      }
+      },
     );
 
     return {
@@ -323,7 +327,7 @@ export async function executeBuy(
     throw new Error(
       `Failed to execute BUY order: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }

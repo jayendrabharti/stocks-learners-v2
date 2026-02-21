@@ -196,7 +196,7 @@ export const VerifyOrder = async (req: Request, res: Response) => {
     if (!signatureResult.valid) {
       console.error(
         `Signature verification failed for payment ${razorpay_payment_id}:`,
-        signatureResult.error
+        signatureResult.error,
       );
       return res.status(400).json({
         success: false,
@@ -249,13 +249,12 @@ export const VerifyOrder = async (req: Request, res: Response) => {
         }
 
         // Verify payment with Razorpay (additional security)
-        const razorpayPayment = await razorpay.payments.fetch(
-          razorpay_payment_id
-        );
+        const razorpayPayment =
+          await razorpay.payments.fetch(razorpay_payment_id);
 
         if (razorpayPayment.status !== "captured") {
           throw new Error(
-            `Payment not captured. Status: ${razorpayPayment.status}`
+            `Payment not captured. Status: ${razorpayPayment.status}`,
           );
         }
 
@@ -268,7 +267,7 @@ export const VerifyOrder = async (req: Request, res: Response) => {
         // Validate exchange rate is positive (prevents zero/negative fund deposits)
         if (!exchangeRate || exchangeRate <= 0 || !isFinite(exchangeRate)) {
           throw new Error(
-            "Invalid exchange rate configuration. Please contact support."
+            "Invalid exchange rate configuration. Please contact support.",
           );
         }
 
@@ -307,7 +306,7 @@ export const VerifyOrder = async (req: Request, res: Response) => {
             usedMargin: toDecimal(0),
           },
           update: {
-            cash: { increment: depositedAmount },
+            cash: { increment: toDecimal(depositedAmount) },
           },
         });
 
@@ -320,7 +319,7 @@ export const VerifyOrder = async (req: Request, res: Response) => {
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 30000, // 30 seconds
-      }
+      },
     );
 
     return res.status(200).json({
@@ -477,7 +476,7 @@ export const verifyEventPayment = async (req: Request, res: Response) => {
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 30000,
-      }
+      },
     );
 
     return res.status(200).json({
@@ -537,7 +536,7 @@ export const verifyEventPaymentLink = async (req: Request, res: Response) => {
     const expectedSignature = require("crypto")
       .createHmac("sha256", secret)
       .update(
-        `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`
+        `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`,
       )
       .digest("hex");
 
@@ -678,7 +677,7 @@ export const verifyEventPaymentLink = async (req: Request, res: Response) => {
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 30000,
-      }
+      },
     );
 
     return res.status(200).json({

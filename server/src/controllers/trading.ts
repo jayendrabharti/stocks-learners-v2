@@ -32,7 +32,7 @@ export const buyOrder = async (req: Request, res: Response) => {
     if (!exchangeToken || qty === undefined || qty === null || !product) {
       throw new AppError(
         ErrorCode.VALIDATION_REQUIRED_FIELD,
-        "Missing required fields: exchangeToken, qty, product"
+        "Missing required fields: exchangeToken, qty, product",
       );
     }
 
@@ -40,7 +40,7 @@ export const buyOrder = async (req: Request, res: Response) => {
     if (product !== "CNC" && product !== "MIS") {
       throw new AppError(
         ErrorCode.VALIDATION_INVALID_VALUE,
-        "Invalid product type. Must be 'CNC' or 'MIS'"
+        "Invalid product type. Must be 'CNC' or 'MIS'",
       );
     }
 
@@ -49,7 +49,7 @@ export const buyOrder = async (req: Request, res: Response) => {
     if (isNaN(parsedQty) || parsedQty <= 0) {
       throw new AppError(
         ErrorCode.TRADING_INVALID_QUANTITY,
-        "Invalid quantity. Must be a positive number"
+        "Invalid quantity. Must be a positive number",
       );
     }
 
@@ -61,7 +61,7 @@ export const buyOrder = async (req: Request, res: Response) => {
     if (!instrument) {
       throw new AppError(
         ErrorCode.INSTRUMENT_NOT_FOUND,
-        `Instrument with token ${exchangeToken} not found`
+        `Instrument with token ${exchangeToken} not found`,
       );
     }
 
@@ -77,7 +77,7 @@ export const buyOrder = async (req: Request, res: Response) => {
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.TRADING_ORDER_FAILED
+      ErrorCode.TRADING_ORDER_FAILED,
     );
     return res.status(statusCode).json(body);
   }
@@ -103,7 +103,7 @@ export const sellOrder = async (req: Request, res: Response) => {
     if (!exchangeToken || qty === undefined || qty === null || !product) {
       throw new AppError(
         ErrorCode.VALIDATION_REQUIRED_FIELD,
-        "Missing required fields: exchangeToken, qty, product"
+        "Missing required fields: exchangeToken, qty, product",
       );
     }
 
@@ -111,7 +111,7 @@ export const sellOrder = async (req: Request, res: Response) => {
     if (product !== "CNC" && product !== "MIS") {
       throw new AppError(
         ErrorCode.VALIDATION_INVALID_VALUE,
-        "Invalid product type. Must be 'CNC' or 'MIS'"
+        "Invalid product type. Must be 'CNC' or 'MIS'",
       );
     }
 
@@ -120,7 +120,7 @@ export const sellOrder = async (req: Request, res: Response) => {
     if (isNaN(parsedQty) || parsedQty <= 0) {
       throw new AppError(
         ErrorCode.TRADING_INVALID_QUANTITY,
-        "Invalid quantity. Must be a positive number"
+        "Invalid quantity. Must be a positive number",
       );
     }
 
@@ -132,7 +132,7 @@ export const sellOrder = async (req: Request, res: Response) => {
     if (!instrument) {
       throw new AppError(
         ErrorCode.INSTRUMENT_NOT_FOUND,
-        `Instrument with token ${exchangeToken} not found`
+        `Instrument with token ${exchangeToken} not found`,
       );
     }
 
@@ -148,7 +148,7 @@ export const sellOrder = async (req: Request, res: Response) => {
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.TRADING_ORDER_FAILED
+      ErrorCode.TRADING_ORDER_FAILED,
     );
     return res.status(statusCode).json(body);
   }
@@ -218,7 +218,7 @@ export const getPositions = async (req: Request, res: Response) => {
             position.instrument.tradingSymbol,
             position.instrument.exchange,
             position.instrument.type,
-            position.instrument.exchangeToken
+            position.instrument.exchangeToken,
           );
 
           // Calculate unrealized PnL
@@ -306,7 +306,7 @@ export const getPositions = async (req: Request, res: Response) => {
             updatedAt: position.updatedAt,
           };
         }
-      })
+      }),
     );
 
     return res.status(200).json({
@@ -317,7 +317,7 @@ export const getPositions = async (req: Request, res: Response) => {
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }
@@ -341,7 +341,7 @@ export const getPositionById = async (req: Request, res: Response) => {
     if (!positionId) {
       throw new AppError(
         ErrorCode.VALIDATION_REQUIRED_FIELD,
-        "Position ID is required"
+        "Position ID is required",
       );
     }
 
@@ -374,7 +374,7 @@ export const getPositionById = async (req: Request, res: Response) => {
       position.instrument.tradingSymbol,
       position.instrument.exchange,
       position.instrument.type,
-      position.instrument.exchangeToken
+      position.instrument.exchangeToken,
     );
 
     // Calculate metrics
@@ -413,7 +413,7 @@ export const getPositionById = async (req: Request, res: Response) => {
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }
@@ -437,6 +437,22 @@ export const getTransactions = async (req: Request, res: Response) => {
     const offset = parseInt((req.query.offset as string) || "0");
     const side = req.query.side as "BUY" | "SELL" | undefined;
     const product = req.query.product as "CNC" | "MIS" | undefined;
+
+    // Validate limit to prevent excessive queries
+    if (limit < 1 || limit > 1000) {
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Limit must be between 1 and 1000",
+      );
+    }
+
+    // Validate offset
+    if (offset < 0) {
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Offset must be non-negative",
+      );
+    }
 
     // Build where clause
     const where: any = { userId };
@@ -479,7 +495,7 @@ export const getTransactions = async (req: Request, res: Response) => {
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }

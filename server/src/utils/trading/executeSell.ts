@@ -44,7 +44,7 @@ export interface SellOrderResult {
 function calculateFees(
   orderValue: number,
   product: TradeType,
-  segment: string
+  segment: string,
 ): number {
   // Simplified fee calculation
   const feeRate = product === "MIS" ? 0.0005 : 0.001;
@@ -59,7 +59,7 @@ function calculateFees(
  * @returns Sell order execution result
  */
 export async function executeSell(
-  input: SellOrderInput
+  input: SellOrderInput,
 ): Promise<SellOrderResult> {
   const { userId, instrumentId, qty, product } = input;
 
@@ -69,11 +69,11 @@ export async function executeSell(
     if (!marketStatus.isOpen) {
       const nextOpenMsg = marketStatus.nextOpenTime
         ? ` Market opens at ${new Date(
-            marketStatus.nextOpenTime
+            marketStatus.nextOpenTime,
           ).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}.`
         : "";
       throw new Error(
-        `Market is currently closed.${nextOpenMsg} Orders can only be placed during market hours (9:15 AM - 3:30 PM IST on trading days).`
+        `Market is currently closed.${nextOpenMsg} Orders can only be placed during market hours (9:15 AM - 3:30 PM IST on trading days).`,
       );
     }
 
@@ -89,13 +89,13 @@ export async function executeSell(
       instrument.tradingSymbol,
       instrument.exchange,
       instrument.type,
-      instrument.exchangeToken
+      instrument.exchangeToken,
     );
 
     // Validate price is positive (catches API failures/bad data)
     if (!ltp || ltp <= 0 || !isFinite(ltp)) {
       throw new Error(
-        `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`
+        `Invalid market price received for ${instrument.tradingSymbol}. Please try again.`,
       );
     }
 
@@ -108,14 +108,14 @@ export async function executeSell(
       "SELL",
       qty,
       executedPrice,
-      product
+      product,
     );
 
     if (!validation.valid) {
       throw new Error(
         `Order validation failed: ${validation.errors
           .map((e) => e.message)
-          .join(", ")}`
+          .join(", ")}`,
       );
     }
 
@@ -149,7 +149,7 @@ export async function executeSell(
 
         if (!position) {
           throw new Error(
-            `No open ${product} position found for this instrument. You can only sell from existing ${product} holdings.`
+            `No open ${product} position found for this instrument. You can only sell from existing ${product} holdings.`,
           );
         }
 
@@ -161,14 +161,14 @@ export async function executeSell(
           throw new Error(
             `Quantity validation failed: ${qtyValidation.errors
               .map((e) => e.message)
-              .join(", ")}`
+              .join(", ")}`,
           );
         }
 
         // Match lots using FIFO
         const fifoResult = matchLotsForSell(position.lots, qty, executedPrice);
         const netRealizedPnL = roundCurrency(
-          fifoResult.totalRealizedPnL - fees
+          fifoResult.totalRealizedPnL - fees,
         );
 
         // Create transaction record
@@ -210,7 +210,7 @@ export async function executeSell(
           fromDecimal(position.realizedPnl),
           qty,
           netRealizedPnL,
-          updatedLots
+          updatedLots,
         );
 
         // Update position
@@ -235,16 +235,16 @@ export async function executeSell(
                 (fromDecimal(consumption.lot.buyPrice) *
                   consumption.consumedQty) /
                   instrument.leverage,
-              0
-            )
+              0,
+            ),
           );
           const proceeds = roundCurrency(orderValue - fees);
 
           await tx.account.update({
             where: { userId },
             data: {
-              usedMargin: { decrement: releasedMargin },
-              cash: { increment: proceeds },
+              usedMargin: { decrement: toDecimal(releasedMargin) },
+              cash: { increment: toDecimal(proceeds) },
               updatedAt: new Date(),
             },
           });
@@ -255,7 +255,7 @@ export async function executeSell(
           await tx.account.update({
             where: { userId },
             data: {
-              cash: { increment: proceeds },
+              cash: { increment: toDecimal(proceeds) },
               updatedAt: new Date(),
             },
           });
@@ -270,7 +270,7 @@ export async function executeSell(
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 30000, // 30 seconds
-      }
+      },
     );
 
     return {
@@ -288,7 +288,7 @@ export async function executeSell(
     throw new Error(
       `Failed to execute SELL order: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }

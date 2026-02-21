@@ -13,7 +13,7 @@ import { AppError, ErrorCode, handleControllerError } from "@/utils/errors";
  */
 export const getAccount = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId = req.user?.id;
@@ -30,7 +30,7 @@ export const getAccount = async (
     if (!user) {
       throw new AppError(
         ErrorCode.AUTH_USER_NOT_FOUND,
-        "User not found. Please log in again."
+        "User not found. Please log in again.",
       );
     }
 
@@ -62,7 +62,7 @@ export const getAccount = async (
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }
@@ -73,7 +73,7 @@ export const getAccount = async (
  */
 export const depositFunds = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId = req.user?.id;
@@ -88,7 +88,7 @@ export const depositFunds = async (
     if (parsedAmount === null) {
       throw new AppError(
         ErrorCode.VALIDATION_INVALID_VALUE,
-        "Invalid amount. Please enter a positive number."
+        "Invalid amount. Please enter a positive number.",
       );
     }
 
@@ -100,7 +100,7 @@ export const depositFunds = async (
     if (!user) {
       throw new AppError(
         ErrorCode.AUTH_USER_NOT_FOUND,
-        "User not found. Please log in again."
+        "User not found. Please log in again.",
       );
     }
 
@@ -120,7 +120,7 @@ export const depositFunds = async (
         usedMargin: toDecimal(0),
       },
       update: {
-        cash: { increment: dummyMoney },
+        cash: { increment: toDecimal(dummyMoney) },
       },
     });
 
@@ -146,7 +146,7 @@ export const depositFunds = async (
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }
@@ -157,7 +157,7 @@ export const depositFunds = async (
  */
 export const withdrawFunds = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId = req.user?.id;
@@ -172,7 +172,7 @@ export const withdrawFunds = async (
     if (parsedAmount === null) {
       throw new AppError(
         ErrorCode.VALIDATION_INVALID_VALUE,
-        "Invalid amount. Please enter a positive number."
+        "Invalid amount. Please enter a positive number.",
       );
     }
 
@@ -202,22 +202,22 @@ export const withdrawFunds = async (
           throw new AppError(
             ErrorCode.ACCOUNT_WITHDRAWAL_EXCEEDS_BALANCE,
             `Insufficient funds. Available: ₹${availableMargin.toFixed(
-              2
-            )}, Requested: ₹${parsedAmount.toFixed(2)}`
+              2,
+            )}, Requested: ₹${parsedAmount.toFixed(2)}`,
           );
         }
 
         return tx.account.update({
           where: { userId },
           data: {
-            cash: { decrement: parsedAmount },
+            cash: { decrement: toDecimal(parsedAmount) },
           },
         });
       },
       {
         isolationLevel: "Serializable" as const,
         timeout: 10000,
-      }
+      },
     );
 
     // Convert Decimal to number for response
@@ -237,7 +237,7 @@ export const withdrawFunds = async (
   } catch (error) {
     const { statusCode, body } = handleControllerError(
       error,
-      ErrorCode.SERVER_ERROR
+      ErrorCode.SERVER_ERROR,
     );
     return res.status(statusCode).json(body);
   }

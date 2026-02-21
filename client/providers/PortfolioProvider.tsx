@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useEffect,
@@ -88,18 +88,27 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const [positions, setPositions] = useState<Position[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(true);
 
-  // Reset data when context changes
+  // Track if this is the first load vs a context switch
+  const isInitialLoadRef = React.useRef(true);
+
+  // Load data when context changes or user authenticates
   useEffect(() => {
     if (!user) return;
 
-    setAccount(null);
-    setPortfolio(null);
-    setPositions([]);
+    // Only reset to null on actual context switches (not initial load)
+    // This prevents the brief skeleton flash on first page visit
+    if (!isInitialLoadRef.current) {
+      setAccount(null);
+      setPortfolio(null);
+      setPositions([]);
+    }
+    isInitialLoadRef.current = false;
+
     setAccountLoading(true);
     setPortfolioLoading(true);
     setPositionsLoading(true);
 
-    // Load data for the new context
+    // Load data for the current context
     const loadData = async () => {
       try {
         if (activeContext.type === "MAIN") {
@@ -138,7 +147,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeContext.type, activeContext.eventId]);
+  }, [user, activeContext.type, activeContext.eventId]);
 
   const switchContext = useCallback((context: ActiveContext) => {
     setActiveContext(context);
@@ -150,109 +159,121 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const refreshAccount = useCallback(async () => {
-    if (!user) {
-      setAccountLoading(false);
-      return;
-    }
-
-    try {
-      setAccountLoading(true);
-
-      if (activeContext.type === "MAIN") {
-        const data = await getAccount();
-        setAccount(data);
-      } else if (activeContext.type === "EVENT" && activeContext.eventId) {
-        const data = await eventTradingApi.getPortfolio(activeContext.eventId);
-        setAccount({
-          totalCash: data.account.totalCash,
-          usedMargin: data.account.usedMargin,
-          availableMargin: data.account.availableMargin,
-        });
+  const refreshAccount = useCallback(
+    async (showLoading = true) => {
+      if (!user) {
+        setAccountLoading(false);
+        return;
       }
-    } catch (error: any) {
-      // Silent fail for auth errors - components will show login prompt
-      const isAuthError = error?.response?.status === 401;
-      if (!isAuthError) {
-        console.error("Failed to fetch account:", error);
+
+      try {
+        if (showLoading) setAccountLoading(true);
+
+        if (activeContext.type === "MAIN") {
+          const data = await getAccount();
+          setAccount(data);
+        } else if (activeContext.type === "EVENT" && activeContext.eventId) {
+          const data = await eventTradingApi.getPortfolio(
+            activeContext.eventId,
+          );
+          setAccount({
+            totalCash: data.account.totalCash,
+            usedMargin: data.account.usedMargin,
+            availableMargin: data.account.availableMargin,
+          });
+        }
+      } catch (error: any) {
+        // Silent fail for auth errors - components will show login prompt
+        const isAuthError = error?.response?.status === 401;
+        if (!isAuthError) {
+          console.error("Failed to fetch account:", error);
+        }
+      } finally {
+        if (showLoading) setAccountLoading(false);
       }
-    } finally {
-      setAccountLoading(false);
-    }
-  }, [user, activeContext]);
+    },
+    [user, activeContext],
+  );
 
-  const refreshPortfolio = useCallback(async () => {
-    if (!user) {
-      setPortfolioLoading(false);
-      return;
-    }
-
-    try {
-      setPortfolioLoading(true);
-
-      if (activeContext.type === "MAIN") {
-        const data = await getPortfolio();
-        setPortfolio(data);
-      } else if (activeContext.type === "EVENT" && activeContext.eventId) {
-        const data = await eventTradingApi.getPortfolio(activeContext.eventId);
-        setPortfolio(data as any);
+  const refreshPortfolio = useCallback(
+    async (showLoading = true) => {
+      if (!user) {
+        setPortfolioLoading(false);
+        return;
       }
-    } catch (error: any) {
-      // Silent fail for auth errors - components will show login prompt
-      const isAuthError = error?.response?.status === 401;
-      if (!isAuthError) {
-        console.error("Failed to fetch portfolio:", error);
+
+      try {
+        if (showLoading) setPortfolioLoading(true);
+
+        if (activeContext.type === "MAIN") {
+          const data = await getPortfolio();
+          setPortfolio(data);
+        } else if (activeContext.type === "EVENT" && activeContext.eventId) {
+          const data = await eventTradingApi.getPortfolio(
+            activeContext.eventId,
+          );
+          setPortfolio(data as any);
+        }
+      } catch (error: any) {
+        // Silent fail for auth errors - components will show login prompt
+        const isAuthError = error?.response?.status === 401;
+        if (!isAuthError) {
+          console.error("Failed to fetch portfolio:", error);
+        }
+      } finally {
+        if (showLoading) setPortfolioLoading(false);
       }
-    } finally {
-      setPortfolioLoading(false);
-    }
-  }, [user, activeContext]);
+    },
+    [user, activeContext],
+  );
 
-  const refreshPositions = useCallback(async () => {
-    if (!user) {
-      setPositionsLoading(false);
-      return;
-    }
-
-    try {
-      setPositionsLoading(true);
-
-      if (activeContext.type === "MAIN") {
-        const data = await getPositions();
-        setPositions(data);
-      } else if (activeContext.type === "EVENT" && activeContext.eventId) {
-        const data = await eventTradingApi.getPositions(activeContext.eventId);
-        setPositions(data.positions as any);
+  const refreshPositions = useCallback(
+    async (showLoading = true) => {
+      if (!user) {
+        setPositionsLoading(false);
+        return;
       }
-    } catch (error: any) {
-      // Silent fail for auth errors - components will show login prompt
-      const isAuthError = error?.response?.status === 401;
-      if (!isAuthError) {
-        console.error("Failed to fetch positions:", error);
+
+      try {
+        if (showLoading) setPositionsLoading(true);
+
+        if (activeContext.type === "MAIN") {
+          const data = await getPositions();
+          setPositions(data);
+        } else if (activeContext.type === "EVENT" && activeContext.eventId) {
+          const data = await eventTradingApi.getPositions(
+            activeContext.eventId,
+          );
+          setPositions(data.positions as any);
+        }
+      } catch (error: any) {
+        // Silent fail for auth errors - components will show login prompt
+        const isAuthError = error?.response?.status === 401;
+        if (!isAuthError) {
+          console.error("Failed to fetch positions:", error);
+        }
+      } finally {
+        if (showLoading) setPositionsLoading(false);
       }
-    } finally {
-      setPositionsLoading(false);
-    }
-  }, [user, activeContext]);
+    },
+    [user, activeContext],
+  );
 
-  const refreshAll = useCallback(async () => {
-    await Promise.all([
-      refreshAccount(),
-      refreshPortfolio(),
-      refreshPositions(),
-    ]);
-  }, [refreshAccount, refreshPortfolio, refreshPositions]);
+  const refreshAll = useCallback(
+    async (showLoading = true) => {
+      await Promise.all([
+        refreshAccount(showLoading),
+        refreshPortfolio(showLoading),
+        refreshPositions(showLoading),
+      ]);
+    },
+    [refreshAccount, refreshPortfolio, refreshPositions],
+  );
 
-  // Initial load
-  useEffect(() => {
-    refreshAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 30 seconds (silent — no skeleton flash)
   useEffect(() => {
     const interval = setInterval(() => {
-      refreshAll();
+      refreshAll(false);
     }, 30000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
