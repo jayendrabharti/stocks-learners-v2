@@ -223,6 +223,7 @@ export type UserWhereInput = {
   positions?: Prisma.PositionListRelationFilter
   eventRegistrations?: Prisma.EventRegistrationListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
+  stopLossOrders?: Prisma.StopLossOrderListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -244,6 +245,7 @@ export type UserOrderByWithRelationInput = {
   positions?: Prisma.PositionOrderByRelationAggregateInput
   eventRegistrations?: Prisma.EventRegistrationOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
+  stopLossOrders?: Prisma.StopLossOrderOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -268,6 +270,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   positions?: Prisma.PositionListRelationFilter
   eventRegistrations?: Prisma.EventRegistrationListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
+  stopLossOrders?: Prisma.StopLossOrderListRelationFilter
 }, "id" | "email" | "phone">
 
 export type UserOrderByWithAggregationInput = {
@@ -319,6 +322,7 @@ export type UserCreateInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -340,6 +344,7 @@ export type UserUncheckedCreateInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -361,6 +366,7 @@ export type UserUpdateInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -382,6 +388,7 @@ export type UserUncheckedUpdateInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -614,6 +621,20 @@ export type UserUpdateOneRequiredWithoutEventRegistrationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEventRegistrationsInput, Prisma.UserUpdateWithoutEventRegistrationsInput>, Prisma.UserUncheckedUpdateWithoutEventRegistrationsInput>
 }
 
+export type UserCreateNestedOneWithoutStopLossOrdersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStopLossOrdersInput, Prisma.UserUncheckedCreateWithoutStopLossOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStopLossOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutStopLossOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStopLossOrdersInput, Prisma.UserUncheckedCreateWithoutStopLossOrdersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStopLossOrdersInput
+  upsert?: Prisma.UserUpsertWithoutStopLossOrdersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStopLossOrdersInput, Prisma.UserUpdateWithoutStopLossOrdersInput>, Prisma.UserUncheckedUpdateWithoutStopLossOrdersInput>
+}
+
 export type UserCreateWithoutRefreshTokensInput = {
   id?: string
   email: string
@@ -632,6 +653,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -652,6 +674,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -688,6 +711,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -708,6 +732,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOtpInput = {
@@ -728,6 +753,7 @@ export type UserCreateWithoutOtpInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOtpInput = {
@@ -748,6 +774,7 @@ export type UserUncheckedCreateWithoutOtpInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOtpInput = {
@@ -784,6 +811,7 @@ export type UserUpdateWithoutOtpInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOtpInput = {
@@ -804,6 +832,7 @@ export type UserUncheckedUpdateWithoutOtpInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountInput = {
@@ -824,6 +853,7 @@ export type UserCreateWithoutAccountInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountInput = {
@@ -844,6 +874,7 @@ export type UserUncheckedCreateWithoutAccountInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountInput = {
@@ -880,6 +911,7 @@ export type UserUpdateWithoutAccountInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountInput = {
@@ -900,6 +932,7 @@ export type UserUncheckedUpdateWithoutAccountInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutWatchlistItemsInput = {
@@ -920,6 +953,7 @@ export type UserCreateWithoutWatchlistItemsInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutWatchlistItemsInput = {
@@ -940,6 +974,7 @@ export type UserUncheckedCreateWithoutWatchlistItemsInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutWatchlistItemsInput = {
@@ -976,6 +1011,7 @@ export type UserUpdateWithoutWatchlistItemsInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWatchlistItemsInput = {
@@ -996,6 +1032,7 @@ export type UserUncheckedUpdateWithoutWatchlistItemsInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactFormsInput = {
@@ -1016,6 +1053,7 @@ export type UserCreateWithoutContactFormsInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactFormsInput = {
@@ -1036,6 +1074,7 @@ export type UserUncheckedCreateWithoutContactFormsInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactFormsInput = {
@@ -1072,6 +1111,7 @@ export type UserUpdateWithoutContactFormsInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactFormsInput = {
@@ -1092,6 +1132,7 @@ export type UserUncheckedUpdateWithoutContactFormsInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -1112,6 +1153,7 @@ export type UserCreateWithoutTransactionsInput = {
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -1132,6 +1174,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -1168,6 +1211,7 @@ export type UserUpdateWithoutTransactionsInput = {
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -1188,6 +1232,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPositionsInput = {
@@ -1208,6 +1253,7 @@ export type UserCreateWithoutPositionsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPositionsInput = {
@@ -1228,6 +1274,7 @@ export type UserUncheckedCreateWithoutPositionsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPositionsInput = {
@@ -1264,6 +1311,7 @@ export type UserUpdateWithoutPositionsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPositionsInput = {
@@ -1284,6 +1332,7 @@ export type UserUncheckedUpdateWithoutPositionsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -1304,6 +1353,7 @@ export type UserCreateWithoutPaymentsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -1324,6 +1374,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -1360,6 +1411,7 @@ export type UserUpdateWithoutPaymentsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -1380,6 +1432,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventRegistrationsInput = {
@@ -1400,6 +1453,7 @@ export type UserCreateWithoutEventRegistrationsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   positions?: Prisma.PositionCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventRegistrationsInput = {
@@ -1420,6 +1474,7 @@ export type UserUncheckedCreateWithoutEventRegistrationsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventRegistrationsInput = {
@@ -1456,6 +1511,7 @@ export type UserUpdateWithoutEventRegistrationsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventRegistrationsInput = {
@@ -1476,6 +1532,107 @@ export type UserUncheckedUpdateWithoutEventRegistrationsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutStopLossOrdersInput = {
+  id?: string
+  email: string
+  phone?: string | null
+  name?: string | null
+  avatar?: string | null
+  dateOfBirth?: Date | string | null
+  isAdmin?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  otp?: Prisma.otpCreateNestedOneWithoutUserInput
+  watchlistItems?: Prisma.WatchlistItemCreateNestedManyWithoutUserInput
+  contactForms?: Prisma.ContactFormCreateNestedManyWithoutUserInput
+  account?: Prisma.AccountCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  positions?: Prisma.PositionCreateNestedManyWithoutUserInput
+  eventRegistrations?: Prisma.EventRegistrationCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutStopLossOrdersInput = {
+  id?: string
+  email: string
+  phone?: string | null
+  name?: string | null
+  avatar?: string | null
+  dateOfBirth?: Date | string | null
+  isAdmin?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  otp?: Prisma.otpUncheckedCreateNestedOneWithoutUserInput
+  watchlistItems?: Prisma.WatchlistItemUncheckedCreateNestedManyWithoutUserInput
+  contactForms?: Prisma.ContactFormUncheckedCreateNestedManyWithoutUserInput
+  account?: Prisma.AccountUncheckedCreateNestedOneWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  positions?: Prisma.PositionUncheckedCreateNestedManyWithoutUserInput
+  eventRegistrations?: Prisma.EventRegistrationUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutStopLossOrdersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutStopLossOrdersInput, Prisma.UserUncheckedCreateWithoutStopLossOrdersInput>
+}
+
+export type UserUpsertWithoutStopLossOrdersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutStopLossOrdersInput, Prisma.UserUncheckedUpdateWithoutStopLossOrdersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutStopLossOrdersInput, Prisma.UserUncheckedCreateWithoutStopLossOrdersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutStopLossOrdersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutStopLossOrdersInput, Prisma.UserUncheckedUpdateWithoutStopLossOrdersInput>
+}
+
+export type UserUpdateWithoutStopLossOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  otp?: Prisma.otpUpdateOneWithoutUserNestedInput
+  watchlistItems?: Prisma.WatchlistItemUpdateManyWithoutUserNestedInput
+  contactForms?: Prisma.ContactFormUpdateManyWithoutUserNestedInput
+  account?: Prisma.AccountUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  positions?: Prisma.PositionUpdateManyWithoutUserNestedInput
+  eventRegistrations?: Prisma.EventRegistrationUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutStopLossOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  otp?: Prisma.otpUncheckedUpdateOneWithoutUserNestedInput
+  watchlistItems?: Prisma.WatchlistItemUncheckedUpdateManyWithoutUserNestedInput
+  contactForms?: Prisma.ContactFormUncheckedUpdateManyWithoutUserNestedInput
+  account?: Prisma.AccountUncheckedUpdateOneWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  positions?: Prisma.PositionUncheckedUpdateManyWithoutUserNestedInput
+  eventRegistrations?: Prisma.EventRegistrationUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1491,6 +1648,7 @@ export type UserCountOutputType = {
   positions: number
   eventRegistrations: number
   payments: number
+  stopLossOrders: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1501,6 +1659,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   positions?: boolean | UserCountOutputTypeCountPositionsArgs
   eventRegistrations?: boolean | UserCountOutputTypeCountEventRegistrationsArgs
   payments?: boolean | UserCountOutputTypeCountPaymentsArgs
+  stopLossOrders?: boolean | UserCountOutputTypeCountStopLossOrdersArgs
 }
 
 /**
@@ -1562,6 +1721,13 @@ export type UserCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.PaymentWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountStopLossOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StopLossOrderWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1582,6 +1748,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   positions?: boolean | Prisma.User$positionsArgs<ExtArgs>
   eventRegistrations?: boolean | Prisma.User$eventRegistrationsArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  stopLossOrders?: boolean | Prisma.User$stopLossOrdersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1632,6 +1799,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   positions?: boolean | Prisma.User$positionsArgs<ExtArgs>
   eventRegistrations?: boolean | Prisma.User$eventRegistrationsArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
+  stopLossOrders?: boolean | Prisma.User$stopLossOrdersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1649,6 +1817,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     positions: Prisma.$PositionPayload<ExtArgs>[]
     eventRegistrations: Prisma.$EventRegistrationPayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
+    stopLossOrders: Prisma.$StopLossOrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2063,6 +2232,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   positions<T extends Prisma.User$positionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$positionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   eventRegistrations<T extends Prisma.User$eventRegistrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.User$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stopLossOrders<T extends Prisma.User$stopLossOrdersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$stopLossOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StopLossOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2692,6 +2862,30 @@ export type User$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
+}
+
+/**
+ * User.stopLossOrders
+ */
+export type User$stopLossOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StopLossOrder
+   */
+  select?: Prisma.StopLossOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StopLossOrder
+   */
+  omit?: Prisma.StopLossOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StopLossOrderInclude<ExtArgs> | null
+  where?: Prisma.StopLossOrderWhereInput
+  orderBy?: Prisma.StopLossOrderOrderByWithRelationInput | Prisma.StopLossOrderOrderByWithRelationInput[]
+  cursor?: Prisma.StopLossOrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StopLossOrderScalarFieldEnum | Prisma.StopLossOrderScalarFieldEnum[]
 }
 
 /**

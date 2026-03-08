@@ -402,7 +402,8 @@ export const ModelName = {
   EventAccount: 'EventAccount',
   EventPosition: 'EventPosition',
   EventTransaction: 'EventTransaction',
-  EventPositionLot: 'EventPositionLot'
+  EventPositionLot: 'EventPositionLot',
+  StopLossOrder: 'StopLossOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "otp" | "account" | "watchlistItem" | "contactForm" | "instrument" | "transaction" | "position" | "positionLot" | "appSettings" | "adminAuditLog" | "payment" | "event" | "eventRegistration" | "eventAccount" | "eventPosition" | "eventTransaction" | "eventPositionLot"
+    modelProps: "user" | "refreshToken" | "otp" | "account" | "watchlistItem" | "contactForm" | "instrument" | "transaction" | "position" | "positionLot" | "appSettings" | "adminAuditLog" | "payment" | "event" | "eventRegistration" | "eventAccount" | "eventPosition" | "eventTransaction" | "eventPositionLot" | "stopLossOrder"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1829,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StopLossOrder: {
+      payload: Prisma.$StopLossOrderPayload<ExtArgs>
+      fields: Prisma.StopLossOrderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StopLossOrderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StopLossOrderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        findFirst: {
+          args: Prisma.StopLossOrderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StopLossOrderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        findMany: {
+          args: Prisma.StopLossOrderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>[]
+        }
+        create: {
+          args: Prisma.StopLossOrderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        createMany: {
+          args: Prisma.StopLossOrderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StopLossOrderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>[]
+        }
+        delete: {
+          args: Prisma.StopLossOrderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        update: {
+          args: Prisma.StopLossOrderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        deleteMany: {
+          args: Prisma.StopLossOrderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StopLossOrderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StopLossOrderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>[]
+        }
+        upsert: {
+          args: Prisma.StopLossOrderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StopLossOrderPayload>
+        }
+        aggregate: {
+          args: Prisma.StopLossOrderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStopLossOrder>
+        }
+        groupBy: {
+          args: Prisma.StopLossOrderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StopLossOrderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StopLossOrderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StopLossOrderCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2186,6 +2261,24 @@ export const EventPositionLotScalarFieldEnum = {
 export type EventPositionLotScalarFieldEnum = (typeof EventPositionLotScalarFieldEnum)[keyof typeof EventPositionLotScalarFieldEnum]
 
 
+export const StopLossOrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  positionId: 'positionId',
+  triggerPrice: 'triggerPrice',
+  qty: 'qty',
+  status: 'status',
+  transactionId: 'transactionId',
+  executedPrice: 'executedPrice',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  triggeredAt: 'triggeredAt'
+} as const
+
+export type StopLossOrderScalarFieldEnum = (typeof StopLossOrderScalarFieldEnum)[keyof typeof StopLossOrderScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2463,6 +2556,20 @@ export type EnumRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
 export type ListEnumRegistrationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'StopLossStatus'
+ */
+export type EnumStopLossStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StopLossStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'StopLossStatus[]'
+ */
+export type ListEnumStopLossStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StopLossStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2561,6 +2668,7 @@ export type GlobalOmitConfig = {
   eventPosition?: Prisma.EventPositionOmit
   eventTransaction?: Prisma.EventTransactionOmit
   eventPositionLot?: Prisma.EventPositionLotOmit
+  stopLossOrder?: Prisma.StopLossOrderOmit
 }
 
 /* Types for Logging */

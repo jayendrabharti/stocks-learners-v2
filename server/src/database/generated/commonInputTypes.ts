@@ -531,6 +531,23 @@ export type EnumRegistrationStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumRegistrationStatusFilter<$PrismaModel>
 }
 
+export type EnumStopLossStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.StopLossStatus | Prisma.EnumStopLossStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel> | $Enums.StopLossStatus
+}
+
+export type EnumStopLossStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StopLossStatus | Prisma.EnumStopLossStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStopLossStatusWithAggregatesFilter<$PrismaModel> | $Enums.StopLossStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1010,6 +1027,23 @@ export type NestedEnumRegistrationStatusWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRegistrationStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRegistrationStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumStopLossStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.StopLossStatus | Prisma.EnumStopLossStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel> | $Enums.StopLossStatus
+}
+
+export type NestedEnumStopLossStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.StopLossStatus | Prisma.EnumStopLossStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.StopLossStatus[] | Prisma.ListEnumStopLossStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumStopLossStatusWithAggregatesFilter<$PrismaModel> | $Enums.StopLossStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumStopLossStatusFilter<$PrismaModel>
 }
 
 

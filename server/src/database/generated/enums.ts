@@ -104,3 +104,14 @@ export const RegistrationStatus = {
 } as const
 
 export type RegistrationStatus = (typeof RegistrationStatus)[keyof typeof RegistrationStatus]
+
+
+export const StopLossStatus = {
+  ACTIVE: 'ACTIVE',
+  TRIGGERED: 'TRIGGERED',
+  EXECUTED: 'EXECUTED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type StopLossStatus = (typeof StopLossStatus)[keyof typeof StopLossStatus]

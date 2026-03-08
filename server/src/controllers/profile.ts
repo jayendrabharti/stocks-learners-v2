@@ -2,16 +2,12 @@ import { Request, Response } from "express";
 import { put, del } from "@vercel/blob";
 import prisma from "@/database/client";
 
-interface AuthenticatedRequest extends Request {
-  userId?: string; // userId from validToken middleware
-}
-
 export const uploadProfilePicture = async (
-  req: AuthenticatedRequest,
-  res: Response
+  req: Request,
+  res: Response,
 ): Promise<Response> => {
   try {
-    const userId = req.userId;
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({
         error: {
@@ -93,7 +89,7 @@ export const uploadProfilePicture = async (
 
 export const getProfilePicture = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const { userId } = req.params;
@@ -140,11 +136,11 @@ export const getProfilePicture = async (
 };
 
 export const deleteProfilePicture = async (
-  req: AuthenticatedRequest,
-  res: Response
+  req: Request,
+  res: Response,
 ): Promise<Response> => {
   try {
-    const userId = req.userId;
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({
         error: {

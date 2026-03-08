@@ -69,7 +69,8 @@ export const ModelName = {
   EventAccount: 'EventAccount',
   EventPosition: 'EventPosition',
   EventTransaction: 'EventTransaction',
-  EventPositionLot: 'EventPositionLot'
+  EventPositionLot: 'EventPositionLot',
+  StopLossOrder: 'StopLossOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -405,6 +406,24 @@ export const EventPositionLotScalarFieldEnum = {
 } as const
 
 export type EventPositionLotScalarFieldEnum = (typeof EventPositionLotScalarFieldEnum)[keyof typeof EventPositionLotScalarFieldEnum]
+
+
+export const StopLossOrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  positionId: 'positionId',
+  triggerPrice: 'triggerPrice',
+  qty: 'qty',
+  status: 'status',
+  transactionId: 'transactionId',
+  executedPrice: 'executedPrice',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  triggeredAt: 'triggeredAt'
+} as const
+
+export type StopLossOrderScalarFieldEnum = (typeof StopLossOrderScalarFieldEnum)[keyof typeof StopLossOrderScalarFieldEnum]
 
 
 export const SortOrder = {

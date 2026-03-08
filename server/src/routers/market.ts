@@ -10,6 +10,7 @@ import {
   getIndices,
   getMajorIndices,
   getIndexDetails,
+  getOptionChain,
 } from "@/controllers/market";
 
 const router = express.Router();
@@ -35,6 +36,9 @@ router.get("/fno/trends/:instrument", getFnOMarketTrends);
 
 // GET /market/fno/top-contracts - Top traded F&O contracts
 router.get("/fno/top-contracts", getFnOTopContracts);
+
+// GET /market/fno/option-chain/:searchId - Option chain data
+router.get("/fno/option-chain/:searchId", getOptionChain);
 
 // Indices Routes
 // GET /market/indices - Search indices by query

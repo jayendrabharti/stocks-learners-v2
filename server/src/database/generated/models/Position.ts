@@ -304,6 +304,7 @@ export type PositionWhereInput = {
   instrument?: Prisma.XOR<Prisma.InstrumentScalarRelationFilter, Prisma.InstrumentWhereInput>
   transactions?: Prisma.TransactionListRelationFilter
   lots?: Prisma.PositionLotListRelationFilter
+  stopLossOrders?: Prisma.StopLossOrderListRelationFilter
 }
 
 export type PositionOrderByWithRelationInput = {
@@ -325,6 +326,7 @@ export type PositionOrderByWithRelationInput = {
   instrument?: Prisma.InstrumentOrderByWithRelationInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   lots?: Prisma.PositionLotOrderByRelationAggregateInput
+  stopLossOrders?: Prisma.StopLossOrderOrderByRelationAggregateInput
 }
 
 export type PositionWhereUniqueInput = Prisma.AtLeast<{
@@ -350,6 +352,7 @@ export type PositionWhereUniqueInput = Prisma.AtLeast<{
   instrument?: Prisma.XOR<Prisma.InstrumentScalarRelationFilter, Prisma.InstrumentWhereInput>
   transactions?: Prisma.TransactionListRelationFilter
   lots?: Prisma.PositionLotListRelationFilter
+  stopLossOrders?: Prisma.StopLossOrderListRelationFilter
 }, "id" | "userId_instrumentId_product">
 
 export type PositionOrderByWithAggregationInput = {
@@ -411,6 +414,7 @@ export type PositionCreateInput = {
   instrument: Prisma.InstrumentCreateNestedOneWithoutPositionsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUncheckedCreateInput = {
@@ -430,6 +434,7 @@ export type PositionUncheckedCreateInput = {
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotUncheckedCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUpdateInput = {
@@ -449,6 +454,7 @@ export type PositionUpdateInput = {
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutPositionsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateInput = {
@@ -468,6 +474,7 @@ export type PositionUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUncheckedUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionCreateManyInput = {
@@ -728,6 +735,20 @@ export type PositionUpdateOneRequiredWithoutLotsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PositionUpdateToOneWithWhereWithoutLotsInput, Prisma.PositionUpdateWithoutLotsInput>, Prisma.PositionUncheckedUpdateWithoutLotsInput>
 }
 
+export type PositionCreateNestedOneWithoutStopLossOrdersInput = {
+  create?: Prisma.XOR<Prisma.PositionCreateWithoutStopLossOrdersInput, Prisma.PositionUncheckedCreateWithoutStopLossOrdersInput>
+  connectOrCreate?: Prisma.PositionCreateOrConnectWithoutStopLossOrdersInput
+  connect?: Prisma.PositionWhereUniqueInput
+}
+
+export type PositionUpdateOneRequiredWithoutStopLossOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.PositionCreateWithoutStopLossOrdersInput, Prisma.PositionUncheckedCreateWithoutStopLossOrdersInput>
+  connectOrCreate?: Prisma.PositionCreateOrConnectWithoutStopLossOrdersInput
+  upsert?: Prisma.PositionUpsertWithoutStopLossOrdersInput
+  connect?: Prisma.PositionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PositionUpdateToOneWithWhereWithoutStopLossOrdersInput, Prisma.PositionUpdateWithoutStopLossOrdersInput>, Prisma.PositionUncheckedUpdateWithoutStopLossOrdersInput>
+}
+
 export type PositionCreateWithoutUserInput = {
   id?: string
   qty?: number
@@ -744,6 +765,7 @@ export type PositionCreateWithoutUserInput = {
   instrument: Prisma.InstrumentCreateNestedOneWithoutPositionsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUncheckedCreateWithoutUserInput = {
@@ -762,6 +784,7 @@ export type PositionUncheckedCreateWithoutUserInput = {
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotUncheckedCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutPositionInput
 }
 
 export type PositionCreateOrConnectWithoutUserInput = {
@@ -826,6 +849,7 @@ export type PositionCreateWithoutInstrumentInput = {
   user: Prisma.UserCreateNestedOneWithoutPositionsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUncheckedCreateWithoutInstrumentInput = {
@@ -844,6 +868,7 @@ export type PositionUncheckedCreateWithoutInstrumentInput = {
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPositionInput
   lots?: Prisma.PositionLotUncheckedCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutPositionInput
 }
 
 export type PositionCreateOrConnectWithoutInstrumentInput = {
@@ -888,6 +913,7 @@ export type PositionCreateWithoutTransactionsInput = {
   user: Prisma.UserCreateNestedOneWithoutPositionsInput
   instrument: Prisma.InstrumentCreateNestedOneWithoutPositionsInput
   lots?: Prisma.PositionLotCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUncheckedCreateWithoutTransactionsInput = {
@@ -906,6 +932,7 @@ export type PositionUncheckedCreateWithoutTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lots?: Prisma.PositionLotUncheckedCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutPositionInput
 }
 
 export type PositionCreateOrConnectWithoutTransactionsInput = {
@@ -940,6 +967,7 @@ export type PositionUpdateWithoutTransactionsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutPositionsNestedInput
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutPositionsNestedInput
   lots?: Prisma.PositionLotUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateWithoutTransactionsInput = {
@@ -958,6 +986,7 @@ export type PositionUncheckedUpdateWithoutTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lots?: Prisma.PositionLotUncheckedUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionCreateWithoutLotsInput = {
@@ -976,6 +1005,7 @@ export type PositionCreateWithoutLotsInput = {
   user: Prisma.UserCreateNestedOneWithoutPositionsInput
   instrument: Prisma.InstrumentCreateNestedOneWithoutPositionsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderCreateNestedManyWithoutPositionInput
 }
 
 export type PositionUncheckedCreateWithoutLotsInput = {
@@ -994,6 +1024,7 @@ export type PositionUncheckedCreateWithoutLotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPositionInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedCreateNestedManyWithoutPositionInput
 }
 
 export type PositionCreateOrConnectWithoutLotsInput = {
@@ -1028,6 +1059,7 @@ export type PositionUpdateWithoutLotsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutPositionsNestedInput
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutPositionsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateWithoutLotsInput = {
@@ -1046,6 +1078,99 @@ export type PositionUncheckedUpdateWithoutLotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutPositionNestedInput
+}
+
+export type PositionCreateWithoutStopLossOrdersInput = {
+  id?: string
+  qty?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  product: $Enums.TradeType
+  isOpen?: boolean
+  autoSquareOffAt?: Date | string | null
+  autoSquareOffStatus?: $Enums.AutoSquareOffStatus
+  squareOffAttempts?: number
+  lastSquareOffError?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPositionsInput
+  instrument: Prisma.InstrumentCreateNestedOneWithoutPositionsInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutPositionInput
+  lots?: Prisma.PositionLotCreateNestedManyWithoutPositionInput
+}
+
+export type PositionUncheckedCreateWithoutStopLossOrdersInput = {
+  id?: string
+  userId: string
+  instrumentId: string
+  qty?: number
+  avgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  product: $Enums.TradeType
+  isOpen?: boolean
+  autoSquareOffAt?: Date | string | null
+  autoSquareOffStatus?: $Enums.AutoSquareOffStatus
+  squareOffAttempts?: number
+  lastSquareOffError?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPositionInput
+  lots?: Prisma.PositionLotUncheckedCreateNestedManyWithoutPositionInput
+}
+
+export type PositionCreateOrConnectWithoutStopLossOrdersInput = {
+  where: Prisma.PositionWhereUniqueInput
+  create: Prisma.XOR<Prisma.PositionCreateWithoutStopLossOrdersInput, Prisma.PositionUncheckedCreateWithoutStopLossOrdersInput>
+}
+
+export type PositionUpsertWithoutStopLossOrdersInput = {
+  update: Prisma.XOR<Prisma.PositionUpdateWithoutStopLossOrdersInput, Prisma.PositionUncheckedUpdateWithoutStopLossOrdersInput>
+  create: Prisma.XOR<Prisma.PositionCreateWithoutStopLossOrdersInput, Prisma.PositionUncheckedCreateWithoutStopLossOrdersInput>
+  where?: Prisma.PositionWhereInput
+}
+
+export type PositionUpdateToOneWithWhereWithoutStopLossOrdersInput = {
+  where?: Prisma.PositionWhereInput
+  data: Prisma.XOR<Prisma.PositionUpdateWithoutStopLossOrdersInput, Prisma.PositionUncheckedUpdateWithoutStopLossOrdersInput>
+}
+
+export type PositionUpdateWithoutStopLossOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  qty?: Prisma.IntFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
+  isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoSquareOffStatus?: Prisma.EnumAutoSquareOffStatusFieldUpdateOperationsInput | $Enums.AutoSquareOffStatus
+  squareOffAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSquareOffError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPositionsNestedInput
+  instrument?: Prisma.InstrumentUpdateOneRequiredWithoutPositionsNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutPositionNestedInput
+  lots?: Prisma.PositionLotUpdateManyWithoutPositionNestedInput
+}
+
+export type PositionUncheckedUpdateWithoutStopLossOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  instrumentId?: Prisma.StringFieldUpdateOperationsInput | string
+  qty?: Prisma.IntFieldUpdateOperationsInput | number
+  avgPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  realizedPnl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  product?: Prisma.EnumTradeTypeFieldUpdateOperationsInput | $Enums.TradeType
+  isOpen?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  autoSquareOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoSquareOffStatus?: Prisma.EnumAutoSquareOffStatusFieldUpdateOperationsInput | $Enums.AutoSquareOffStatus
+  squareOffAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSquareOffError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPositionNestedInput
+  lots?: Prisma.PositionLotUncheckedUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionCreateManyUserInput = {
@@ -1080,6 +1205,7 @@ export type PositionUpdateWithoutUserInput = {
   instrument?: Prisma.InstrumentUpdateOneRequiredWithoutPositionsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateWithoutUserInput = {
@@ -1098,6 +1224,7 @@ export type PositionUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUncheckedUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateManyWithoutUserInput = {
@@ -1148,6 +1275,7 @@ export type PositionUpdateWithoutInstrumentInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutPositionsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateWithoutInstrumentInput = {
@@ -1166,6 +1294,7 @@ export type PositionUncheckedUpdateWithoutInstrumentInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPositionNestedInput
   lots?: Prisma.PositionLotUncheckedUpdateManyWithoutPositionNestedInput
+  stopLossOrders?: Prisma.StopLossOrderUncheckedUpdateManyWithoutPositionNestedInput
 }
 
 export type PositionUncheckedUpdateManyWithoutInstrumentInput = {
@@ -1192,11 +1321,13 @@ export type PositionUncheckedUpdateManyWithoutInstrumentInput = {
 export type PositionCountOutputType = {
   transactions: number
   lots: number
+  stopLossOrders: number
 }
 
 export type PositionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | PositionCountOutputTypeCountTransactionsArgs
   lots?: boolean | PositionCountOutputTypeCountLotsArgs
+  stopLossOrders?: boolean | PositionCountOutputTypeCountStopLossOrdersArgs
 }
 
 /**
@@ -1223,6 +1354,13 @@ export type PositionCountOutputTypeCountLotsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.PositionLotWhereInput
 }
 
+/**
+ * PositionCountOutputType without action
+ */
+export type PositionCountOutputTypeCountStopLossOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StopLossOrderWhereInput
+}
+
 
 export type PositionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1243,6 +1381,7 @@ export type PositionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   instrument?: boolean | Prisma.InstrumentDefaultArgs<ExtArgs>
   transactions?: boolean | Prisma.Position$transactionsArgs<ExtArgs>
   lots?: boolean | Prisma.Position$lotsArgs<ExtArgs>
+  stopLossOrders?: boolean | Prisma.Position$stopLossOrdersArgs<ExtArgs>
   _count?: boolean | Prisma.PositionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["position"]>
 
@@ -1307,6 +1446,7 @@ export type PositionInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   instrument?: boolean | Prisma.InstrumentDefaultArgs<ExtArgs>
   transactions?: boolean | Prisma.Position$transactionsArgs<ExtArgs>
   lots?: boolean | Prisma.Position$lotsArgs<ExtArgs>
+  stopLossOrders?: boolean | Prisma.Position$stopLossOrdersArgs<ExtArgs>
   _count?: boolean | Prisma.PositionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PositionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1325,6 +1465,7 @@ export type $PositionPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     instrument: Prisma.$InstrumentPayload<ExtArgs>
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     lots: Prisma.$PositionLotPayload<ExtArgs>[]
+    stopLossOrders: Prisma.$StopLossOrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1739,6 +1880,7 @@ export interface Prisma__PositionClient<T, Null = never, ExtArgs extends runtime
   instrument<T extends Prisma.InstrumentDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InstrumentDefaultArgs<ExtArgs>>): Prisma.Prisma__InstrumentClient<runtime.Types.Result.GetResult<Prisma.$InstrumentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   transactions<T extends Prisma.Position$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Position$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   lots<T extends Prisma.Position$lotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Position$lotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionLotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stopLossOrders<T extends Prisma.Position$stopLossOrdersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Position$stopLossOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StopLossOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2223,6 +2365,30 @@ export type Position$lotsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.PositionLotScalarFieldEnum | Prisma.PositionLotScalarFieldEnum[]
+}
+
+/**
+ * Position.stopLossOrders
+ */
+export type Position$stopLossOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StopLossOrder
+   */
+  select?: Prisma.StopLossOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StopLossOrder
+   */
+  omit?: Prisma.StopLossOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StopLossOrderInclude<ExtArgs> | null
+  where?: Prisma.StopLossOrderWhereInput
+  orderBy?: Prisma.StopLossOrderOrderByWithRelationInput | Prisma.StopLossOrderOrderByWithRelationInput[]
+  cursor?: Prisma.StopLossOrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StopLossOrderScalarFieldEnum | Prisma.StopLossOrderScalarFieldEnum[]
 }
 
 /**

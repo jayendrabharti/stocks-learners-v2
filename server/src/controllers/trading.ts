@@ -500,3 +500,155 @@ export const getTransactions = async (req: Request, res: Response) => {
     return res.status(statusCode).json(body);
   }
 };
+
+/**
+ * Execute a basket of orders (multiple orders at once)
+ * POST /trading/basket
+ * Body: { orders: [{ exchangeToken, qty, product, side }] }
+ */
+export const executeBasketOrder = async (req: Request, res: Response) => {
+  try {
+    // @ts-ignore - validToken middleware adds user
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new AppError(ErrorCode.AUTH_UNAUTHORIZED);
+    }
+
+    const { orders } = req.body;
+
+    if (!Array.isArray(orders) || orders.length === 0) {
+      throw new AppError(
+        ErrorCode.VALIDATION_REQUIRED_FIELD,
+        "orders must be a non-empty array",
+      );
+    }
+
+    if (orders.length > 10) {
+      throw new AppError(
+        ErrorCode.VALIDATION_INVALID_VALUE,
+        "Maximum 10 orders per basket",
+      );
+    }
+
+    // Validate each order in the basket
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+      if (!order.exchangeToken || !order.qty || !order.product || !order.side) {
+        throw new AppError(
+          ErrorCode.VALIDATION_REQUIRED_FIELD,
+          `Order ${i + 1}: Missing required fields (exchangeToken, qty, product, side)`,
+        );
+      }
+      if (order.side !== "BUY" && order.side !== "SELL") {
+        throw new AppError(
+          ErrorCode.VALIDATION_INVALID_VALUE,
+          `Order ${i + 1}: side must be 'BUY' or 'SELL'`,
+        );
+      }
+      if (order.product !== "CNC" && order.product !== "MIS") {
+        throw new AppError(
+          ErrorCode.VALIDATION_INVALID_VALUE,
+          `Order ${i + 1}: product must be 'CNC' or 'MIS'`,
+        );
+      }
+      const parsedQty = parseInt(order.qty);
+      if (isNaN(parsedQty) || parsedQty <= 0) {
+        throw new AppError(
+          ErrorCode.TRADING_INVALID_QUANTITY,
+          `Order ${i + 1}: Invalid quantity`,
+        );
+      }
+    }
+
+    // Execute each order sequentially, collecting results
+    const results: Array<{
+      index: number;
+      exchangeToken: string;
+      side: string;
+      success: boolean;
+      data?: any;
+      error?: string;
+    }> = [];
+
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+      try {
+        const instrument = await prisma.instrument.findUnique({
+          where: { exchangeToken: order.exchangeToken },
+        });
+
+        if (!instrument) {
+          results.push({
+            index: i,
+            exchangeToken: order.exchangeToken,
+            side: order.side,
+            success: false,
+            error: `Instrument not found: ${order.exchangeToken}`,
+          });
+          continue;
+        }
+
+        const parsedQty = parseInt(order.qty);
+
+        if (order.side === "BUY") {
+          const result = await executeBuy({
+            userId,
+            instrumentId: instrument.id,
+            qty: parsedQty,
+            product: order.product as TradeType,
+          });
+          results.push({
+            index: i,
+            exchangeToken: order.exchangeToken,
+            side: order.side,
+            success: result.success,
+            data: result,
+          });
+        } else {
+          const result = await executeSell({
+            userId,
+            instrumentId: instrument.id,
+            qty: parsedQty,
+            product: order.product as TradeType,
+          });
+          results.push({
+            index: i,
+            exchangeToken: order.exchangeToken,
+            side: order.side,
+            success: result.success,
+            data: result,
+          });
+        }
+      } catch (orderError: any) {
+        results.push({
+          index: i,
+          exchangeToken: order.exchangeToken,
+          side: order.side,
+          success: false,
+          error: orderError?.message || "Order execution failed",
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
+
+    return res.status(200).json({
+      success: failCount === 0,
+      message: `Basket executed: ${successCount} succeeded, ${failCount} failed out of ${orders.length} orders`,
+      results,
+      summary: {
+        total: orders.length,
+        succeeded: successCount,
+        failed: failCount,
+      },
+    });
+  } catch (error) {
+    const { statusCode, body } = handleControllerError(
+      error,
+      ErrorCode.TRADING_ORDER_FAILED,
+    );
+    return res.status(statusCode).json(body);
+  }
+};

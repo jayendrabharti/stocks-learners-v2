@@ -12,6 +12,7 @@ import {
   fetchMajorIndices,
   fetchIndexDetails,
 } from "@/services";
+import { fetchOptionChain } from "@/services/optionChainService";
 
 /**
  * Get most bought stocks on Groww
@@ -137,7 +138,7 @@ export const getFnOTopUnderlyings = async (req: Request, res: Response) => {
  */
 export const getFnOMarketTrends = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { instrument } = req.params;
@@ -268,7 +269,7 @@ export const getMajorIndices = async (_req: Request, res: Response) => {
  */
 export const getIndexDetails = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { searchId } = req.params;
@@ -302,6 +303,42 @@ export const getIndexDetails = async (
     res.status(500).json({
       success: false,
       error: "Failed to fetch index details",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
+/**
+ * Get option chain data for an underlying instrument
+ */
+export const getOptionChain = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { searchId } = req.params;
+    if (!searchId) {
+      res.status(400).json({
+        success: false,
+        error: "searchId parameter is required",
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    const expiry = req.query.expiry as string | undefined;
+    const data = await fetchOptionChain(searchId, expiry);
+
+    res.json({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching option chain:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch option chain data",
       timestamp: new Date().toISOString(),
     });
   }

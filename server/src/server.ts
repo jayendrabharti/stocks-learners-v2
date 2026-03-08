@@ -22,11 +22,13 @@ import WatchlistRouter from "@/routers/watchlist";
 import TradingRouter from "@/routers/trading";
 import AccountRouter from "@/routers/account";
 import PortfolioRouter from "@/routers/portfolio";
+import StopLossRouter from "@/routers/stopLoss";
 import { scheduleDailyInstrumentSync } from "@/utils/instruments";
 import {
   initializeAutoSquareOffJobs,
   stopAutoSquareOffJobs,
 } from "@/jobs/autoSquareOffJob";
+import { initializeStopLossJob, stopStopLossJob } from "@/jobs/stopLossJob";
 import EventsRouter from "./routers/events";
 import EventTradingRouter from "./routers/eventTrading";
 import SettingsRouter from "./routers/settings";
@@ -104,6 +106,7 @@ app.use("/admin", AdminRouter);
 app.use("/contact", ContactRouter);
 app.use("/watchlist", WatchlistRouter);
 app.use("/trading", TradingRouter);
+app.use("/stop-loss", StopLossRouter);
 app.use("/account", AccountRouter);
 app.use("/portfolio", PortfolioRouter);
 app.use("/events", EventsRouter);
@@ -127,6 +130,7 @@ async function gracefulShutdown(signal: string) {
 
   // Stop background jobs
   stopAutoSquareOffJobs();
+  stopStopLossJob();
   console.log("Background jobs stopped");
 
   // Close active connections with timeout
@@ -191,6 +195,9 @@ server = app.listen(PORT as number, "0.0.0.0", () => {
 
   initializeAutoSquareOffJobs();
   console.log("⏰ Auto square-off scheduler initialized");
+
+  initializeStopLossJob();
+  console.log("🛑 Stop loss monitoring job initialized");
 });
 
 // Track connections for graceful shutdown

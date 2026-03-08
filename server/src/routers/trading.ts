@@ -10,6 +10,7 @@ import {
   getPositions,
   getPositionById,
   getTransactions,
+  executeBasketOrder,
 } from "@/controllers/trading";
 import validToken from "@/middlewares/validToken";
 import rateLimit from "express-rate-limit";
@@ -47,6 +48,13 @@ TradingRouter.post("/buy", tradingLimiter, buyOrder);
  * Body: { instrumentId, qty, product, limitPrice? }
  */
 TradingRouter.post("/sell", tradingLimiter, sellOrder);
+
+/**
+ * POST /trading/basket
+ * Execute a basket of orders (multiple at once)
+ * Body: { orders: [{ exchangeToken, qty, product, side }] }
+ */
+TradingRouter.post("/basket", tradingLimiter, executeBasketOrder);
 
 /**
  * GET /trading/positions

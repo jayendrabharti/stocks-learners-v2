@@ -112,3 +112,8 @@ export type EventTransaction = Prisma.EventTransactionModel
  * 
  */
 export type EventPositionLot = Prisma.EventPositionLotModel
+/**
+ * Model StopLossOrder
+ * 
+ */
+export type StopLossOrder = Prisma.StopLossOrderModel

@@ -35,6 +35,7 @@ model User {
   positions          Position[]
   eventRegistrations EventRegistration[]
   payments           Payment[]
+  stopLossOrders     StopLossOrder[]
 
   @@map("users")
 }
@@ -231,6 +232,7 @@ model Position {
 
   transactions Transaction[]
   lots         PositionLot[]
+  stopLossOrders StopLossOrder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -540,6 +542,45 @@ model EventPositionLot {
 }
 
 // -------------------------------------
+// STOP LOSS ORDERS
+// -------------------------------------
+
+model StopLossOrder {
+  id String @id @default(cuid())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  position   Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  positionId String
+
+  /// The trigger price at which the stop loss order should execute
+  triggerPrice Decimal @db.Decimal(20, 4)
+
+  /// Quantity to sell when triggered (0 = sell entire position)
+  qty Int @default(0)
+
+  status StopLossStatus @default(ACTIVE)
+
+  /// Filled transaction ID (set after execution)
+  transactionId String?
+
+  /// Actual executed price when triggered
+  executedPrice Decimal? @db.Decimal(20, 4)
+
+  /// Error message if execution failed
+  errorMessage String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  triggeredAt DateTime?
+
+  @@index([status])
+  @@index([userId, status])
+  @@map("stop_loss_orders")
+}
+
+// -------------------------------------
 // ENUMS
 // -------------------------------------
 
@@ -607,5 +648,13 @@ enum PaymentStatus {
 enum RegistrationStatus {
   PENDING
   CONFIRMED
+  CANCELLED
+}
+
+enum StopLossStatus {
+  ACTIVE
+  TRIGGERED
+  EXECUTED
+  FAILED
   CANCELLED
 }
