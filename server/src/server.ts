@@ -27,7 +27,6 @@ import {
   initializeAutoSquareOffJobs,
   stopAutoSquareOffJobs,
 } from "@/jobs/autoSquareOffJob";
-import PaymentRouter from "./routers/payment";
 import EventsRouter from "./routers/events";
 import EventTradingRouter from "./routers/eventTrading";
 import SettingsRouter from "./routers/settings";
@@ -47,7 +46,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const GRACEFUL_SHUTDOWN_TIMEOUT = parseInt(
   process.env.GRACEFUL_SHUTDOWN_TIMEOUT || "30000",
-  10
+  10,
 );
 
 // Track active connections for graceful shutdown
@@ -57,7 +56,7 @@ let activeConnections = new Set<any>();
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
-  })
+  }),
 );
 
 app.use(
@@ -70,7 +69,7 @@ app.use(
             return callback(null, origin);
           },
     credentials: true,
-  })
+  }),
 );
 
 // Reject new requests during shutdown
@@ -107,7 +106,6 @@ app.use("/watchlist", WatchlistRouter);
 app.use("/trading", TradingRouter);
 app.use("/account", AccountRouter);
 app.use("/portfolio", PortfolioRouter);
-app.use("/payment", PaymentRouter);
 app.use("/events", EventsRouter);
 app.use("/events", EventTradingRouter);
 app.use("/settings", SettingsRouter);
@@ -139,7 +137,7 @@ async function gracefulShutdown(signal: string) {
     }
 
     console.log(
-      `Waiting for ${activeConnections.size} active connections to close...`
+      `Waiting for ${activeConnections.size} active connections to close...`,
     );
 
     // Force close connections after timeout

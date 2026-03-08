@@ -29,7 +29,7 @@ export interface FIFOMatchResult {
 export function matchLotsForSell(
   lots: PositionLot[],
   sellQty: number,
-  sellPrice: number
+  sellPrice: number,
 ): FIFOMatchResult {
   const consumptions: LotConsumption[] = [];
   let remainingSellQty = sellQty;
@@ -38,7 +38,7 @@ export function matchLotsForSell(
 
   // Sort lots by creation time to ensure FIFO
   const sortedLots = [...lots].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
   for (const lot of sortedLots) {
@@ -53,7 +53,7 @@ export function matchLotsForSell(
     const realizedPnL = calculateRealizedPnL(
       lot.buyPrice,
       sellPrice,
-      consumedQty
+      consumedQty,
     );
 
     consumptions.push({
@@ -71,7 +71,7 @@ export function matchLotsForSell(
   // Validate that we consumed the full sell quantity
   if (remainingSellQty > 0) {
     throw new Error(
-      `Insufficient quantity in lots. Remaining: ${remainingSellQty}`
+      `Insufficient quantity in lots. Remaining: ${remainingSellQty}`,
     );
   }
 
@@ -88,13 +88,13 @@ export function matchLotsForSell(
  * @param sellQty - Quantity to sell
  * @returns True if sufficient quantity exists
  */
-export function hassufficientQuantity(
+export function hasSufficientQuantity(
   lots: PositionLot[],
-  sellQty: number
+  sellQty: number,
 ): boolean {
   const totalAvailableQty = lots.reduce(
     (sum, lot) => sum + lot.remainingQty,
-    0
+    0,
   );
   return totalAvailableQty >= sellQty;
 }

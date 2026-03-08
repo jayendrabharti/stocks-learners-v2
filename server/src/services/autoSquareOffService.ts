@@ -33,7 +33,7 @@ export const getNextMarketCloseTime = async (): Promise<Date> => {
         const [closeHours, closeMinutes] =
           todayTiming.marketCloseTime.split(":");
         const todayCloseTime = new Date(
-          `${today}T${closeHours}:${closeMinutes}:00+05:30`
+          `${today}T${closeHours}:${closeMinutes}:00+05:30`,
         );
 
         // If current time is before today's close, return today's close
@@ -93,7 +93,7 @@ export const getNextMarketCloseTime = async (): Promise<Date> => {
  */
 const executeSquareOff = async (
   positionId: string,
-  closePrice: number
+  closePrice: number,
 ): Promise<void> => {
   const position = await prisma.position.findUnique({
     where: { id: positionId },
@@ -113,7 +113,7 @@ const executeSquareOff = async (
   }
 
   console.log(
-    `Executing auto square-off for position ${positionId}, qty: ${position.qty}, price: ${closePrice}`
+    `Executing auto square-off for position ${positionId}, qty: ${position.qty}, price: ${closePrice}`,
   );
 
   // Execute all operations in a transaction for atomicity
@@ -171,7 +171,7 @@ const executeSquareOff = async (
         qty: 0,
         isOpen: false,
         realizedPnl: toDecimal(
-          fromDecimal(position.realizedPnl) + totalRealizedPnl
+          fromDecimal(position.realizedPnl) + totalRealizedPnl,
         ),
         autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
       },
@@ -183,7 +183,7 @@ const executeSquareOff = async (
         sum +
         (fromDecimal(lot.buyPrice) * lot.remainingQty) /
           position.instrument.leverage,
-      0
+      0,
     );
 
     // Update user account
@@ -197,7 +197,7 @@ const executeSquareOff = async (
     });
 
     console.log(
-      `Auto square-off completed for position ${positionId}. Realized P&L: ${totalRealizedPnl}`
+      `Auto square-off completed for position ${positionId}. Realized P&L: ${totalRealizedPnl}`,
     );
   });
 };
@@ -266,7 +266,7 @@ export const processPendingSquareOffs = async (): Promise<void> => {
     });
 
     console.log(
-      `Found ${pendingPositions.length} main positions and ${pendingEventPositions.length} event positions to square off`
+      `Found ${pendingPositions.length} main positions and ${pendingEventPositions.length} event positions to square off`,
     );
 
     // Process main account positions
@@ -312,7 +312,7 @@ export const processPendingSquareOffs = async (): Promise<void> => {
       } catch (error: any) {
         console.error(
           `Error squaring off event position ${position.id}:`,
-          error
+          error,
         );
         await prisma.eventPosition.update({
           where: { id: position.id },
@@ -335,7 +335,7 @@ export const processPendingSquareOffs = async (): Promise<void> => {
  */
 async function determineSquareOffPrice(
   position: any,
-  now: Date
+  now: Date,
 ): Promise<number> {
   const squareOffTime = position.autoSquareOffAt;
   const timeDiff = now.getTime() - (squareOffTime?.getTime() || 0);
@@ -344,11 +344,11 @@ async function determineSquareOffPrice(
   const totalValue = position.lots.reduce(
     (sum: number, lot: any) =>
       sum + fromDecimal(lot.buyPrice) * lot.remainingQty,
-    0
+    0,
   );
   const totalQty = position.lots.reduce(
     (sum: number, lot: any) => sum + lot.remainingQty,
-    0
+    0,
   );
   const avgBuyPrice = totalQty > 0 ? totalValue / totalQty : 0;
 
@@ -395,17 +395,18 @@ async function determineSquareOffPrice(
  */
 async function executeEventSquareOff(
   position: any,
-  closePrice: number
+  closePrice: number,
 ): Promise<void> {
   console.log(
-    `Executing auto square-off for event position ${position.id}, qty: ${position.qty}, price: ${closePrice}`
+    `Executing auto square-off for event position ${position.id}, qty: ${position.qty}, price: ${closePrice}`,
   );
 
   await prisma.$transaction(async (tx) => {
     // Calculate realized P&L
     let totalRealizedPnl = 0;
     for (const lot of position.lots) {
-      const pnlFromLot = (closePrice - lot.buyPrice) * lot.remainingQty;
+      const pnlFromLot =
+        (closePrice - fromDecimal(lot.buyPrice)) * lot.remainingQty;
       totalRealizedPnl += pnlFromLot;
     }
 
@@ -417,10 +418,10 @@ async function executeEventSquareOff(
         side: "SELL",
         product: position.product,
         qty: position.qty,
-        price: closePrice,
-        realizedPnl: totalRealizedPnl,
+        price: toDecimal(closePrice),
+        realizedPnl: toDecimal(totalRealizedPnl),
         positionId: position.id,
-        fees: 0,
+        fees: toDecimal(0),
       },
     });
 
@@ -438,7 +439,9 @@ async function executeEventSquareOff(
       data: {
         qty: 0,
         isOpen: false,
-        realizedPnl: position.realizedPnl + totalRealizedPnl,
+        realizedPnl: toDecimal(
+          fromDecimal(position.realizedPnl) + totalRealizedPnl,
+        ),
         autoSquareOffStatus: AutoSquareOffStatus.COMPLETED,
       },
     });
@@ -446,8 +449,10 @@ async function executeEventSquareOff(
     // Calculate and release margin
     const releasedMargin = position.lots.reduce(
       (sum: number, lot: any) =>
-        sum + (lot.buyPrice * lot.remainingQty) / position.instrument.leverage,
-      0
+        sum +
+        (fromDecimal(lot.buyPrice) * lot.remainingQty) /
+          position.instrument.leverage,
+      0,
     );
 
     // Update event account
@@ -470,7 +475,7 @@ async function executeEventSquareOff(
  */
 export const setAutoSquareOffTime = async (
   positionId: string,
-  isEventPosition: boolean = false
+  isEventPosition: boolean = false,
 ): Promise<void> => {
   try {
     const nextCloseTime = await getNextMarketCloseTime();
@@ -496,12 +501,12 @@ export const setAutoSquareOffTime = async (
     console.log(
       `Set auto square-off time for ${
         isEventPosition ? "event " : ""
-      }position ${positionId} to ${nextCloseTime.toISOString()}`
+      }position ${positionId} to ${nextCloseTime.toISOString()}`,
     );
   } catch (error) {
     console.error(
       `Error setting auto square-off time for position ${positionId}:`,
-      error
+      error,
     );
   }
 };

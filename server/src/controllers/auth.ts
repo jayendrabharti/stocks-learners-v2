@@ -23,29 +23,33 @@ import axios from "axios";
 export const generateTokens = async (
   req: Request,
   res: Response,
-  user: UserModel
+  user: UserModel,
 ) => {
   const clientRefreshToken =
     req.cookies?.refreshToken || req.headers["refresh-token"];
 
   if (clientRefreshToken) {
-    jwt.verify(clientRefreshToken, refreshSecret);
+    try {
+      jwt.verify(clientRefreshToken, refreshSecret);
 
-    if (
-      await prisma.refreshToken.findUnique({
-        where: {
-          token: clientRefreshToken,
-        },
-      })
-    ) {
-      await prisma.refreshToken.update({
-        where: {
-          token: clientRefreshToken,
-        },
-        data: {
-          isRevoked: true,
-        },
-      });
+      if (
+        await prisma.refreshToken.findUnique({
+          where: {
+            token: clientRefreshToken,
+          },
+        })
+      ) {
+        await prisma.refreshToken.update({
+          where: {
+            token: clientRefreshToken,
+          },
+          data: {
+            isRevoked: true,
+          },
+        });
+      }
+    } catch {
+      // Old refresh token is expired/invalid — safe to ignore
     }
   }
 
@@ -58,7 +62,7 @@ export const generateTokens = async (
     refreshSecret,
     {
       expiresIn: refreshTokenExpiry as StringValue,
-    }
+    },
   );
 
   const clientInfo = {
@@ -116,7 +120,23 @@ export const updateUser = async (req: Request, res: Response) => {
         },
       });
     }
-    const updatedData = req.body;
+
+    // Whitelist only safe fields to prevent privilege escalation
+    const allowedFields = ["name", "phone", "avatar", "dateOfBirth"] as const;
+    const updatedData: Record<string, unknown> = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updatedData[field] = req.body[field];
+      }
+    }
+
+    if (Object.keys(updatedData).length === 0) {
+      return res.status(400).json({
+        error: {
+          message: "No valid fields to update",
+        },
+      });
+    }
 
     const user = await prisma.user.update({
       where: { id: req.user.id },
@@ -150,7 +170,7 @@ export const refreshUserToken = async (req: Request, res: Response) => {
     jwt.verify(clientRefreshToken, refreshSecret);
     const { id: userId } = jwt.verify(
       clientRefreshToken,
-      refreshSecret
+      refreshSecret,
     ) as RefreshTokenPayload;
 
     const dbRefreshToken = await prisma.refreshToken.findUnique({
@@ -158,14 +178,14 @@ export const refreshUserToken = async (req: Request, res: Response) => {
       include: { user: true },
     });
 
-    if (!dbRefreshToken?.user) {
+    if (!dbRefreshToken?.user || dbRefreshToken.isRevoked) {
       throw new Error("Invalid refresh token");
     }
 
     const { accessToken, refreshToken } = await generateTokens(
       req,
       res,
-      dbRefreshToken.user
+      dbRefreshToken.user,
     );
 
     return res.status(200).json({
@@ -199,7 +219,7 @@ export const getNewAccessToken = async (req: Request, res: Response) => {
 
     const { id: userId } = jwt.verify(
       clientRefreshToken,
-      refreshSecret
+      refreshSecret,
     ) as RefreshTokenPayload;
 
     const dbRefreshToken = await prisma.refreshToken.findUnique({
@@ -207,14 +227,14 @@ export const getNewAccessToken = async (req: Request, res: Response) => {
       include: { user: true },
     });
 
-    if (!dbRefreshToken?.user) {
+    if (!dbRefreshToken?.user || dbRefreshToken.isRevoked) {
       throw new Error("Invalid refresh token");
     }
 
     const { accessToken, refreshToken } = await generateTokens(
       req,
       res,
-      dbRefreshToken.user
+      dbRefreshToken.user,
     );
 
     return res.status(200).json({
@@ -365,7 +385,7 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
         headers: {
           Authorization: `Bearer ${id_token}`,
         },
-      }
+      },
     );
     const { email, name, picture } = GoogleUserInfo as {
       email: string;
@@ -392,8 +412,8 @@ export const googleAuthCallback = async (req: Request, res: Response) => {
     console.error("Google Auth Callback Error:", error);
     return res.redirect(
       encodeURI(
-        `${clientBaseUrl}/login?error=Failed to authenticate with Google`
-      )
+        `${clientBaseUrl}/login?error=Failed to authenticate with Google`,
+      ),
     );
   }
 };
@@ -403,11 +423,13 @@ export const logoutUser = async (req: Request, res: Response) => {
     const clientRefreshToken =
       req.cookies?.refreshToken || req.headers["refresh-token"];
 
-    await prisma.refreshToken.delete({
-      where: {
-        token: clientRefreshToken,
-      },
-    });
+    if (clientRefreshToken) {
+      await prisma.refreshToken.deleteMany({
+        where: {
+          token: clientRefreshToken,
+        },
+      });
+    }
 
     res
       .clearCookie("accessToken", accessTokenCookieOptions)

@@ -21,9 +21,6 @@ export const CHART_MARGIN = {
   bottom: 10,
 };
 
-// Payment Constants
-export const RAZORPAY_AMOUNT_MULTIPLIER = 100; // Razorpay uses paise
-
 // Timestamp Constants
 export const MILLISECONDS_THRESHOLD = 1e12; // 1 trillion - used to determine if timestamp is in ms or seconds
 export const SECONDS_TO_MS_MULTIPLIER = 1000;

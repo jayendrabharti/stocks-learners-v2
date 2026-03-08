@@ -182,16 +182,16 @@ export const ErrorActions: Partial<
   [ErrorCode.AUTH_UNAUTHORIZED]: { label: "Log In", href: "/login" },
   [ErrorCode.AUTH_TOKEN_EXPIRED]: { label: "Log In", href: "/login" },
   [ErrorCode.TRADING_INSUFFICIENT_FUNDS]: {
-    label: "Add Funds",
-    href: "/add-funds",
+    label: "Contact Admin",
+    href: "/contact",
   },
   [ErrorCode.TRADING_INSUFFICIENT_MARGIN]: {
-    label: "Add Funds",
-    href: "/add-funds",
+    label: "Contact Admin",
+    href: "/contact",
   },
   [ErrorCode.ACCOUNT_INSUFFICIENT_BALANCE]: {
-    label: "Add Funds",
-    href: "/add-funds",
+    label: "Contact Admin",
+    href: "/contact",
   },
   [ErrorCode.EVENT_REGISTRATION_CLOSED]: {
     label: "View Other Events",
@@ -227,7 +227,7 @@ export class AppError extends Error {
   constructor(
     code: ErrorCode,
     customMessage?: string,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     const message = customMessage || ErrorMessages[code];
     super(message);
@@ -270,7 +270,7 @@ export function isAppError(error: unknown): error is AppError {
  */
 export function createAppError(
   error: unknown,
-  defaultCode: ErrorCode = ErrorCode.SERVER_ERROR
+  defaultCode: ErrorCode = ErrorCode.SERVER_ERROR,
 ): AppError {
   if (isAppError(error)) {
     return error;
@@ -295,7 +295,7 @@ export function createAppError(
     ) {
       return new AppError(
         ErrorCode.TRADING_INSUFFICIENT_QUANTITY,
-        error.message
+        error.message,
       );
     }
     if (message.includes("not found")) {
@@ -329,7 +329,7 @@ export function createAppError(
  */
 export function handleControllerError(
   error: unknown,
-  defaultCode: ErrorCode = ErrorCode.SERVER_ERROR
+  defaultCode: ErrorCode = ErrorCode.SERVER_ERROR,
 ): { statusCode: number; body: ReturnType<AppError["toJSON"]> } {
   const appError = createAppError(error, defaultCode);
   console.error(`[${appError.code}] ${appError.message}`, error);

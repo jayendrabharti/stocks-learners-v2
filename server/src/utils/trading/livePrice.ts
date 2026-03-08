@@ -4,6 +4,7 @@
  */
 
 import { fetchHistoricalData, fetchLiveData } from "@/services";
+import { livePriceCache, generatePriceCacheKey } from "./priceCache";
 import type {
   Exchange,
   InstrumentType,
@@ -33,7 +34,7 @@ export async function getLivePrice(
   scriptCode: string,
   exchange: Exchange,
   type: InstrumentType,
-  exchangeToken?: string
+  exchangeToken?: string,
 ): Promise<number> {
   try {
     // For BSE equity/index, use exchange token as script code
@@ -41,6 +42,18 @@ export async function getLivePrice(
       exchange === "BSE" && (type === "EQ" || type === "IDX") && exchangeToken
         ? exchangeToken
         : scriptCode;
+
+    // Check cache first
+    const cacheKey = generatePriceCacheKey(
+      effectiveScriptCode,
+      exchange,
+      type,
+      exchangeToken || "",
+    );
+    const cachedPrice = livePriceCache.get(cacheKey);
+    if (cachedPrice !== null) {
+      return cachedPrice;
+    }
 
     const result = await fetchLiveData({
       scriptCode: effectiveScriptCode,
@@ -73,7 +86,7 @@ export async function getLivePrice(
         // Log and continue with zero so trading can still proceed in simulation
         console.error(
           `Historical fallback failed for ${effectiveScriptCode}:`,
-          fallbackError
+          fallbackError,
         );
       }
     }
@@ -82,12 +95,15 @@ export async function getLivePrice(
       throw new Error(`Unable to fetch live price for ${scriptCode}`);
     }
 
+    // Store in cache
+    livePriceCache.set(cacheKey, ltp);
+
     return ltp;
   } catch (error) {
     throw new Error(
       `Failed to fetch live price: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }
@@ -103,7 +119,7 @@ export async function getLivePrice(
 export async function getLiveMarketData(
   scriptCode: string,
   exchange: Exchange,
-  type: InstrumentType
+  type: InstrumentType,
 ): Promise<LivePriceData> {
   try {
     const result = await fetchLiveData({
@@ -128,7 +144,7 @@ export async function getLiveMarketData(
     throw new Error(
       `Failed to fetch live market data: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 }
@@ -144,7 +160,7 @@ export async function getBulkLivePrices(
     exchange: Exchange;
     type: InstrumentType;
     exchangeToken?: string;
-  }>
+  }>,
 ): Promise<Map<string, number>> {
   const priceMap = new Map<string, number>();
 
@@ -154,13 +170,13 @@ export async function getBulkLivePrices(
         instrument.tradingSymbol,
         instrument.exchange,
         instrument.type,
-        instrument.exchangeToken
+        instrument.exchangeToken,
       );
       priceMap.set(instrument.tradingSymbol, ltp);
     } catch (error) {
       console.error(
         `Failed to fetch price for ${instrument.tradingSymbol}:`,
-        error
+        error,
       );
       priceMap.set(instrument.tradingSymbol, 0);
     }

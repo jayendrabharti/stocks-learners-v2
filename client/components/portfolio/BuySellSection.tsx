@@ -168,8 +168,8 @@ export function BuySellSection({
         errorCode === "ACCOUNT_INSUFFICIENT_BALANCE"
       ) {
         action = {
-          label: "Add Funds",
-          href: "/add-funds",
+          label: "Contact Admin",
+          href: "/contact",
         };
       } else if (errorAction?.href) {
         action = errorAction;

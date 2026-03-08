@@ -13,20 +13,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  ArrowLeft,
-  CreditCard,
-  Trophy,
-  TrendingUp,
-  ExternalLink,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, Loader2 } from "lucide-react";
 import AuthGuard from "@/auth/AuthGuard";
 
 export default function RegisterPage() {
   const params = useParams();
   const router = useRouter();
-  const eventId = params.slug as string; // Using slug from params
+  const eventId = params.slug as string;
 
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,31 +53,20 @@ export default function RegisterPage() {
 
     setIsProcessing(true);
     try {
-      // Create payment link
       const response = await eventsApi.registerForEvent(event.id);
 
-      // For free events, registration is immediate
       if (response.registration) {
-        toast.success("Successfully registered for free event!");
+        toast.success("Successfully registered for the event!");
         router.push(`/events/${event.slug}`);
-        return;
-      }
-
-      // For paid events, redirect to Razorpay payment link
-      if (response.payment?.paymentUrl) {
-        toast.info("Redirecting to payment page...");
-        // Open in same window - Razorpay will redirect back after payment
-        window.location.href = response.payment.paymentUrl;
-      } else {
-        throw new Error("Payment URL not received");
       }
     } catch (error: any) {
-      console.error("Error initiating registration:", error);
+      console.error("Error registering for event:", error);
       const errorMessage =
         error.response?.data?.error?.message ||
         error.message ||
-        "Failed to initiate registration";
+        "Failed to register for event";
       toast.error(errorMessage);
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -162,16 +144,6 @@ export default function RegisterPage() {
               <span>{event.title}</span>
             </div>
 
-            <div className="flex items-center justify-between border-b py-3">
-              <div className="flex items-center gap-2">
-                <CreditCard className="text-muted-foreground h-5 w-5" />
-                <span className="font-medium">Registration Fee</span>
-              </div>
-              <span className="text-lg font-bold">
-                ₹{event.registrationFee}
-              </span>
-            </div>
-
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="text-muted-foreground h-5 w-5" />
@@ -188,7 +160,6 @@ export default function RegisterPage() {
         <Alert className="mb-6">
           <AlertDescription>
             <ul className="list-inside list-disc space-y-1 text-sm">
-              <li>Your payment will be processed securely through Razorpay</li>
               <li>A separate trading account will be created for this event</li>
               <li>
                 You can switch between your main account and event accounts
@@ -200,7 +171,7 @@ export default function RegisterPage() {
           </AlertDescription>
         </Alert>
 
-        {/* Payment Button */}
+        {/* Register Button */}
         <Button
           size="lg"
           className="w-full"
@@ -210,17 +181,12 @@ export default function RegisterPage() {
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Redirecting to payment...
-            </>
-          ) : event.registrationFee === 0 ? (
-            <>
-              <Trophy className="mr-2 h-5 w-5" />
-              Register for Free
+              Registering...
             </>
           ) : (
             <>
-              <ExternalLink className="mr-2 h-5 w-5" />
-              Pay ₹{event.registrationFee} & Register
+              <Trophy className="mr-2 h-5 w-5" />
+              Register
             </>
           )}
         </Button>
